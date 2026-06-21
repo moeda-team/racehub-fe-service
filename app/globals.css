@@ -1,0 +1,604 @@
+@import "tailwindcss";
+
+/* === RaceHub Design Tokens (from Design System v1.0) === */
+
+@theme inline {
+  /* --- Brand Colors --- */
+  --color-flame: #f5471d;
+  --color-flame-700: #ce3611;
+  --color-flame-300: #ff8a66;
+  --color-flame-tint: #ffeae2;
+  --color-sprint: #2456e6;
+  --color-sprint-tint: #e6edff;
+
+  /* --- Ink Colors --- */
+  --color-ink: #14181f;
+  --color-ink-2: #374050;
+  --color-ink-3: #6b7686;
+  --color-ink-4: #9aa4b2;
+
+  /* --- Surface & Line Colors --- */
+  --color-line: #e3e6e0;
+  --color-line-2: #d2d6ce;
+  --color-paper: #f6f7f4;
+  --color-surface: #ffffff;
+  --color-panel: #eff1ec;
+
+  /* --- Semantic Colors --- */
+  --color-ok: #12824b;
+  --color-ok-tint: #e1f4e8;
+  --color-warn: #a9650a;
+  --color-warn-tint: #fbefd8;
+  --color-danger: #c9342b;
+  --color-danger-tint: #fbe6e4;
+  --color-neutral: #5b6470;
+  --color-neutral-tint: #eceeea;
+
+  /* --- Fonts --- */
+  --font-display: "Saira", sans-serif;
+  --font-body: "Hanken Grotesk", sans-serif;
+  --font-mono: "Spline Sans Mono", monospace;
+
+  /* --- Radius --- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 999px;
+
+  /* --- Spacing Base --- */
+  --spacing-base: 4px;
+
+  /* --- Shadows --- */
+  --shadow-sh-1: 0 1px 2px rgba(20, 24, 31, 0.06);
+  --shadow-sh-2: 0 2px 8px rgba(20, 24, 31, 0.08);
+  --shadow-sh-3: 0 8px 24px rgba(20, 24, 31, 0.12);
+  --shadow-sh-flame: 0 4px 12px rgba(245, 71, 29, 0.3);
+}
+
+/* === Base Styles === */
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+}
+
+/* === Utility Classes === */
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.mono-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* === Design System Component Styles === */
+
+/* Button variants */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: all 150ms ease;
+  cursor: pointer;
+  border: none;
+  gap: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--color-flame);
+  color: white;
+  box-shadow: var(--shadow-sh-flame);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-flame-700);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-paper);
+  border-color: var(--color-line-2);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-ink-2);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-panel);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #a82a22;
+}
+
+/* Button sizes */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.btn-md {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 18px;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.badge-ok {
+  background-color: var(--color-ok-tint);
+  color: var(--color-ok);
+}
+
+.badge-ok::before {
+  background-color: var(--color-ok);
+}
+
+.badge-warn {
+  background-color: var(--color-warn-tint);
+  color: var(--color-warn);
+}
+
+.badge-warn::before {
+  background-color: var(--color-warn);
+}
+
+.badge-danger {
+  background-color: var(--color-danger-tint);
+  color: var(--color-danger);
+}
+
+.badge-danger::before {
+  background-color: var(--color-danger);
+}
+
+.badge-neutral {
+  background-color: var(--color-neutral-tint);
+  color: var(--color-neutral);
+}
+
+.badge-neutral::before {
+  background-color: var(--color-neutral);
+}
+
+.badge-flame {
+  background-color: var(--color-flame-tint);
+  color: var(--color-flame);
+}
+
+.badge-flame::before {
+  background-color: var(--color-flame);
+}
+
+.badge-sprint {
+  background-color: var(--color-sprint-tint);
+  color: var(--color-sprint);
+}
+
+.badge-sprint::before {
+  background-color: var(--color-sprint);
+}
+
+/* Field */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-ink-2);
+}
+
+.field-input {
+  padding: 12px 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  background-color: var(--color-surface);
+  transition: border-color 150ms ease;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-sprint);
+  box-shadow: 0 0 0 3px var(--color-sprint-tint);
+}
+
+.field-input:disabled {
+  background-color: var(--color-panel);
+  cursor: not-allowed;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+
+.field-error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+.field-input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.field-input[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px var(--color-danger-tint);
+}
+
+/* Alert */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.alert-warn {
+  background-color: var(--color-warn-tint);
+  color: var(--color-warn);
+  border: 1px solid var(--color-warn);
+}
+
+.alert-danger {
+  background-color: var(--color-danger-tint);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.alert-info {
+  background-color: var(--color-sprint-tint);
+  color: var(--color-sprint);
+  border: 1px solid var(--color-sprint);
+}
+
+/* Stat Card */
+.stat {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  border: 1px solid var(--color-line);
+}
+
+.stat-accent {
+  background-color: var(--color-ink);
+  color: white;
+  border: none;
+}
+
+.stat-lab {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-accent .stat-lab {
+  color: var(--color-ink-4);
+}
+
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.stat-delta {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.stat-delta-up {
+  color: var(--color-ok);
+}
+
+.stat-delta-flat {
+  color: var(--color-ink-4);
+}
+
+/* Event Card */
+.evcard {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  transition: box-shadow 150ms ease;
+}
+
+.evcard:hover {
+  box-shadow: var(--shadow-sh-2);
+}
+
+.evcard-top {
+  height: 120px;
+  background: linear-gradient(135deg, var(--color-flame) 0%, var(--color-flame-300) 100%);
+}
+
+.evcard-body {
+  padding: 16px;
+}
+
+.evcard-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.evcard-meta {
+  font-size: 14px;
+  color: var(--color-ink-3);
+  margin-top: 4px;
+}
+
+.evcard-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.evcard-price {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-flame);
+  margin-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.evcard-quota {
+  margin-top: 12px;
+}
+
+.evcard-quota-bar {
+  height: 6px;
+  background-color: var(--color-panel);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.evcard-quota-fill {
+  height: 100%;
+  background-color: var(--color-ok);
+  border-radius: var(--radius-pill);
+  transition: width 300ms ease;
+}
+
+.evcard-quota-text {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  margin-top: 4px;
+}
+
+/* Pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--color-panel);
+  color: var(--color-ink-2);
+}
+
+/* Payment Breakdown */
+.pay {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  border: 1px solid var(--color-line);
+}
+
+.pay-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.pay-method {
+  margin-bottom: 16px;
+}
+
+.pay-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.pay-line-lab {
+  color: var(--color-ink-2);
+}
+
+.pay-line-val {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-total {
+  border-top: 2px solid var(--color-ink);
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.pay-total .pay-line-lab {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.pay-total .pay-line-val {
+  font-weight: 700;
+  color: var(--color-flame);
+  font-size: 18px;
+}
+
+/* Ticket */
+.ticket {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  display: grid;
+  grid-template-columns: 1fr 200px;
+}
+
+@media (max-width: 640px) {
+  .ticket {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ticket-info {
+  padding: 24px;
+}
+
+.ticket-stub {
+  background-color: var(--color-panel);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px dashed var(--color-line);
+}
+
+@media (max-width: 640px) {
+  .ticket-stub {
+    border-left: none;
+    border-top: 1px dashed var(--color-line);
+  }
+}
+
+.ticket-bib {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--color-flame);
+}
+
+.ticket-qr {
+  width: 120px;
+  height: 120px;
+  background-color: var(--color-line);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--color-ink-3);
+  margin-top: 12px;
+}
+
+.ticket-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ticket-grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ticket-grid-lab {
+  font-size: 12px;
+  color: var(--color-ink-3);
+}
+
+.ticket-grid-val {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Data Table */
+.dtable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dtable th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-3);
+  border-bottom: 2px solid var(--color-line);
+}
+
+.dtable td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.dtable tr:hover td {
+  background-color: var(--color-paper);
+}
+
+.dtable .bibcol {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-flame);
+}
+
+.dtable .mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

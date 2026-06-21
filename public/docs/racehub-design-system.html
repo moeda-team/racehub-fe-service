@@ -1,0 +1,794 @@
+<!-- RaceHub Design System — living style guide -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RaceHub · Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* ---- core palette ---- */
+  --ink:#14181F;
+  --ink-2:#374050;
+  --ink-3:#6B7686;
+  --ink-4:#9AA4B2;
+  --line:#E3E6E0;
+  --line-2:#D2D6CE;
+  --paper:#F6F7F4;
+  --surface:#FFFFFF;
+  --panel:#EFF1EC;
+
+  /* ---- brand: Flame ---- */
+  --flame:#F5471D;
+  --flame-700:#CE3611;
+  --flame-300:#FF8A66;
+  --flame-tint:#FFEAE2;
+
+  /* ---- info: Sprint blue ---- */
+  --sprint:#2456E6;
+  --sprint-tint:#E6EDFF;
+
+  /* ---- semantic, mapped to real statuses ---- */
+  --ok:#12824B;        --ok-tint:#E1F4E8;     /* settlement / paid / collected */
+  --warn:#A9650A;      --warn-tint:#FBEFD8;   /* pending / cutoff dekat */
+  --danger:#C9342B;    --danger-tint:#FBE6E4; /* cancelled / expire / refund */
+  --neutral:#5B6470;   --neutral-tint:#ECEEEA;/* draft / non-aktif */
+
+  /* ---- type ---- */
+  --display:"Saira","Arial Narrow",sans-serif;
+  --body:"Hanken Grotesk",-apple-system,Segoe UI,sans-serif;
+  --mono:"Spline Sans Mono",ui-monospace,Menlo,monospace;
+
+  /* ---- radius ---- */
+  --r-xs:4px; --r-sm:8px; --r-md:12px; --r-lg:18px; --r-pill:999px;
+
+  /* ---- elevation ---- */
+  --sh-1:0 1px 2px rgba(20,24,31,.06), 0 1px 1px rgba(20,24,31,.04);
+  --sh-2:0 6px 18px -8px rgba(20,24,31,.18), 0 2px 6px rgba(20,24,31,.06);
+  --sh-3:0 24px 48px -18px rgba(20,24,31,.30);
+  --sh-flame:0 10px 24px -10px rgba(245,71,29,.55);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--body);color:var(--ink);background:var(--paper);
+  -webkit-font-smoothing:antialiased;line-height:1.55;font-size:16px;
+}
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;line-height:1.02;letter-spacing:-.01em;margin:0}
+a{color:inherit}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+section{padding:72px 0;border-top:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--flame-700);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--flame)}
+.sec-title{font-size:clamp(28px,4vw,42px);margin-bottom:10px}
+.sec-lead{color:var(--ink-2);max-width:62ch;font-size:17px;margin:0 0 36px}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(246,247,244,.82);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;gap:24px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);
+  font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand .dot{width:26px;height:26px;border-radius:7px;background:var(--flame);
+  display:grid;place-items:center;color:#fff;font-family:var(--mono);font-size:13px;
+  font-weight:600;box-shadow:var(--sh-flame)}
+.navlinks{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.navlinks a{font-size:13px;font-weight:600;color:var(--ink-2);text-decoration:none;
+  padding:6px 11px;border-radius:var(--r-pill);transition:.15s}
+.navlinks a:hover{background:var(--panel);color:var(--ink)}
+@media(max-width:760px){.navlinks{display:none}}
+
+/* ---------- hero ---------- */
+.hero{background:var(--ink);color:#fff;border-top:none;position:relative;overflow:hidden}
+.hero::after{ /* finish-París checker accent, used once */
+  content:"";position:absolute;right:-40px;top:-40px;width:260px;height:260px;opacity:.10;
+  transform:rotate(8deg);
+  background-image:linear-gradient(45deg,#fff 25%,transparent 25%,transparent 75%,#fff 75%),
+                   linear-gradient(45deg,#fff 25%,transparent 25%,transparent 75%,#fff 75%);
+  background-size:26px 26px;background-position:0 0,13px 13px;
+}
+.hero .wrap{position:relative;z-index:2}
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:center}
+@media(max-width:820px){.hero-grid{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(46px,8vw,92px);font-weight:800;letter-spacing:-.03em;line-height:.94}
+.hero h1 em{font-style:normal;color:var(--flame-300)}
+.hero p{color:#C7CDD6;font-size:18px;max-width:46ch;margin:22px 0 0}
+.hero-meta{display:flex;gap:28px;margin-top:34px;flex-wrap:wrap}
+.hero-meta div{border-left:2px solid var(--flame);padding-left:12px}
+.hero-meta .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-4)}
+.hero-meta .v{font-family:var(--display);font-weight:700;font-size:18px}
+/* BIB tag */
+.bib{background:#fff;color:var(--ink);border-radius:var(--r-md);padding:22px 26px 18px;
+  box-shadow:var(--sh-3);max-width:300px;margin-left:auto;border:1px solid rgba(0,0,0,.05)}
+.bib .bib-top{display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-3);
+  text-transform:uppercase;border-bottom:1px dashed var(--line-2);padding-bottom:8px}
+.bib .num{font-family:var(--display);font-weight:800;font-size:84px;letter-spacing:.02em;
+  text-align:center;line-height:1;margin:14px 0 6px;font-variant-numeric:tabular-nums}
+.bib .name{text-align:center;font-weight:700;font-size:15px}
+.bib .cat{text-align:center;font-family:var(--mono);font-size:11px;color:var(--flame-700);
+  letter-spacing:.08em;margin-top:2px}
+
+/* ---------- principles ---------- */
+.princ{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:900px){.princ{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.princ{grid-template-columns:1fr}}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:22px;box-shadow:var(--sh-1)}
+.pcard .pn{font-family:var(--mono);font-size:12px;color:var(--flame-700);font-weight:600}
+.pcard h4{font-size:18px;margin:8px 0 6px}
+.pcard p{margin:0;font-size:14px;color:var(--ink-2)}
+
+/* ---------- color ---------- */
+.swatch-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.sw{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--surface);
+  cursor:pointer;transition:.15s;box-shadow:var(--sh-1)}
+.sw:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.sw .chip{height:74px}
+.sw .meta{padding:10px 12px}
+.sw .meta .nm{font-weight:700;font-size:13px}
+.sw .meta .hx{font-family:var(--mono);font-size:12px;color:var(--ink-3);display:flex;
+  justify-content:space-between;align-items:center}
+.sw .meta .use{font-size:11px;color:var(--ink-3);margin-top:4px}
+.copy-flag{font-family:var(--mono);font-size:10px;color:var(--ok)}
+
+.status-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+.status-table th{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);padding:10px 12px;border-bottom:1px solid var(--line-2)}
+.status-table td{padding:12px;border-bottom:1px solid var(--line)}
+.status-table code{font-family:var(--mono);font-size:12.5px;background:var(--panel);
+  padding:2px 7px;border-radius:5px}
+
+/* ---------- badges ---------- */
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;
+  font-weight:600;letter-spacing:.03em;padding:4px 10px;border-radius:var(--r-pill);
+  text-transform:uppercase;line-height:1;white-space:nowrap}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.badge.ok{background:var(--ok-tint);color:var(--ok)}
+.badge.warn{background:var(--warn-tint);color:var(--warn)}
+.badge.danger{background:var(--danger-tint);color:var(--danger)}
+.badge.neutral{background:var(--neutral-tint);color:var(--neutral)}
+.badge.flame{background:var(--flame-tint);color:var(--flame-700)}
+.badge.sprint{background:var(--sprint-tint);color:var(--sprint)}
+.badge.square{border-radius:var(--r-xs)}
+.badge-grid{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ---------- type specimen ---------- */
+.type-spec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:28px;box-shadow:var(--sh-1)}
+.tline{display:flex;align-items:baseline;gap:18px;padding:14px 0;border-bottom:1px solid var(--line)}
+.tline:last-child{border-bottom:none}
+.tline .lab{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:110px;flex:none;letter-spacing:.06em}
+.tline .ex{flex:1;min-width:0}
+.fam{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:760px){.fam{grid-template-columns:1fr}}
+.famcard{border:1px solid var(--line);border-radius:var(--r-sm);padding:18px;background:var(--surface)}
+.famcard .big{font-size:40px;line-height:1;margin-bottom:8px}
+.famcard .role{font-family:var(--mono);font-size:11px;color:var(--flame-700);letter-spacing:.1em;text-transform:uppercase}
+.famcard .nm{font-weight:700;margin:4px 0 2px}
+.famcard .dt{font-size:13px;color:var(--ink-2)}
+
+/* ---------- components grid ---------- */
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:26px;box-shadow:var(--sh-1)}
+.demo + .demo{margin-top:18px}
+.demo-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:18px}
+.demo-h h4{font-size:19px}
+.demo-h .fr{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.demo-h .fr b{color:var(--flame-700);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.split{grid-template-columns:1fr}}
+.sublabel{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 10px}
+
+/* ---------- buttons ---------- */
+.btn{font-family:var(--body);font-weight:600;font-size:14px;border-radius:var(--r-sm);
+  padding:10px 18px;border:1px solid transparent;cursor:pointer;transition:.15s;
+  display:inline-flex;align-items:center;gap:8px;line-height:1.2}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--flame);color:#fff;box-shadow:var(--sh-flame)}
+.btn-primary:hover{background:var(--flame-700)}
+.btn-secondary{background:var(--ink);color:#fff}
+.btn-secondary:hover{background:#000}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+.btn-ghost:hover{background:var(--panel)}
+.btn-danger{background:var(--danger-tint);color:var(--danger);border-color:transparent}
+.btn-danger:hover{background:#F6D6D3}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+.btn-lg{padding:14px 24px;font-size:15.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+
+/* ---------- forms ---------- */
+.field{margin-bottom:16px}
+.field label{display:block;font-weight:600;font-size:13.5px;margin-bottom:6px}
+.field .hint{font-size:12px;color:var(--ink-3);margin-top:5px}
+.input,.select{width:100%;font-family:var(--body);font-size:14.5px;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-sm);
+  padding:11px 13px;transition:.15s;outline:none}
+.input:focus,.select:focus{border-color:var(--flame);box-shadow:0 0 0 3px var(--flame-tint)}
+.input.err{border-color:var(--danger);box-shadow:0 0 0 3px var(--danger-tint)}
+.errmsg{color:var(--danger);font-size:12px;margin-top:5px;font-weight:600}
+.input-money{position:relative}
+.input-money .pre{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);color:var(--ink-3);font-size:14px}
+.input-money .input{padding-left:38px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- alerts ---------- */
+.alert{display:flex;gap:12px;border-radius:var(--r-sm);padding:14px 16px;font-size:14px;
+  border:1px solid transparent}
+.alert .ic{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;font-family:var(--display);font-weight:800;font-size:13px;margin-top:1px}
+.alert b{display:block;margin-bottom:2px}
+.alert.warn{background:var(--warn-tint);border-color:#EAD4A4;color:#5C3A04}
+.alert.warn .ic{background:var(--warn)}
+.alert.danger{background:var(--danger-tint);border-color:#EFC2BE;color:#7A1F18}
+.alert.danger .ic{background:var(--danger)}
+.alert.info{background:var(--sprint-tint);border-color:#C2D2FB;color:#143A9E}
+.alert.info .ic{background:var(--sprint)}
+.alert + .alert{margin-top:12px}
+
+/* ---------- stat cards ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:820px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:18px;box-shadow:var(--sh-1)}
+.stat .lab{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.stat .val{font-family:var(--display);font-weight:800;font-size:30px;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.stat .delta{font-size:12px;font-weight:600}
+.stat .delta.up{color:var(--ok)} .stat .delta.flat{color:var(--ink-3)}
+.stat.accent{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stat.accent .lab{color:var(--ink-4)}
+.stat.accent .val{color:var(--flame-300)}
+
+/* ---------- event card ---------- */
+.evcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:var(--sh-2);max-width:380px}
+.evcard .top{height:118px;background:
+  radial-gradient(120% 140% at 80% -20%,var(--flame-300),transparent 55%),
+  linear-gradient(135deg,var(--flame),var(--flame-700));position:relative;color:#fff;padding:16px}
+.evcard .top .when{font-family:var(--mono);font-size:12px;letter-spacing:.06em;opacity:.95}
+.evcard .top .ttl{font-family:var(--display);font-weight:800;font-size:23px;line-height:1.05;
+  position:absolute;bottom:14px;left:16px;right:16px}
+.evcard .body{padding:16px}
+.evcard .meta{display:flex;align-items:center;gap:8px;color:var(--ink-3);font-size:13px;margin-bottom:12px}
+.evcard .dists{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pill{font-family:var(--mono);font-size:11px;font-weight:600;border:1px solid var(--line-2);
+  border-radius:var(--r-pill);padding:3px 10px;color:var(--ink-2)}
+.evcard .foot{display:flex;align-items:flex-end;justify-content:space-between;
+  border-top:1px solid var(--line);padding-top:14px}
+.evcard .price .k{font-size:11px;color:var(--ink-3)}
+.evcard .price .v{font-family:var(--display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.evcard .price .v small{font-size:12px;color:var(--ink-3);font-weight:600}
+.quota{text-align:right}
+.quota .bar{width:120px;height:6px;border-radius:var(--r-pill);background:var(--panel);overflow:hidden;margin-bottom:5px}
+.quota .bar i{display:block;height:100%;background:var(--flame);border-radius:var(--r-pill)}
+.quota .lab{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+/* ---------- payment breakdown (signature) ---------- */
+.pay{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-2);max-width:420px;overflow:hidden}
+.pay .ph{background:var(--ink);color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.pay .ph .t{font-family:var(--display);font-weight:700;font-size:16px}
+.pay .ph .e{font-family:var(--mono);font-size:11px;color:var(--ink-4)}
+.pay .methods{display:flex;gap:8px;padding:16px 20px 4px;flex-wrap:wrap}
+.mbtn{font-family:var(--mono);font-size:12px;font-weight:600;border:1px solid var(--line-2);
+  background:var(--surface);border-radius:var(--r-sm);padding:7px 12px;cursor:pointer;transition:.15s;color:var(--ink-2)}
+.mbtn:hover{border-color:var(--flame-300)}
+.mbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pay .lines{padding:10px 20px 4px}
+.pln{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:14px;border-bottom:1px dashed var(--line)}
+.pln .l{color:var(--ink-2)} .pln .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+.pln.free .v{color:var(--ok);font-weight:600}
+.pln .sub{font-size:11px;color:var(--ink-4);display:block}
+.pay .total{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;
+  background:var(--flame-tint);margin-top:8px}
+.pay .total .l{font-family:var(--display);font-weight:700;font-size:16px}
+.pay .total .v{font-family:var(--display);font-weight:800;font-size:24px;color:var(--flame-700);font-variant-numeric:tabular-nums}
+.pay .note{font-size:11px;color:var(--ink-3);padding:0 20px 18px;display:flex;gap:7px;align-items:flex-start}
+
+/* ---------- e-ticket ---------- */
+.ticket{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  overflow:hidden;box-shadow:var(--sh-2);max-width:430px}
+.ticket .stub{background:var(--ink);color:#fff;padding:18px 16px;width:128px;flex:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative}
+.ticket .stub::after{content:"";position:absolute;right:-7px;top:0;bottom:0;width:14px;
+  background-image:radial-gradient(circle at 7px 7px,var(--paper) 5px,transparent 6px);
+  background-size:14px 16px;background-repeat:repeat-y}
+.ticket .stub .qr{width:84px;height:84px;border-radius:8px;background:#fff;padding:6px}
+.ticket .stub .bibn{font-family:var(--mono);font-size:11px;color:var(--flame-300);margin-top:10px;letter-spacing:.1em}
+.ticket .stub .bibn b{display:block;font-family:var(--display);font-size:26px;color:#fff;letter-spacing:.04em}
+.ticket .info{padding:18px;flex:1}
+.ticket .info .ev{font-family:var(--display);font-weight:800;font-size:18px;line-height:1.1}
+.ticket .info .nm{font-weight:700;margin-top:10px}
+.ticket .info .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:12px}
+.ticket .info .grid .k{font-family:var(--mono);font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
+.ticket .info .grid .v{font-size:13.5px;font-weight:600}
+
+/* ---------- data table ---------- */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+table.data{width:100%;border-collapse:collapse;font-size:13.5px;min-width:640px}
+table.data th{background:var(--panel);text-align:left;font-family:var(--mono);font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);padding:11px 14px;font-weight:600;white-space:nowrap}
+table.data td{padding:11px 14px;border-top:1px solid var(--line);white-space:nowrap}
+table.data .bibcol{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+table.data tr:hover td{background:#FBFBF9}
+
+/* ---------- surfaces map ---------- */
+.surf{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:760px){.surf{grid-template-columns:1fr}}
+.scard{border:1px solid var(--line);border-radius:var(--r-md);padding:22px;background:var(--surface);box-shadow:var(--sh-1)}
+.scard .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:#fff;background:var(--ink);padding:3px 10px;border-radius:var(--r-pill);margin-bottom:12px}
+.scard h4{font-size:18px;margin-bottom:6px}
+.scard p{font-size:14px;color:var(--ink-2);margin:0 0 12px}
+.scard ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--ink-2)}
+.scard ul li{margin-bottom:5px}
+.scard code{font-family:var(--mono);font-size:11.5px;color:var(--flame-700)}
+
+/* spacing/radius scales */
+.scale-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.scale-row .s{text-align:center}
+.scale-row .s .box{background:var(--flame-tint);border:1px solid var(--flame-300);border-radius:4px}
+.scale-row .s .l{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px}
+.rad-row{display:flex;gap:16px;flex-wrap:wrap}
+.rad-row .r{text-align:center}
+.rad-row .r .box{width:72px;height:56px;background:var(--ink);border:none}
+.rad-row .r .l{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:6px}
+.elev-row{display:flex;gap:20px;flex-wrap:wrap}
+.elev-row .e{width:120px;height:80px;background:var(--surface);border-radius:var(--r-md);
+  display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+/* footer */
+.foot{background:var(--ink);color:#C7CDD6;border-top:none;position:relative;overflow:hidden}
+.foot::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;
+  background-image:linear-gradient(45deg,var(--flame) 25%,transparent 25%,transparent 75%,var(--flame) 75%),
+                   linear-gradient(45deg,var(--flame) 25%,transparent 25%,transparent 75%,var(--flame) 75%);
+  background-size:16px 16px;background-position:0 0,8px 8px}
+.foot .wrap{padding-top:46px}
+.foot h3{color:#fff;font-size:24px;margin-bottom:8px}
+.foot p{max-width:54ch;font-size:14px}
+.foot .meta{display:flex;gap:30px;margin-top:24px;flex-wrap:wrap;font-size:13px}
+.foot .meta b{color:#fff;display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:10px 18px;border-radius:var(--r-pill);
+  font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:99;box-shadow:var(--sh-3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar"><div class="wrap">
+  <div class="brand"><span class="dot">R</span>RaceHub</div>
+  <nav class="navlinks">
+    <a href="#foundations">Fondasi</a>
+    <a href="#color">Warna</a>
+    <a href="#type">Tipografi</a>
+    <a href="#components">Komponen</a>
+    <a href="#surfaces">Area</a>
+  </nav>
+</div></div>
+
+<!-- ============ HERO ============ -->
+<section class="hero"><div class="wrap"><div class="hero-grid">
+  <div>
+    <div class="eyebrow" style="color:var(--flame-300)">Design System · v1.0</div>
+    <h1>Garis start<br>buat tiap <em>event</em>.</h1>
+    <p>Bahasa visual untuk platform manajemen & ticketing event lari dan sepeda — marketplace, dashboard organizer, dan panel admin dalam satu sistem yang konsisten.</p>
+    <div class="hero-meta">
+      <div><div class="k">Acuan</div><div class="v">SRS RaceHub 1.0</div></div>
+      <div><div class="k">Standar</div><div class="v">IEEE 830 · ISO 25010</div></div>
+      <div><div class="k">Bahasa UI</div><div class="v">Indonesia</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="bib">
+      <div class="bib-top"><span>Bandung Run 2026</span><span>10K</span></div>
+      <div class="num">0042</div>
+      <div class="name">Putri Anindya</div>
+      <div class="cat">OPEN · FEMALE</div>
+    </div>
+  </div>
+</div></div></section>
+
+<!-- ============ PRINCIPLES ============ -->
+<section><div class="wrap">
+  <div class="eyebrow">Prinsip</div>
+  <h2 class="sec-title">Empat hal yang dipegang</h2>
+  <p class="sec-lead">Diturunkan langsung dari sifat produk di SRS: peserta mendaftar lewat ponsel, fee harus jelas, pembayaran harus dipercaya, dan check-in jalan di lapangan.</p>
+  <div class="princ">
+    <div class="pcard"><div class="pn">01</div><h4>Cepat di ponsel</h4><p>Peserta mendaftar tanpa login dan mayoritas dari HP. Alur pendek, satu kolom, target tap besar.</p></div>
+    <div class="pcard"><div class="pn">02</div><h4>Transparan soal biaya</h4><p>Rincian harga, donasi, dan fee selalu tampil lengkap sebelum bayar — tidak ada angka yang muncul belakangan.</p></div>
+    <div class="pcard"><div class="pn">03</div><h4>Dapat dipercaya</h4><p>Pembayaran, refund, dan data pribadi tampak aman dan terkendali. Status sistem selalu eksplisit.</p></div>
+    <div class="pcard"><div class="pn">04</div><h4>Siap di lapangan</h4><p>RPC dan check-in dipakai sambil berdiri di tenda. Kontras tinggi, tombol besar, tahan koneksi lemah.</p></div>
+  </div>
+</div></section>
+
+<!-- ============ COLOR ============ -->
+<section id="color"><div class="wrap">
+  <div class="eyebrow">Fondasi · Warna</div>
+  <h2 class="sec-title">Palet</h2>
+  <p class="sec-lead">Flame sebagai energi race-day, dipakai hemat untuk aksi utama. Ink dan netral untuk struktur. Klik chip untuk menyalin hex.</p>
+
+  <p class="sublabel">Brand & Aksi</p>
+  <div class="swatch-row" style="margin-bottom:32px">
+    <div class="sw" data-hex="#F5471D"><div class="chip" style="background:#F5471D"></div><div class="meta"><div class="nm">Flame</div><div class="hx"><span>#F5471D</span></div><div class="use">Tombol utama, harga</div></div></div>
+    <div class="sw" data-hex="#CE3611"><div class="chip" style="background:#CE3611"></div><div class="meta"><div class="nm">Flame 700</div><div class="hx"><span>#CE3611</span></div><div class="use">Hover, teks aksen</div></div></div>
+    <div class="sw" data-hex="#FFEAE2"><div class="chip" style="background:#FFEAE2"></div><div class="meta"><div class="nm">Flame Tint</div><div class="hx"><span>#FFEAE2</span></div><div class="use">Background lembut</div></div></div>
+    <div class="sw" data-hex="#2456E6"><div class="chip" style="background:#2456E6"></div><div class="meta"><div class="nm">Sprint</div><div class="hx"><span>#2456E6</span></div><div class="use">Link, info</div></div></div>
+  </div>
+
+  <p class="sublabel">Ink & Netral</p>
+  <div class="swatch-row" style="margin-bottom:32px">
+    <div class="sw" data-hex="#14181F"><div class="chip" style="background:#14181F"></div><div class="meta"><div class="nm">Ink</div><div class="hx"><span>#14181F</span></div><div class="use">Teks utama, header gelap</div></div></div>
+    <div class="sw" data-hex="#374050"><div class="chip" style="background:#374050"></div><div class="meta"><div class="nm">Ink 2</div><div class="hx"><span>#374050</span></div><div class="use">Body sekunder</div></div></div>
+    <div class="sw" data-hex="#6B7686"><div class="chip" style="background:#6B7686"></div><div class="meta"><div class="nm">Ink 3</div><div class="hx"><span>#6B7686</span></div><div class="use">Caption, hint</div></div></div>
+    <div class="sw" data-hex="#E3E6E0"><div class="chip" style="background:#E3E6E0"></div><div class="meta"><div class="nm">Line</div><div class="hx"><span>#E3E6E0</span></div><div class="use">Garis, border</div></div></div>
+    <div class="sw" data-hex="#F6F7F4"><div class="chip" style="background:#F6F7F4;box-shadow:inset 0 0 0 1px #E3E6E0"></div><div class="meta"><div class="nm">Paper</div><div class="hx"><span>#F6F7F4</span></div><div class="use">Background halaman</div></div></div>
+  </div>
+
+  <p class="sublabel">Semantic — dipetakan ke status nyata di SRS</p>
+  <table class="status-table">
+    <thead><tr><th>Token</th><th>Hex</th><th>Badge</th><th>Dipakai untuk status</th></tr></thead>
+    <tbody>
+      <tr><td><code>--ok</code></td><td class="mono">#12824B</td><td><span class="badge ok">Settlement</span></td><td>Pembayaran lunas, racepack collected, refund selesai</td></tr>
+      <tr><td><code>--warn</code></td><td class="mono">#A9650A</td><td><span class="badge warn">Pending</span></td><td>Menunggu bayar, cutoff refund mendekat</td></tr>
+      <tr><td><code>--danger</code></td><td class="mono">#C9342B</td><td><span class="badge danger">Cancelled</span></td><td>Expire, event dibatalkan, refund ditolak</td></tr>
+      <tr><td><code>--neutral</code></td><td class="mono">#5B6470</td><td><span class="badge neutral">Draft</span></td><td>Event draft, kategori non-aktif</td></tr>
+    </tbody>
+  </table>
+</div></section>
+
+<!-- ============ TYPOGRAPHY ============ -->
+<section id="type"><div class="wrap">
+  <div class="eyebrow">Fondasi · Tipografi</div>
+  <h2 class="sec-title">Huruf & angka</h2>
+  <p class="sec-lead">Tiga peran. Saira membawa karakter scoreboard untuk judul, Hanken Grotesk untuk teks, dan Spline Sans Mono untuk semua data — BIB, harga, fee — dengan angka tabular yang rapi berjajar.</p>
+
+  <div class="fam">
+    <div class="famcard"><div class="big" style="font-family:var(--display);font-weight:800">Aa 0042</div><div class="role">Display</div><div class="nm">Saira</div><div class="dt">Judul, angka BIB besar, metrik dashboard. Berkesan teknis & atletik.</div></div>
+    <div class="famcard"><div class="big" style="font-family:var(--body);font-weight:600">Aa 0042</div><div class="role">Body / UI</div><div class="nm">Hanken Grotesk</div><div class="dt">Paragraf, label, tombol. Ramah dan terbaca di layar kecil.</div></div>
+    <div class="famcard"><div class="big mono" style="font-weight:600">Aa 0042</div><div class="role">Data / Mono</div><div class="nm">Spline Sans Mono</div><div class="dt">Harga, fee, nomor BIB & registrasi. Angka tabular sejajar.</div></div>
+  </div>
+
+  <div class="type-spec">
+    <div class="tline"><span class="lab">Display / 64</span><span class="ex" style="font-family:var(--display);font-weight:800;font-size:clamp(36px,6vw,60px);line-height:1">Marathon</span></div>
+    <div class="tline"><span class="lab">H1 / 40</span><span class="ex" style="font-family:var(--display);font-weight:700;font-size:34px">Bandung Heritage Run</span></div>
+    <div class="tline"><span class="lab">H2 / 28</span><span class="ex" style="font-family:var(--display);font-weight:700;font-size:26px">Pilih kategori jarak</span></div>
+    <div class="tline"><span class="lab">H3 / 20</span><span class="ex" style="font-family:var(--display);font-weight:600;font-size:20px">Rincian pembayaran</span></div>
+    <div class="tline"><span class="lab">Body / 16</span><span class="ex" style="font-size:16px">Daftar tanpa login, isi data, lalu selesaikan pembayaran lewat metode pilihanmu.</span></div>
+    <div class="tline"><span class="lab">Caption / 13</span><span class="ex" style="font-size:13px;color:var(--ink-3)">Donasi bersifat opsional dan tidak dapat dikembalikan.</span></div>
+    <div class="tline"><span class="lab">Data / mono</span><span class="ex mono" style="font-size:18px;font-weight:600">BIB 0042 · Rp 250.000 · Fee Rp 5.000</span></div>
+  </div>
+</div></section>
+
+<!-- ============ FOUNDATIONS: spacing/radius/elevation ============ -->
+<section id="foundations"><div class="wrap">
+  <div class="eyebrow">Fondasi · Ukuran</div>
+  <h2 class="sec-title">Spasi, sudut, kedalaman</h2>
+  <p class="sec-lead">Skala 4px untuk ritme yang konsisten; sudut cenderung tegas mengikuti karakter papan-skor; bayangan halus berlapis.</p>
+
+  <div class="split" style="grid-template-columns:1fr 1fr;gap:28px;align-items:start">
+    <div>
+      <p class="sublabel">Skala spasi (4px base)</p>
+      <div class="scale-row">
+        <div class="s"><div class="box" style="width:4px;height:4px"></div><div class="l">4</div></div>
+        <div class="s"><div class="box" style="width:8px;height:8px"></div><div class="l">8</div></div>
+        <div class="s"><div class="box" style="width:12px;height:12px"></div><div class="l">12</div></div>
+        <div class="s"><div class="box" style="width:16px;height:16px"></div><div class="l">16</div></div>
+        <div class="s"><div class="box" style="width:24px;height:24px"></div><div class="l">24</div></div>
+        <div class="s"><div class="box" style="width:32px;height:32px"></div><div class="l">32</div></div>
+        <div class="s"><div class="box" style="width:48px;height:48px"></div><div class="l">48</div></div>
+        <div class="s"><div class="box" style="width:64px;height:64px"></div><div class="l">64</div></div>
+      </div>
+      <p class="sublabel" style="margin-top:30px">Radius sudut</p>
+      <div class="rad-row">
+        <div class="r"><div class="box" style="border-radius:4px"></div><div class="l">xs · 4</div></div>
+        <div class="r"><div class="box" style="border-radius:8px"></div><div class="l">sm · 8</div></div>
+        <div class="r"><div class="box" style="border-radius:12px"></div><div class="l">md · 12</div></div>
+        <div class="r"><div class="box" style="border-radius:18px"></div><div class="l">lg · 18</div></div>
+        <div class="r"><div class="box" style="border-radius:999px"></div><div class="l">pill</div></div>
+      </div>
+    </div>
+    <div>
+      <p class="sublabel">Elevasi / bayangan</p>
+      <div class="elev-row">
+        <div class="e" style="box-shadow:var(--sh-1)">sh-1</div>
+        <div class="e" style="box-shadow:var(--sh-2)">sh-2</div>
+        <div class="e" style="box-shadow:var(--sh-3)">sh-3</div>
+      </div>
+      <p class="sublabel" style="margin-top:30px">Bayangan brand</p>
+      <div class="elev-row">
+        <div class="e" style="box-shadow:var(--sh-flame);background:var(--flame);color:#fff">flame</div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-2);margin-top:20px">Hanya tombol utama (Flame) yang memakai bayangan berwarna — supaya aksi paling penting selalu menonjol di setiap layar.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ COMPONENTS ============ -->
+<section id="components"><div class="wrap">
+  <div class="eyebrow">Komponen</div>
+  <h2 class="sec-title">Balok penyusun</h2>
+  <p class="sec-lead">Komponen inti yang dipakai lintas tiga area, plus pola khas RaceHub seperti rincian pembayaran, kartu BIB/e-tiket, dan tabel peserta.</p>
+
+  <!-- buttons + forms -->
+  <div class="demo">
+    <div class="demo-h"><h4>Tombol</h4><span class="fr">Aksi · <b>FR-302 · FR-803 · FR-901</b></span></div>
+    <div class="split">
+      <div>
+        <p class="sublabel">Hierarki</p>
+        <div class="row" style="margin-bottom:14px">
+          <button class="btn btn-primary">Daftar sekarang</button>
+          <button class="btn btn-secondary">Generate BIB</button>
+          <button class="btn btn-ghost">Lihat detail</button>
+          <button class="btn btn-danger">Refund</button>
+        </div>
+      </div>
+      <div>
+        <p class="sublabel">Ukuran & status</p>
+        <div class="row">
+          <button class="btn btn-primary btn-sm">Small</button>
+          <button class="btn btn-primary">Default</button>
+          <button class="btn btn-primary btn-lg">Large</button>
+          <button class="btn btn-primary" disabled>Kuota habis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo">
+    <div class="demo-h"><h4>Field formulir</h4><span class="fr">Registrasi · <b>FR-402 · FR-406</b></span></div>
+    <div class="split">
+      <div>
+        <div class="field">
+          <label>Tanggal lahir <span style="color:var(--flame-700)">*</span></label>
+          <input class="input" type="text" value="14 / 03 / 1985" readonly>
+          <div class="hint">Wajib — dipakai menghitung kelas usia (Open / Master) otomatis.</div>
+        </div>
+        <div class="field">
+          <label>Jenis kelamin</label>
+          <select class="select"><option>Female</option><option>Male</option></select>
+        </div>
+      </div>
+      <div>
+        <div class="field">
+          <label>Email <span style="color:var(--flame-700)">*</span></label>
+          <input class="input err" type="text" value="putri@@mail">
+          <div class="errmsg">Format email belum benar. Coba lagi.</div>
+        </div>
+        <div class="field">
+          <label>Donasi (opsional)</label>
+          <div class="input-money"><span class="pre">Rp</span><input class="input" type="text" value="10.000"></div>
+          <div class="hint">Tanpa minimum. Bebas fee dan tidak dapat dikembalikan.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- badges -->
+  <div class="demo">
+    <div class="demo-h"><h4>Badge status</h4><span class="fr">Taksonomi · <b>FR-202 · FR-506 · FR-603</b></span></div>
+    <div class="split" style="grid-template-columns:1fr 1fr;gap:24px">
+      <div>
+        <p class="sublabel">Status event</p>
+        <div class="badge-grid" style="margin-bottom:22px">
+          <span class="badge neutral">Draft</span>
+          <span class="badge ok">Published</span>
+          <span class="badge danger">Cancelled</span>
+          <span class="badge neutral">Finished</span>
+        </div>
+        <p class="sublabel">Status pembayaran</p>
+        <div class="badge-grid">
+          <span class="badge warn">Pending</span>
+          <span class="badge ok">Settlement</span>
+          <span class="badge danger">Expire</span>
+        </div>
+      </div>
+      <div>
+        <p class="sublabel">Check-in / RPC</p>
+        <div class="badge-grid" style="margin-bottom:22px">
+          <span class="badge neutral">Belum ambil</span>
+          <span class="badge sprint">Racepack collected</span>
+          <span class="badge ok">Race-day check-in</span>
+        </div>
+        <p class="sublabel">Atribut peserta (event lari)</p>
+        <div class="badge-grid">
+          <span class="badge flame square">Open</span>
+          <span class="badge flame square">Master 40+</span>
+          <span class="badge neutral square">Male</span>
+          <span class="badge neutral square">Female</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- alerts -->
+  <div class="demo">
+    <div class="demo-h"><h4>Alert & pemberitahuan</h4><span class="fr">Aturan bisnis · <b>FR-405 · FR-903 · FR-909</b></span></div>
+    <div class="alert warn"><div class="ic">!</div><div><b>Cutoff refund 3 hari lagi</b>Refund untuk event ini hanya diterima sampai 24 Jun 2026.</div></div>
+    <div class="alert danger"><div class="ic">×</div><div><b>Kuota kategori 10K habis</b>Pilih kategori jarak lain atau cek tiket VIP yang masih tersedia.</div></div>
+    <div class="alert info"><div class="ic">i</div><div><b>Donasi tetap disalurkan</b>Saat refund diproses, nominal donasi Rp10.000 tidak dikembalikan dan tetap diteruskan ke program charity.</div></div>
+  </div>
+
+  <!-- stat cards -->
+  <div class="demo">
+    <div class="demo-h"><h4>Kartu metrik</h4><span class="fr">Dashboard organizer · <b>FR-1101</b></span></div>
+    <div class="stats">
+      <div class="stat"><div class="lab">Pendaftar</div><div class="val">1.284</div><div class="delta up">▲ 96 hari ini</div></div>
+      <div class="stat"><div class="lab">Pendapatan tiket</div><div class="val" style="font-size:24px">Rp 312jt</div><div class="delta flat">Belum withdraw</div></div>
+      <div class="stat"><div class="lab">Donasi terkumpul</div><div class="val" style="font-size:24px;color:var(--flame-700)">Rp 8,4jt</div><div class="delta flat">Dilaporkan terpisah</div></div>
+      <div class="stat accent"><div class="lab">Saldo wallet</div><div class="val" style="font-size:24px">Rp 287jt</div><div class="delta flat" style="color:var(--ink-4)">Siap dicairkan</div></div>
+    </div>
+  </div>
+
+  <!-- event card + payment -->
+  <div class="demo">
+    <div class="demo-h"><h4>Kartu event & rincian pembayaran</h4><span class="fr">Marketplace · <b>FR-1003 · FR-502 · FR-508</b></span></div>
+    <div class="split" style="grid-template-columns:auto 1fr;gap:28px;align-items:start">
+      <div class="evcard">
+        <div class="top"><div class="when">12 JUL 2026 · BANDUNG</div><div class="ttl">Bandung Heritage Run</div></div>
+        <div class="body">
+          <div class="meta">📍 Gedung Sate · 05.00 WIB</div>
+          <div class="dists"><span class="pill">5K</span><span class="pill">10K</span><span class="pill">21K</span></div>
+          <div class="foot">
+            <div class="price"><div class="k">Mulai dari</div><div class="v">Rp 185rb <small>/ Early Bird</small></div></div>
+            <div class="quota"><div class="bar"><i style="width:72%"></i></div><div class="lab">312 / 1.000 sisa</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="pay">
+          <div class="ph"><div class="t">Rincian pembayaran</div><div class="e">10K · Reguler</div></div>
+          <div class="methods" id="methods">
+            <button class="mbtn on" data-m="va">Virtual Account</button>
+            <button class="mbtn" data-m="gopay">GoPay</button>
+            <button class="mbtn" data-m="card">Kartu</button>
+            <button class="mbtn" data-m="qris">QRIS</button>
+          </div>
+          <div class="lines">
+            <div class="pln"><span class="l">Harga tiket</span><span class="v" id="p-price">Rp 250.000</span></div>
+            <div class="pln free"><span class="l">Donasi <span class="sub">diteruskan 100%</span></span><span class="v" id="p-don">Rp 10.000</span></div>
+            <div class="pln"><span class="l">Fee Platform</span><span class="v" id="p-plat">Rp 5.000</span></div>
+            <div class="pln"><span class="l">Fee Midtrans <span class="sub" id="p-mlabel">VA · flat</span></span><span class="v" id="p-mid">Rp 4.440</span></div>
+          </div>
+          <div class="total"><span class="l">Sub Total</span><span class="v" id="p-total">Rp 269.440</span></div>
+          <div class="note">⛁ Metode dipilih lebih dulu agar Fee Midtrans dihitung tepat sesuai tarif — sesuai A1 / FR-508.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- e-ticket -->
+  <div class="demo">
+    <div class="demo-h"><h4>E-tiket & nomor BIB</h4><span class="fr">QR · BIB · <b>FR-601 · FR-705 · FR-1302</b></span></div>
+    <div class="ticket">
+      <div class="stub">
+        <div class="qr">
+          <svg viewBox="0 0 100 100" width="100%" height="100%" shape-rendering="crispEdges">
+            <rect width="100" height="100" fill="#fff"/>
+            <g fill="#14181F">
+              <rect x="4" y="4" width="28" height="28"/><rect x="10" y="10" width="16" height="16" fill="#fff"/><rect x="14" y="14" width="8" height="8"/>
+              <rect x="68" y="4" width="28" height="28"/><rect x="74" y="10" width="16" height="16" fill="#fff"/><rect x="78" y="14" width="8" height="8"/>
+              <rect x="4" y="68" width="28" height="28"/><rect x="10" y="74" width="16" height="16" fill="#fff"/><rect x="14" y="78" width="8" height="8"/>
+              <rect x="40" y="6" width="6" height="6"/><rect x="52" y="6" width="6" height="6"/><rect x="46" y="14" width="6" height="6"/><rect x="58" y="14" width="6" height="6"/>
+              <rect x="40" y="22" width="6" height="6"/><rect x="6" y="40" width="6" height="6"/><rect x="18" y="40" width="6" height="6"/><rect x="30" y="46" width="6" height="6"/>
+              <rect x="42" y="40" width="6" height="6"/><rect x="54" y="46" width="6" height="6"/><rect x="66" y="40" width="6" height="6"/><rect x="78" y="46" width="6" height="6"/><rect x="90" y="40" width="6" height="6"/>
+              <rect x="40" y="58" width="6" height="6"/><rect x="52" y="64" width="6" height="6"/><rect x="64" y="58" width="6" height="6"/><rect x="76" y="64" width="6" height="6"/><rect x="88" y="70" width="6" height="6"/>
+              <rect x="46" y="76" width="6" height="6"/><rect x="58" y="82" width="6" height="6"/><rect x="70" y="76" width="6" height="6"/><rect x="82" y="88" width="6" height="6"/>
+            </g>
+          </svg>
+        </div>
+        <div class="bibn">BIB<b>0042</b></div>
+      </div>
+      <div class="info">
+        <div class="ev">Bandung Heritage Run</div>
+        <div class="nm">Putri Anindya</div>
+        <div class="grid">
+          <div><div class="k">Kategori</div><div class="v">10K</div></div>
+          <div><div class="k">Kelas</div><div class="v">Open · Female</div></div>
+          <div><div class="k">No. Registrasi</div><div class="v mono">REG-2K6F7H</div></div>
+          <div><div class="k">Status</div><div class="v"><span class="badge ok" style="font-size:10px">Settlement</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- data table -->
+  <div class="demo">
+    <div class="demo-h"><h4>Tabel peserta</h4><span class="fr">Dashboard · export · <b>FR-1103 · FR-1202</b></span></div>
+    <div class="tbl-wrap">
+      <table class="data">
+        <thead><tr><th>BIB</th><th>No. Registrasi</th><th>Nama</th><th>Jarak</th><th>Gender</th><th>Kelas</th><th>Bayar</th><th>RPC</th></tr></thead>
+        <tbody>
+          <tr><td class="bibcol">0041</td><td class="mono">REG-9XK2P</td><td>Aditya Pratama</td><td>21K</td><td>Male</td><td>Open</td><td><span class="badge ok" style="font-size:10px">Settlement</span></td><td><span class="badge sprint" style="font-size:10px">Collected</span></td></tr>
+          <tr><td class="bibcol">0042</td><td class="mono">REG-2K6F7</td><td>Putri Anindya</td><td>10K</td><td>Female</td><td>Open</td><td><span class="badge ok" style="font-size:10px">Settlement</span></td><td><span class="badge neutral" style="font-size:10px">Belum</span></td></tr>
+          <tr><td class="bibcol">0043</td><td class="mono">REG-7HJ3M</td><td>Bambang Sutrisno</td><td>10K</td><td>Male</td><td>Master</td><td><span class="badge warn" style="font-size:10px">Pending</span></td><td><span class="badge neutral" style="font-size:10px">Belum</span></td></tr>
+          <tr><td class="bibcol">0044</td><td class="mono">REG-4PL8Q</td><td>Sari Wulandari</td><td>5K</td><td>Female</td><td>Open</td><td><span class="badge danger" style="font-size:10px">Expire</span></td><td><span class="badge neutral" style="font-size:10px">Belum</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ SURFACES MAP ============ -->
+<section id="surfaces"><div class="wrap">
+  <div class="eyebrow">Penerapan</div>
+  <h2 class="sec-title">Empat area, satu sistem</h2>
+  <p class="sec-lead">Cara token & komponen di atas dirakit pada masing-masing antarmuka yang disebut di SRS Bab 2 & 5.</p>
+  <div class="surf">
+    <div class="scard"><span class="tag">Publik</span><h4>Marketplace</h4><p>Tanpa login, mobile-first. Flame dipakai untuk CTA daftar; angka harga & kuota selalu pakai mono.</p><ul><li>Kartu event, filter, detail <code>FR-1001..1003</code></li><li>Form pendaftaran multi-langkah <code>FR-401..408</code></li><li>Rincian pembayaran + pilih metode <code>FR-502 · 508</code></li></ul></div>
+    <div class="scard"><span class="tag">Terautentikasi</span><h4>Dashboard Organizer</h4><p>Padat data. Kartu metrik, tabel peserta, dan laporan donasi terpisah dari penjualan tiket.</p><ul><li>Metrik: pendaftar, pendapatan, donasi, wallet <code>FR-1101</code></li><li>Generate BIB batch <code>FR-1301..1305</code></li><li>Withdraw & laporan donasi <code>FR-803 · 804</code></li></ul></div>
+    <div class="scard"><span class="tag">Internal</span><h4>Panel Admin</h4><p>Tindakan sensitif diberi konfirmasi & badge status jelas. Aksi destruktif memakai gaya danger.</p><ul><li>Antrian & approval event <code>FR-301..304</code></li><li>Refund otomatis & manual VA <code>FR-901..907</code></li><li>Refund massal saat cancelled <code>FR-908</code></li></ul></div>
+    <div class="scard"><span class="tag">Lapangan</span><h4>Modul RPC / Check-in</h4><p>Kontras tinggi, target besar, pencarian manual sebagai metode utama. Tahan koneksi lemah.</p><ul><li>Scan QR via kamera HP/tablet <code>FR-604</code></li><li>Pencarian manual nama/BIB/registrasi <code>FR-605</code></li><li>Status per tahap terpisah <code>FR-603</code></li></ul></div>
+  </div>
+</div></section>
+
+<!-- ============ FOOTER ============ -->
+<section class="foot"><div class="wrap">
+  <h3>Satu garis start untuk semua layar.</h3>
+  <p>Design system ini adalah lapisan visual di atas SRS RaceHub v1.0. Setiap warna, huruf, dan komponen diturunkan dari kebutuhan fungsional & non-fungsional dokumen tersebut — bukan dekorasi, tapi alat agar peserta mendaftar lebih cepat dan organizer bekerja lebih tenang.</p>
+  <div class="meta">
+    <div><b>Versi</b>Design System 1.0 · 21 Jun 2026</div>
+    <div><b>Acuan</b>SRS RaceHub 1.0 (IEEE 830 · ISO 25010)</div>
+    <div><b>Font</b>Saira · Hanken Grotesk · Spline Sans Mono</div>
+  </div>
+</div></section>
+
+<div class="toast" id="toast">Tersalin</div>
+
+<script>
+// click-to-copy hex
+document.querySelectorAll('.sw').forEach(function(sw){
+  sw.addEventListener('click',function(){
+    var hex=sw.getAttribute('data-hex');
+    var done=function(){
+      var hx=sw.querySelector('.hx');
+      if(hx && !hx.querySelector('.copy-flag')){
+        var f=document.createElement('span');f.className='copy-flag';f.textContent='✓ copied';
+        hx.appendChild(f);setTimeout(function(){f.remove()},1200);
+      }
+      showToast(hex+' tersalin');
+    };
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(hex).then(done).catch(done);}
+    else{done();}
+  });
+});
+var toast=document.getElementById('toast');var tt;
+function showToast(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show')},1400);}
+
+// payment method fee calculator (illustrative — honors FR-505: donasi bebas fee)
+(function(){
+  var PRICE=250000, PLATFORM=5000, DONATION=10000;
+  var feeBase=PRICE+PLATFORM; // donation excluded from fee base
+  var rules={
+    va:   {label:'VA · flat',        fee:function(){return 4440;}},
+    gopay:{label:'GoPay · 2% + PPN',  fee:function(){return Math.round(feeBase*0.0222);}},
+    card: {label:'Kartu · ~2,9%',     fee:function(){return Math.round(feeBase*0.029);}},
+    qris: {label:'QRIS · ~0,7%',      fee:function(){return Math.round(feeBase*0.007);}}
+  };
+  function rp(n){return 'Rp '+n.toLocaleString('id-ID');}
+  function set(m){
+    var mid=rules[m].fee();
+    document.getElementById('p-mlabel').textContent=rules[m].label;
+    document.getElementById('p-mid').textContent=rp(mid);
+    document.getElementById('p-total').textContent=rp(PRICE+DONATION+PLATFORM+mid);
+  }
+  document.querySelectorAll('#methods .mbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('#methods .mbtn').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');set(b.getAttribute('data-m'));
+    });
+  });
+})();
+</script>
