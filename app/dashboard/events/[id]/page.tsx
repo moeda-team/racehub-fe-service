@@ -195,6 +195,21 @@ function StatusSection({
     }
   }
 
+  async function submitForReview() {
+    if (!window.confirm("Ajukan event ini untuk persetujuan admin?")) return;
+    setError(null);
+    setBusy(true);
+    try {
+      await api.post<ApiResponse<Event>>(`/api/v1/events/${event.id}/submit`);
+      await onChanged();
+      onNotice("Event diajukan untuk persetujuan admin.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Gagal mengajukan event.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const isDraft = event.status === "draft";
   const isPublished = event.status === "published";
   const terminal = event.status === "cancelled" || event.status === "finished";
@@ -214,9 +229,20 @@ function StatusSection({
         </Alert>
       )}
 
-      {isDraft && (
+      {event.rejection_reason && (
+        <Alert variant="warn" className="mb-4">
+          Ditolak admin: {event.rejection_reason}. Perbaiki lalu ajukan ulang.
+        </Alert>
+      )}
+
+      {isDraft && event.submitted_for_review && (
+        <p style={{ fontSize: 13, color: "var(--color-warn)", marginBottom: 12 }}>
+          ⏳ Menunggu persetujuan admin. Event akan terbit otomatis setelah disetujui.
+        </p>
+      )}
+      {isDraft && !event.submitted_for_review && (
         <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
-          Event masih draft. Penerbitan ke publik memerlukan persetujuan admin (proses approval — Fase 2).
+          Event masih draft. Ajukan untuk persetujuan admin agar bisa terbit ke publik.
         </p>
       )}
       {terminal && (
@@ -226,6 +252,11 @@ function StatusSection({
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {isDraft && !event.submitted_for_review && (
+          <Button variant="primary" size="sm" disabled={busy} onClick={submitForReview}>
+            Ajukan untuk Persetujuan
+          </Button>
+        )}
         {isPublished && (
           <Button
             variant="secondary"

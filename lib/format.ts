@@ -12,3 +12,13 @@ export function formatRupiah(amount: number): string {
   });
   return formatter.format(amount).replace("Rp", "Rp ");
 }
+
+/**
+ * Format an RFC3339 date string for display (id-ID). DISPLAY ONLY.
+ */
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "Tanggal belum diatur";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "Tanggal belum diatur";
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}

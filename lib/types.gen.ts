@@ -69,6 +69,9 @@ export interface Event {
   donation_enabled: boolean;
   total_quota: number;
   total_quota_used: number;
+  submitted_for_review: boolean;
+  rejection_reason: string;
+  reviewed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +80,59 @@ export interface EventDetail {
   event: Event;
   distance_categories: DistanceCategory[];
   ticket_categories: TicketCategory[];
+}
+
+// === Public marketplace projections (with remaining quota, FR-1003) ===
+
+export interface PublicEvent {
+  id: number;
+  name: string;
+  description: string;
+  location: string;
+  event_date: string | null;
+  status: "published";
+  is_running_event: boolean;
+  master_age_threshold: number;
+  refund_cutoff_date: string | null;
+  donation_enabled: boolean;
+  total_quota: number;
+  total_quota_used: number;
+  quota_remaining: number;
+}
+
+export interface PublicDistance {
+  id: number;
+  name: string;
+  quota: number;
+  quota_remaining: number;
+}
+
+export interface PublicTicket {
+  id: number;
+  distance_category_id: number;
+  name: string;
+  price: number;
+  quota: number;
+  quota_remaining: number;
+  sale_start: string | null;
+  sale_end: string | null;
+}
+
+export interface PublicEventDetail {
+  event: PublicEvent;
+  distance_categories: PublicDistance[];
+  ticket_categories: PublicTicket[];
+}
+
+export interface RejectEventRequest {
+  reason: string;
+}
+
+export interface MarketplaceFilter {
+  date_from?: string;
+  date_to?: string;
+  location?: string;
+  is_running_event?: boolean;
 }
 
 export interface CreateEventRequest {
