@@ -43,16 +43,25 @@ export class ApiError extends Error {
   }
 }
 
+export interface RequestOptions {
+  // Set false for public endpoints that must NOT carry the organizer token.
+  // The marketplace listing (/events) is dual-purpose on the backend: with a
+  // token it returns the organizer's own events (unfiltered); anonymous it
+  // returns the filtered public catalogue. Public pages must opt out of auth.
+  auth?: boolean;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  opts?: RequestOptions,
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  if (authToken) {
+  if (authToken && opts?.auth !== false) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
@@ -87,7 +96,7 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>("GET", path),
+  get: <T>(path: string, opts?: RequestOptions) => request<T>("GET", path, undefined, opts),
 
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
 

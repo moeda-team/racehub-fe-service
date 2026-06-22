@@ -20,7 +20,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<PublicEventDetail>>(`/api/v1/events/${id}`);
+        // Public detail must use the anonymous (PublicEventDetail) shape even
+        // when an organizer is logged in, otherwise the owner view (different
+        // shape, no quota_remaining) leaks through.
+        const res = await api.get<ApiResponse<PublicEventDetail>>(`/api/v1/events/${id}`, {
+          auth: false,
+        });
         if (!cancelled) setDetail(res.data);
       } catch {
         if (!cancelled) setError("Event tidak ditemukan atau belum dipublikasikan.");
@@ -52,7 +57,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const distanceName = (did: number) => distance_categories.find((d) => d.id === did)?.name ?? "—";
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
+    <main key="event-detail" className="max-w-3xl mx-auto px-4 py-8 rh-reveal">
       <Link href="/" style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}>
         ← Kembali ke marketplace
       </Link>

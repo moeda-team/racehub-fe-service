@@ -602,3 +602,396 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* === Responsive Dashboard Shell === */
+
+.dash-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dash-aside {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-line);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--color-flame);
+  display: block;
+  margin-bottom: 24px;
+}
+
+.dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-link {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--color-ink-2);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.dash-link:hover {
+  background-color: var(--color-panel);
+}
+
+.dash-link.active {
+  font-weight: 600;
+  color: var(--color-flame);
+  background-color: var(--color-flame-tint);
+}
+
+.dash-foot {
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.dash-main {
+  flex: 1;
+  min-width: 0;
+  padding: 24px 32px;
+}
+
+/* Collapse the sidebar into a scrollable top bar on tablets/phones. */
+@media (max-width: 768px) {
+  .dash-shell {
+    flex-direction: column;
+  }
+  .dash-aside {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--color-line);
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .dash-brand {
+    margin-bottom: 0;
+    font-size: 18px;
+  }
+  .dash-nav {
+    flex-direction: row;
+    gap: 4px;
+  }
+  .dash-foot {
+    margin-top: 0;
+    margin-left: auto;
+    padding-top: 0;
+  }
+  .dash-main {
+    padding: 16px;
+  }
+  /* Compact profile trigger on the mobile top bar: avatar only, menu drops down. */
+  .profile-trigger {
+    background-color: transparent;
+    border-color: transparent;
+    padding: 2px;
+    gap: 0;
+  }
+  .profile-meta,
+  .profile-caret {
+    display: none;
+  }
+  .profile-pop {
+    bottom: auto;
+    top: calc(100% + 8px);
+    left: auto;
+    right: 0;
+    width: 220px;
+  }
+}
+
+/* Responsive page padding helper for simple centered pages. */
+.page-pad {
+  padding: clamp(16px, 4vw, 32px);
+}
+
+/* === Profile menu (sidebar footer) === */
+
+.profile-menu {
+  position: relative;
+  width: 100%;
+}
+
+.profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-line);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.profile-trigger:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-line-2);
+}
+
+.profile-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--color-flame);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.profile-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-email {
+  font-size: 12px;
+  color: var(--color-ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-caret {
+  flex-shrink: 0;
+  color: var(--color-ink-3);
+  transition: transform 150ms ease;
+}
+
+.profile-menu.open .profile-caret {
+  transform: rotate(180deg);
+}
+
+.profile-pop {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sh-3);
+  padding: 6px;
+  z-index: 50;
+}
+
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--color-ink-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-item:hover {
+  background-color: var(--color-panel);
+}
+
+.profile-item-danger {
+  color: var(--color-danger);
+}
+
+.profile-item-danger:hover {
+  background-color: var(--color-danger-tint);
+}
+
+.profile-sep {
+  height: 1px;
+  background-color: var(--color-line);
+  margin: 4px 0;
+}
+
+/* === Motion & Micro-interactions (respects reduced motion) === */
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-line);
+  border-top-color: var(--color-flame);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rh-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rh-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes rh-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes rh-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Page-level entrance: every route's <main> fades in on mount. */
+  main {
+    animation: rh-fade-in 240ms ease-out both;
+  }
+
+  /* Explicit reveal for content that mounts AFTER an async load (e.g. event
+     detail), where the one-shot <main> fade already ran on the loading state. */
+  .rh-reveal {
+    animation: rh-fade-up 360ms ease-out both;
+  }
+
+  .profile-pop {
+    animation: rh-fade-up 160ms ease-out both;
+  }
+
+  /* Component-level entrance (composes with the page fade). */
+  .evcard,
+  .stat {
+    animation: rh-fade-up 320ms ease-out both;
+  }
+  .pay,
+  .ticket {
+    animation: rh-scale-in 280ms ease-out both;
+  }
+  .alert {
+    animation: rh-fade-up 220ms ease-out both;
+  }
+  .dtable tbody tr {
+    animation: rh-fade-in 280ms ease-out both;
+  }
+
+  /* Gentle stagger for grids/lists of cards and rows. */
+  .evcard:nth-child(1),
+  .stat:nth-child(1),
+  .dtable tbody tr:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .evcard:nth-child(2),
+  .stat:nth-child(2),
+  .dtable tbody tr:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .evcard:nth-child(3),
+  .stat:nth-child(3),
+  .dtable tbody tr:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .evcard:nth-child(4),
+  .stat:nth-child(4),
+  .dtable tbody tr:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .evcard:nth-child(5),
+  .stat:nth-child(5),
+  .dtable tbody tr:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .evcard:nth-child(6),
+  .stat:nth-child(6),
+  .dtable tbody tr:nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .dtable tbody tr:nth-child(n + 7) {
+    animation-delay: 220ms;
+  }
+
+  /* Micro-interactions. */
+  .btn {
+    transition: transform 120ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+  .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(245, 71, 29, 0.36);
+  }
+
+  .evcard {
+    transition: box-shadow 160ms ease, transform 160ms ease;
+  }
+  .evcard:hover {
+    transform: translateY(-3px);
+  }
+
+  .stat {
+    transition: box-shadow 160ms ease, transform 160ms ease;
+  }
+  .stat:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sh-2);
+  }
+
+  .pill,
+  .badge {
+    transition: transform 150ms ease, background-color 150ms ease;
+  }
+
+  .spinner {
+    animation: rh-spin 0.7s linear infinite;
+  }
+}

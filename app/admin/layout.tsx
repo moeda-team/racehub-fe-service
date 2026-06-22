@@ -38,10 +38,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         style={{
           backgroundColor: "var(--color-ink)",
           color: "white",
-          padding: "12px 24px",
+          padding: "12px clamp(12px, 4vw, 24px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 12,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
@@ -64,7 +66,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           Keluar
         </button>
       </header>
-      <main style={{ padding: "24px 32px" }}>{children}</main>
+      <main style={{ padding: "clamp(16px, 4vw, 32px)" }}>{children}</main>
     </div>
   );
 }

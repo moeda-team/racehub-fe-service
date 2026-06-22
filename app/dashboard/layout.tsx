@@ -1,16 +1,16 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import type { OrganizerProfile } from "@/lib/types.gen";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/events", label: "Event Saya" },
   { href: "/dashboard/wallet", label: "Wallet" },
   { href: "/rpc", label: "RPC / Check-in" },
-  { href: "/dashboard/profile", label: "Profil" },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -42,32 +42,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <aside
-        style={{
-          width: 240,
-          backgroundColor: "var(--color-surface)",
-          borderRight: "1px solid var(--color-line)",
-          padding: "24px 16px",
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            fontSize: 20,
-            color: "var(--color-flame)",
-            display: "block",
-            marginBottom: 24,
-          }}
-        >
+    <div className="dash-shell">
+      <aside className="dash-aside">
+        <Link href="/" className="dash-brand">
           RaceHub
         </Link>
-        <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <nav className="dash-nav">
           {navItems.map((item) => {
             const active =
               item.href === "/dashboard"
@@ -77,14 +57,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: 14,
-                  fontWeight: active ? 600 : 400,
-                  color: active ? "var(--color-flame)" : "var(--color-ink-2)",
-                  backgroundColor: active ? "var(--color-flame-tint)" : "transparent",
-                }}
+                className={`dash-link${active ? " active" : ""}`}
               >
                 {item.label}
               </Link>
@@ -92,33 +65,115 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div style={{ marginTop: "auto", paddingTop: 24 }}>
-          {profile && (
-            <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 8 }}>
-              {profile.name}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => {
+        <div className="dash-foot">
+          <ProfileMenu
+            profile={profile}
+            onLogout={() => {
               logout();
               router.replace("/login");
             }}
-            style={{
-              background: "none",
-              border: "none",
-              padding: "8px 12px",
-              cursor: "pointer",
-              fontSize: 14,
-              color: "var(--color-ink-3)",
-              textAlign: "left",
+          />
+        </div>
+      </aside>
+      <main className="dash-main">{children}</main>
+    </div>
+  );
+}
+
+// ProfileMenu shows the signed-in organizer as an avatar card that opens a
+// dropdown containing the profile link and "Keluar".
+function ProfileMenu({
+  profile,
+  onLogout,
+}: {
+  profile: OrganizerProfile | null;
+  onLogout: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  // Close when clicking outside the menu.
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  if (!profile) return null;
+
+  return (
+    <div className={`profile-menu${open ? " open" : ""}`} ref={ref}>
+      {open && (
+        <div className="profile-pop" role="menu">
+          <Link href="/dashboard/profile" className="profile-item" role="menuitem" onClick={() => setOpen(false)}>
+            <UserIcon />
+            Profil
+          </Link>
+          <div className="profile-sep" />
+          <button
+            type="button"
+            className="profile-item profile-item-danger"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
             }}
           >
+            <LogoutIcon />
             Keluar
           </button>
         </div>
-      </aside>
-      <main style={{ flex: 1, padding: "24px 32px" }}>{children}</main>
+      )}
+      <button
+        type="button"
+        className="profile-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="profile-avatar">{initials(profile.name)}</span>
+        <span className="profile-meta">
+          <span className="profile-name">{profile.name}</span>
+        </span>
+        <ChevronIcon />
+      </button>
     </div>
+  );
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2);
+  return parts[0][0] + parts[parts.length - 1][0];
+}
+
+function ChevronIcon() {
+  return (
+    <svg className="profile-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m18 15-6-6-6 6" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <path d="m16 17 5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
   );
 }

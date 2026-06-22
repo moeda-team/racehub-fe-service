@@ -93,7 +93,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   const status = eventStatusDisplay(event.status);
 
   return (
-    <div style={{ maxWidth: 720 }}>
+    <div className="rh-reveal" style={{ maxWidth: 720 }}>
       <Link
         href="/dashboard/events"
         style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}
