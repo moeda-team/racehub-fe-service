@@ -18,6 +18,7 @@ export default function NewEventPage() {
       is_running_event: values.is_running_event,
       master_age_threshold: values.master_age_threshold,
       refund_cutoff_date: values.refund_cutoff_date || undefined,
+      registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
       total_quota: values.total_quota,
     });

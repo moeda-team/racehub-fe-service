@@ -12,6 +12,7 @@ export interface EventFormValues {
   is_running_event: boolean;
   master_age_threshold: number;
   refund_cutoff_date: string; // RFC3339 or ""
+  registration_close_date: string; // RFC3339 or ""
   donation_enabled: boolean;
   total_quota: number;
 }
@@ -83,6 +84,7 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
     String(initial?.master_age_threshold ?? 40),
   );
   const [refundCutoff, setRefundCutoff] = useState(toLocalInput(initial?.refund_cutoff_date ?? ""));
+  const [regClose, setRegClose] = useState(toLocalInput(initial?.registration_close_date ?? ""));
   const [donationEnabled, setDonationEnabled] = useState(initial?.donation_enabled ?? false);
   const [totalQuota, setTotalQuota] = useState(String(initial?.total_quota ?? 0));
 
@@ -115,6 +117,7 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         is_running_event: isRunningEvent,
         master_age_threshold: Number(masterAgeThreshold) || 40,
         refund_cutoff_date: toRFC3339(refundCutoff),
+        registration_close_date: toRFC3339(regClose),
         donation_enabled: donationEnabled,
         total_quota: Number(totalQuota) || 0,
       });
@@ -195,6 +198,14 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         value={refundCutoff}
         onChange={(e) => setRefundCutoff(e.target.value)}
         hint="Refund ditolak setelah tanggal ini"
+      />
+
+      <LabeledInput
+        label="Penutupan Pendaftaran"
+        type="datetime-local"
+        value={regClose}
+        onChange={(e) => setRegClose(e.target.value)}
+        hint="Nomor BIB hanya bisa digenerate setelah waktu ini (FR-1301). Kosong → pakai tanggal event."
       />
 
       <div style={toggleRow}>

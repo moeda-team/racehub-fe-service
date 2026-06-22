@@ -2,20 +2,25 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, getAuthToken } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, { EventFormValues } from "@/components/EventForm";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import DataTable, { Column } from "@/components/ui/DataTable";
 import type {
   ApiResponse,
+  BibResult,
   DistanceCategory,
   DonationReport,
   Event,
+  EventDashboard,
   EventDetail,
   EventStatus,
+  ParticipantRow,
+  RecapRow,
   TicketCategory,
 } from "@/lib/types.gen";
 
@@ -58,6 +63,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       is_running_event: values.is_running_event,
       master_age_threshold: values.master_age_threshold,
       refund_cutoff_date: values.refund_cutoff_date || undefined,
+      registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
       total_quota: values.total_quota,
     });
@@ -119,6 +125,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
             is_running_event: event.is_running_event,
             master_age_threshold: event.master_age_threshold,
             refund_cutoff_date: event.refund_cutoff_date ?? "",
+            registration_close_date: event.registration_close_date ?? "",
             donation_enabled: event.donation_enabled,
             total_quota: event.total_quota,
           }}
@@ -146,6 +153,229 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       <Section title="Pendapatan & Donasi">
         <DonationReportCard eventId={eventId} />
       </Section>
+
+      <Section title="Ringkasan & Rekap Kategori">
+        <DashboardCard eventId={eventId} />
+        <RecapTable eventId={eventId} />
+      </Section>
+
+      <Section title="Nomor BIB">
+        <BibCard eventId={eventId} hasCloseDate={!!event.registration_close_date} />
+      </Section>
+
+      <Section title="Peserta & Export">
+        <ParticipantsCard eventId={eventId} />
+      </Section>
+    </div>
+  );
+}
+
+// DashboardCard shows the server-computed event summary (FR-1101).
+function DashboardCard({ eventId }: { eventId: number }) {
+  const [d, setD] = useState<EventDashboard | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<EventDashboard>>(`/api/v1/events/${eventId}/dashboard`);
+        if (!cancelled) setD(res.data);
+      } catch {
+        /* non-fatal */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  if (!d) return <p style={{ color: "var(--color-ink-3)" }}>Memuat ringkasan…</p>;
+
+  const cells: { label: string; value: string }[] = [
+    { label: "Peserta Berbayar", value: String(d.paid_count) },
+    { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
+    { label: "Donasi (terpisah)", value: formatRupiah(d.donation_total) },
+    { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 16 }}>
+      {cells.map((c) => (
+        <div key={c.label}>
+          <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>{c.label}</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 20, fontWeight: 700 }}>{c.value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// RecapTable lists participant counts per distance × gender × age class (FR-1103).
+function RecapTable({ eventId }: { eventId: number }) {
+  const [rows, setRows] = useState<RecapRow[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<RecapRow[]>>(`/api/v1/events/${eventId}/recap`);
+        if (!cancelled) setRows(res.data ?? []);
+      } catch {
+        if (!cancelled) setRows([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  if (!rows) return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
+  if (rows.length === 0)
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada peserta berbayar untuk direkap.</p>;
+
+  const cols: Column<RecapRow>[] = [
+    { key: "distance", header: "Jarak", render: (r) => r.distance_name },
+    { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
+    { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
+    { key: "total", header: "Jumlah", render: (r) => r.total, mono: true },
+  ];
+  return <DataTable columns={cols} data={rows} keyField={"distance_id" as keyof RecapRow} />;
+}
+
+// BibCard generates the BIB batch (FR-1301..1305) with regeneration confirmation.
+function BibCard({ eventId, hasCloseDate }: { eventId: number; hasCloseDate: boolean }) {
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function generate(regenerate: boolean) {
+    setErr(null);
+    setMsg(null);
+    setBusy(true);
+    try {
+      const res = await api.post<ApiResponse<BibResult>>(
+        `/api/v1/events/${eventId}/bibs/generate${regenerate ? "?regenerate=true" : ""}`,
+      );
+      setMsg(`${res.data.generated} nomor BIB berhasil dibuat (0001…).`);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        // Distinguish "already generated" (offer confirm) from "registration open".
+        if (e.message.toLowerCase().includes("already") || e.message.toLowerCase().includes("regenerat")) {
+          if (window.confirm("Nomor BIB sudah pernah dibuat. Buat ulang dari awal? Nomor lama akan ditimpa.")) {
+            await generate(true);
+            return;
+          }
+          setErr("Pembuatan ulang dibatalkan.");
+        } else {
+          setErr(e.message);
+        }
+      } else {
+        setErr(e instanceof ApiError ? e.message : "Gagal membuat nomor BIB.");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginBottom: 12 }}>
+        Nomor BIB polos satu deret menerus (0001, 0002, …) untuk semua jarak, urut waktu pendaftaran. Hanya bisa
+        dibuat <b>setelah pendaftaran ditutup</b>.
+        {!hasCloseDate && " Atur “Penutupan Pendaftaran” di Detail Event, atau ini memakai tanggal event."}
+      </p>
+      {msg && <Alert variant="info" className="mb-4">{msg}</Alert>}
+      {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+      <Button variant="primary" size="md" disabled={busy} onClick={() => generate(false)}>
+        {busy ? "Memproses…" : "Generate Nomor BIB"}
+      </Button>
+    </div>
+  );
+}
+
+// ParticipantsCard renders the participant table (FR-1202) + CSV export (FR-1201).
+function ParticipantsCard({ eventId }: { eventId: number }) {
+  const [rows, setRows] = useState<ParticipantRow[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<ParticipantRow[]>>(`/api/v1/events/${eventId}/participants?limit=200`);
+        if (!cancelled) setRows(res.data ?? []);
+      } catch {
+        if (!cancelled) setRows([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  async function exportCsv() {
+    setErr(null);
+    setExporting(true);
+    try {
+      const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+      const token = getAuthToken();
+      const res = await fetch(`${base}/api/v1/events/${eventId}/participants/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `peserta-event-${eventId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setErr("Gagal mengekspor. Coba lagi.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  const cols: Column<ParticipantRow>[] = [
+    { key: "bib", header: "BIB", render: (r) => r.bib_number || "—", bibcol: true },
+    { key: "reg", header: "No. Reg", render: (r) => r.registration_number, mono: true },
+    { key: "name", header: "Nama", render: (r) => r.name },
+    { key: "distance", header: "Jarak", render: (r) => r.distance_name },
+    { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
+    { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
+    { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
+    {
+      key: "rpc",
+      header: "RPC",
+      render: (r) => (r.rpc_status ? <Badge variant="ok">✓</Badge> : <span style={{ color: "var(--color-ink-3)" }}>—</span>),
+    },
+    {
+      key: "raceday",
+      header: "Hari-H",
+      render: (r) =>
+        r.raceday_status ? <Badge variant="ok">✓</Badge> : <span style={{ color: "var(--color-ink-3)" }}>—</span>,
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 12 }}>
+        <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+          {rows ? `${rows.length} peserta ditampilkan` : "Memuat…"}
+        </span>
+        <Button variant="secondary" size="sm" disabled={exporting} onClick={exportCsv}>
+          {exporting ? "Mengekspor…" : "Export CSV"}
+        </Button>
+      </div>
+      {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+      {rows && rows.length === 0 ? (
+        <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada peserta.</p>
+      ) : rows ? (
+        <DataTable columns={cols} data={rows} keyField="id" />
+      ) : null}
     </div>
   );
 }

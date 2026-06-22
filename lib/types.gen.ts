@@ -66,6 +66,7 @@ export interface Event {
   is_running_event: boolean;
   master_age_threshold: number;
   refund_cutoff_date: string | null;
+  registration_close_date: string | null;
   donation_enabled: boolean;
   total_quota: number;
   total_quota_used: number;
@@ -173,6 +174,7 @@ export interface CreateEventRequest {
   is_running_event?: boolean;
   master_age_threshold?: number;
   refund_cutoff_date?: string;
+  registration_close_date?: string;
   donation_enabled?: boolean;
   total_quota?: number;
 }
@@ -185,6 +187,7 @@ export interface UpdateEventRequest {
   is_running_event?: boolean;
   master_age_threshold?: number;
   refund_cutoff_date?: string;
+  registration_close_date?: string;
   donation_enabled?: boolean;
   total_quota?: number;
 }
@@ -387,6 +390,68 @@ export interface MassRefundResult {
   failed: number;
   results: Refund[];
   errors?: string[];
+}
+
+// === BIB / Check-in / Reporting (F6/F11/F12/F13) ===
+
+export interface BibResult {
+  generated: number;
+}
+
+export type CheckinStage = "rpc" | "raceday";
+
+export interface CheckinParticipant {
+  id: number;
+  registration_number: string;
+  bib_number: string;
+  name: string;
+  gender: string;
+  age_class: "" | "Open" | "Master";
+  distance_category_id: number;
+  rpc_status: string; // "" | "collected"
+  raceday_status: string; // "" | "checked_in"
+}
+
+export interface ScanRequest {
+  qr_token: string;
+  stage: CheckinStage;
+}
+
+export interface CheckinRequest {
+  registration_id: number;
+  stage: CheckinStage;
+}
+
+export interface EventDashboard {
+  event_id: number;
+  event_name: string;
+  status: string;
+  paid_count: number;
+  ticket_revenue: number;
+  donation_total: number;
+  wallet_balance: number;
+}
+
+export interface RecapRow {
+  distance_id: number;
+  distance_name: string;
+  gender: string;
+  age_class: "" | "Open" | "Master";
+  total: number;
+}
+
+export interface ParticipantRow {
+  id: number;
+  registration_number: string;
+  bib_number: string;
+  name: string;
+  gender: string;
+  age_class: "" | "Open" | "Master";
+  status: RegistrationStatus;
+  rpc_status: string;
+  raceday_status: string;
+  distance_name: string;
+  ticket_name: string;
 }
 
 // === API Response Wrappers ===
