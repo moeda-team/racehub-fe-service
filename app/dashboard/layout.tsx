@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/events", label: "Event Saya" },
+  { href: "/dashboard/wallet", label: "Wallet" },
   { href: "/dashboard/profile", label: "Profil" },
 ];
 

@@ -128,6 +128,36 @@ export interface RejectEventRequest {
   reason: string;
 }
 
+// === Registration (F4) ===
+
+export interface CreateRegistrationRequest {
+  event_id: number;
+  ticket_category_id: number;
+  distance_category_id: number;
+  name: string;
+  email: string;
+  phone: string;
+  birth_date: string; // YYYY-MM-DD (required)
+  gender: string;
+  donation?: number;
+}
+
+export interface Registration {
+  id: number;
+  registration_number: string;
+  event_id: number;
+  ticket_category_id: number;
+  distance_category_id: number;
+  name: string;
+  email: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  age_class: "" | "Open" | "Master";
+  donation: number;
+  status: RegistrationStatus;
+}
+
 export interface MarketplaceFilter {
   date_from?: string;
   date_to?: string;
@@ -242,7 +272,7 @@ export interface PaymentQuoteRequest {
 export interface PaymentQuoteResponse {
   registration_id: number;
   price: number;
-  donation_amount: number;
+  donation: number;
   fee_platform: number;
   fee_midtrans: number;
   sub_total: number;
@@ -250,9 +280,114 @@ export interface PaymentQuoteResponse {
   payment_method_label: string;
 }
 
-// === Refund ===
+export type PaymentMethod = "va" | "gopay" | "card" | "qris";
 
-export type RefundStatus = "requested" | "approved" | "processed" | "completed" | "rejected";
+export interface PaymentChargeRequest {
+  registration_id: number;
+  payment_method: PaymentMethod;
+}
+
+export interface PaymentChargeResponse {
+  registration_id: number;
+  transaction_id: string;
+  status: string;
+  va_number?: string;
+  qr_string?: string;
+  quote: PaymentQuoteResponse;
+}
+
+export interface NotificationResult {
+  transaction_id: string;
+  status: string;
+  already_processed: boolean;
+}
+
+// === E-ticket / Invoice (F7, FR-705) ===
+
+export interface InvoiceBreakdown {
+  method: string;
+  payment_method_label: string;
+  price: number;
+  donation: number;
+  fee_platform: number;
+  fee_midtrans: number;
+  sub_total: number;
+  status: string;
+}
+
+export interface ETicket {
+  registration_number: string;
+  participant_name: string;
+  event_id: number;
+  event_name: string;
+  distance_name: string;
+  gender: string;
+  age_class: "" | "Open" | "Master";
+  qr_token: string;
+  issued_at: string;
+  registration_status: string;
+  invoice?: InvoiceBreakdown;
+}
+
+// === Wallet (F8) ===
+
+export interface WalletBalance {
+  balance: number;
+}
+
+export interface WithdrawRequest {
+  amount: number;
+}
+
+export type WalletEntryType = "credit" | "refund" | "withdraw";
+
+export interface LedgerEntry {
+  id: number;
+  amount: number;
+  type: WalletEntryType;
+  reference_id: string;
+  description: string;
+  created_at: string;
+}
+
+export interface DonationReport {
+  event_id: number;
+  ticket_revenue: number;
+  donation_total: number;
+}
+
+// === Refund (F9) ===
+
+export type RefundStatus = "processing" | "completed" | "rejected";
+
+export type RefundMode = "auto" | "manual";
+
+export interface RefundRequest {
+  reason?: string;
+  bank_account?: string;
+}
+
+export interface Refund {
+  id: number;
+  registration_id: number;
+  amount: number;
+  fee_midtrans: number;
+  donation: number;
+  method: string;
+  mode: RefundMode;
+  bank_account?: string;
+  status: RefundStatus;
+  reason?: string;
+  donation_still_given: boolean;
+}
+
+export interface MassRefundResult {
+  event_id: number;
+  refunded: number;
+  failed: number;
+  results: Refund[];
+  errors?: string[];
+}
 
 // === API Response Wrappers ===
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, ReactNode, useEffect, useState } from "react";
+import Link from "next/link";
 import { ApiError } from "@/lib/api";
 import { adminApi, getAdminToken, setAdminToken } from "@/lib/admin";
 import type { ApiResponse, OrganizerLoginResponse } from "@/lib/types.gen";
@@ -43,9 +44,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           justifyContent: "space-between",
         }}
       >
-        <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
-          RaceHub Admin
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
+            RaceHub Admin
+          </span>
+          <nav style={{ display: "flex", gap: 16, fontSize: 14 }}>
+            <Link href="/admin" style={{ color: "var(--color-ink-4)" }}>Approval</Link>
+            <Link href="/admin/refunds" style={{ color: "var(--color-ink-4)" }}>Refund</Link>
+          </nav>
+        </div>
         <button
           type="button"
           onClick={() => {

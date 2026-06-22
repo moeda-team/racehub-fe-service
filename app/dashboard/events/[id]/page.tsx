@@ -12,6 +12,7 @@ import Alert from "@/components/ui/Alert";
 import type {
   ApiResponse,
   DistanceCategory,
+  DonationReport,
   Event,
   EventDetail,
   EventStatus,
@@ -141,6 +142,49 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
           onChanged={load}
         />
       </Section>
+
+      <Section title="Pendapatan & Donasi">
+        <DonationReportCard eventId={eventId} />
+      </Section>
+    </div>
+  );
+}
+
+// DonationReportCard shows the server-computed ticket-revenue vs donation split
+// (FR-804/1405). Donation is reported separately and is non-refundable.
+function DonationReportCard({ eventId }: { eventId: number }) {
+  const [report, setReport] = useState<DonationReport | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<DonationReport>>(`/api/v1/events/${eventId}/donations`);
+        if (!cancelled) setReport(res.data);
+      } catch {
+        if (!cancelled) setErr("Gagal memuat laporan donasi.");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  if (err) return <p style={{ color: "var(--color-ink-3)" }}>{err}</p>;
+  if (!report) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+      <div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Pendapatan Tiket</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700 }}>{formatRupiah(report.ticket_revenue)}</div>
+      </div>
+      <div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Total Donasi (terpisah)</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700, color: "var(--color-sprint)" }}>{formatRupiah(report.donation_total)}</div>
+        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 4 }}>Non-refundable, tetap disalurkan.</div>
+      </div>
     </div>
   );
 }
