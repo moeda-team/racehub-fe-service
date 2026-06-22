@@ -23,8 +23,8 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
 
   // Wizard state.
   const [step, setStep] = useState(1);
-  const [distanceId, setDistanceId] = useState<number | null>(null);
-  const [ticketId, setTicketId] = useState<number | null>(null);
+  const [distanceId, setDistanceId] = useState<string | null>(null);
+  const [ticketId, setTicketId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -151,7 +151,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
               className="field-input"
               value={distanceId ?? ""}
               onChange={(e) => {
-                setDistanceId(e.target.value ? Number(e.target.value) : null);
+                setDistanceId(e.target.value || null);
                 setTicketId(null);
               }}
             >
@@ -167,7 +167,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           {distanceId && (
             <div className="field">
               <label className="field-label">Tiket</label>
-              <select className="field-input" value={ticketId ?? ""} onChange={(e) => setTicketId(e.target.value ? Number(e.target.value) : null)}>
+              <select className="field-input" value={ticketId ?? ""} onChange={(e) => setTicketId(e.target.value || null)}>
                 <option value="">Pilih tiket</option>
                 {ticketsForDistance.map((t) => (
                   <option key={t.id} value={t.id} disabled={t.quota_remaining <= 0}>

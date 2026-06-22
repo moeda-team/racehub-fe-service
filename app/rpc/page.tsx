@@ -21,7 +21,7 @@ export default function RpcPage() {
   const { isAuthenticated, isLoading } = useAuth();
 
   const [events, setEvents] = useState<Event[]>([]);
-  const [eventId, setEventId] = useState<number | null>(null);
+  const [eventId, setEventId] = useState<string | null>(null);
   const [stage, setStage] = useState<CheckinStage>("rpc");
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function RpcPage() {
           </label>
           <select
             value={eventId ?? ""}
-            onChange={(e) => setEventId(Number(e.target.value))}
+            onChange={(e) => setEventId(e.target.value || null)}
             style={fieldStyle}
           >
             {events.map((ev) => (
@@ -124,7 +124,7 @@ function StageButton({ active, onClick, label }: { active: boolean; onClick: () 
   );
 }
 
-function CheckinPanel({ eventId, stage }: { eventId: number; stage: CheckinStage }) {
+function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CheckinParticipant[]>([]);
   const [err, setErr] = useState<string | null>(null);

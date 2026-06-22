@@ -34,7 +34,7 @@ export default function AdminRefundsPage() {
   async function submitRefund() {
     setErr(null);
     setRefund(null);
-    const id = Number(regId);
+    const id = regId.trim();
     if (!id) {
       setErr("Masukkan ID registrasi yang valid.");
       return;
@@ -70,7 +70,7 @@ export default function AdminRefundsPage() {
   async function submitMass() {
     setMassErr(null);
     setMass(null);
-    const id = Number(eventId);
+    const id = eventId.trim();
     if (!id) {
       setMassErr("Masukkan ID event yang valid.");
       return;
@@ -102,7 +102,7 @@ export default function AdminRefundsPage() {
         <div style={{ fontWeight: 600, marginBottom: 12 }}>Refund Satu Pendaftar</div>
         {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Labeled label="ID Registrasi" value={regId} onChange={setRegId} type="number" />
+          <Labeled label="ID Registrasi" value={regId} onChange={setRegId} />
           <Labeled label="Alasan" value={reason} onChange={setReason} />
           <Labeled
             label="No. Rekening (wajib untuk metode VA / transfer manual)"
@@ -146,7 +146,7 @@ export default function AdminRefundsPage() {
         </p>
         {massErr && <Alert variant="danger" className="mb-4">{massErr}</Alert>}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Labeled label="ID Event" value={eventId} onChange={setEventId} type="number" />
+          <Labeled label="ID Event" value={eventId} onChange={setEventId} />
           <Labeled label="Alasan" value={massReason} onChange={setMassReason} />
           <Button variant="danger" size="md" disabled={massBusy} onClick={submitMass}>
             {massBusy ? "Memproses…" : "Refund Semua Pendaftar"}

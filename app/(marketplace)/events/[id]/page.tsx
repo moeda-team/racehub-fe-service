@@ -54,7 +54,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   const { event, distance_categories, ticket_categories } = detail;
-  const distanceName = (did: number) => distance_categories.find((d) => d.id === did)?.name ?? "—";
+  const distanceName = (did: string) => distance_categories.find((d) => d.id === did)?.name ?? "—";
 
   return (
     <main key="event-detail" className="max-w-3xl mx-auto px-4 py-8 rh-reveal">

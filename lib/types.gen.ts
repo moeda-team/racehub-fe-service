@@ -36,7 +36,7 @@ export interface OrganizerLoginResponse {
 }
 
 export interface OrganizerProfile {
-  id: number;
+  id: string;
   email: string;
   name: string;
   phone: string;
@@ -56,8 +56,8 @@ export interface WalletResponse {
 export type EventStatus = "draft" | "published" | "cancelled" | "finished";
 
 export interface Event {
-  id: number;
-  organizer_id: number;
+  id: string;
+  organizer_id: string;
   name: string;
   description: string;
   location: string;
@@ -86,7 +86,7 @@ export interface EventDetail {
 // === Public marketplace projections (with remaining quota, FR-1003) ===
 
 export interface PublicEvent {
-  id: number;
+  id: string;
   name: string;
   description: string;
   location: string;
@@ -102,15 +102,15 @@ export interface PublicEvent {
 }
 
 export interface PublicDistance {
-  id: number;
+  id: string;
   name: string;
   quota: number;
   quota_remaining: number;
 }
 
 export interface PublicTicket {
-  id: number;
-  distance_category_id: number;
+  id: string;
+  distance_category_id: string;
   name: string;
   price: number;
   quota: number;
@@ -132,9 +132,9 @@ export interface RejectEventRequest {
 // === Registration (F4) ===
 
 export interface CreateRegistrationRequest {
-  event_id: number;
-  ticket_category_id: number;
-  distance_category_id: number;
+  event_id: string;
+  ticket_category_id: string;
+  distance_category_id: string;
   name: string;
   email: string;
   phone: string;
@@ -144,11 +144,11 @@ export interface CreateRegistrationRequest {
 }
 
 export interface Registration {
-  id: number;
+  id: string;
   registration_number: string;
-  event_id: number;
-  ticket_category_id: number;
-  distance_category_id: number;
+  event_id: string;
+  ticket_category_id: string;
+  distance_category_id: string;
   name: string;
   email: string;
   phone: string;
@@ -203,8 +203,8 @@ export interface StatusTransitionRequest {
 // === Distance Category ===
 
 export interface DistanceCategory {
-  id: number;
-  event_id: number;
+  id: string;
+  event_id: string;
   name: string;
   quota: number;
   quota_used: number;
@@ -224,9 +224,9 @@ export interface UpdateDistanceRequest {
 // === Ticket Category ===
 
 export interface TicketCategory {
-  id: number;
-  event_id: number;
-  distance_category_id: number;
+  id: string;
+  event_id: string;
+  distance_category_id: string;
   name: string;
   price: number;
   quota: number;
@@ -240,7 +240,7 @@ export interface CreateTicketRequest {
   name: string;
   price: number;
   quota: number;
-  distance_category_id: number;
+  distance_category_id: string;
   sale_start?: string;
   sale_end?: string;
 }
@@ -249,7 +249,7 @@ export interface UpdateTicketRequest {
   name: string;
   price: number;
   quota: number;
-  distance_category_id: number;
+  distance_category_id: string;
   sale_start?: string;
   sale_end?: string;
 }
@@ -268,12 +268,12 @@ export type RegistrationStatus =
 // === Payment ===
 
 export interface PaymentQuoteRequest {
-  registration_id: number;
+  registration_id: string;
   payment_method: string;
 }
 
 export interface PaymentQuoteResponse {
-  registration_id: number;
+  registration_id: string;
   price: number;
   donation: number;
   fee_platform: number;
@@ -286,12 +286,12 @@ export interface PaymentQuoteResponse {
 export type PaymentMethod = "va" | "gopay" | "card" | "qris";
 
 export interface PaymentChargeRequest {
-  registration_id: number;
+  registration_id: string;
   payment_method: PaymentMethod;
 }
 
 export interface PaymentChargeResponse {
-  registration_id: number;
+  registration_id: string;
   transaction_id: string;
   status: string;
   va_number?: string;
@@ -321,7 +321,7 @@ export interface InvoiceBreakdown {
 export interface ETicket {
   registration_number: string;
   participant_name: string;
-  event_id: number;
+  event_id: string;
   event_name: string;
   distance_name: string;
   gender: string;
@@ -345,7 +345,7 @@ export interface WithdrawRequest {
 export type WalletEntryType = "credit" | "refund" | "withdraw";
 
 export interface LedgerEntry {
-  id: number;
+  id: string;
   amount: number;
   type: WalletEntryType;
   reference_id: string;
@@ -354,7 +354,7 @@ export interface LedgerEntry {
 }
 
 export interface DonationReport {
-  event_id: number;
+  event_id: string;
   ticket_revenue: number;
   donation_total: number;
 }
@@ -371,8 +371,8 @@ export interface RefundRequest {
 }
 
 export interface Refund {
-  id: number;
-  registration_id: number;
+  id: string;
+  registration_id: string;
   amount: number;
   fee_midtrans: number;
   donation: number;
@@ -385,7 +385,7 @@ export interface Refund {
 }
 
 export interface MassRefundResult {
-  event_id: number;
+  event_id: string;
   refunded: number;
   failed: number;
   results: Refund[];
@@ -401,13 +401,13 @@ export interface BibResult {
 export type CheckinStage = "rpc" | "raceday";
 
 export interface CheckinParticipant {
-  id: number;
+  id: string;
   registration_number: string;
   bib_number: string;
   name: string;
   gender: string;
   age_class: "" | "Open" | "Master";
-  distance_category_id: number;
+  distance_category_id: string;
   rpc_status: string; // "" | "collected"
   raceday_status: string; // "" | "checked_in"
 }
@@ -418,12 +418,12 @@ export interface ScanRequest {
 }
 
 export interface CheckinRequest {
-  registration_id: number;
+  registration_id: string;
   stage: CheckinStage;
 }
 
 export interface EventDashboard {
-  event_id: number;
+  event_id: string;
   event_name: string;
   status: string;
   paid_count: number;
@@ -433,7 +433,7 @@ export interface EventDashboard {
 }
 
 export interface RecapRow {
-  distance_id: number;
+  distance_id: string;
   distance_name: string;
   gender: string;
   age_class: "" | "Open" | "Master";
@@ -441,7 +441,7 @@ export interface RecapRow {
 }
 
 export interface ParticipantRow {
-  id: number;
+  id: string;
   registration_number: string;
   bib_number: string;
   name: string;

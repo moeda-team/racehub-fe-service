@@ -26,7 +26,7 @@ import type {
 
 export default function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const eventId = Number(id);
+  const eventId = id;
 
   const [detail, setDetail] = useState<EventDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,7 +171,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
 }
 
 // DashboardCard shows the server-computed event summary (FR-1101).
-function DashboardCard({ eventId }: { eventId: number }) {
+function DashboardCard({ eventId }: { eventId: string }) {
   const [d, setD] = useState<EventDashboard | null>(null);
 
   useEffect(() => {
@@ -210,7 +210,7 @@ function DashboardCard({ eventId }: { eventId: number }) {
 }
 
 // RecapTable lists participant counts per distance × gender × age class (FR-1103).
-function RecapTable({ eventId }: { eventId: number }) {
+function RecapTable({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<RecapRow[] | null>(null);
 
   useEffect(() => {
@@ -242,7 +242,7 @@ function RecapTable({ eventId }: { eventId: number }) {
 }
 
 // BibCard generates the BIB batch (FR-1301..1305) with regeneration confirmation.
-function BibCard({ eventId, hasCloseDate }: { eventId: number; hasCloseDate: boolean }) {
+function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boolean }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -293,7 +293,7 @@ function BibCard({ eventId, hasCloseDate }: { eventId: number; hasCloseDate: boo
 }
 
 // ParticipantsCard renders the participant table (FR-1202) + CSV export (FR-1201).
-function ParticipantsCard({ eventId }: { eventId: number }) {
+function ParticipantsCard({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -382,7 +382,7 @@ function ParticipantsCard({ eventId }: { eventId: number }) {
 
 // DonationReportCard shows the server-computed ticket-revenue vs donation split
 // (FR-804/1405). Donation is reported separately and is non-refundable.
-function DonationReportCard({ eventId }: { eventId: number }) {
+function DonationReportCard({ eventId }: { eventId: string }) {
   const [report, setReport] = useState<DonationReport | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -565,7 +565,7 @@ function DistanceManager({
   distances,
   onChanged,
 }: {
-  eventId: number;
+  eventId: string;
   distances: DistanceCategory[];
   onChanged: () => Promise<void>;
 }) {
@@ -596,7 +596,7 @@ function DistanceManager({
     }
   }
 
-  async function remove(did: number) {
+  async function remove(did: string) {
     if (!window.confirm("Hapus kategori jarak ini?")) return;
     setError(null);
     try {
@@ -685,7 +685,7 @@ function TicketManager({
   tickets,
   onChanged,
 }: {
-  eventId: number;
+  eventId: string;
   distances: DistanceCategory[];
   tickets: TicketCategory[];
   onChanged: () => Promise<void>;
@@ -697,7 +697,7 @@ function TicketManager({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const distanceName = (id: number) => distances.find((d) => d.id === id)?.name ?? "—";
+  const distanceName = (id: string) => distances.find((d) => d.id === id)?.name ?? "—";
 
   async function add() {
     if (!name.trim()) {
@@ -715,7 +715,7 @@ function TicketManager({
         name: name.trim(),
         price: Number(price) || 0,
         quota: Number(quota) || 0,
-        distance_category_id: Number(distanceId),
+        distance_category_id: distanceId,
       });
       setName("");
       setPrice("0");
@@ -729,7 +729,7 @@ function TicketManager({
     }
   }
 
-  async function remove(tid: number) {
+  async function remove(tid: string) {
     if (!window.confirm("Hapus kategori tiket ini?")) return;
     setError(null);
     try {
