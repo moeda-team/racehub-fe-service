@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
@@ -117,19 +116,6 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <p
-        style={{
-          fontSize: 14,
-          color: "var(--color-ink-3)",
-          textAlign: "center",
-          marginTop: 16,
-        }}
-      >
-        Belum punya akun?{" "}
-        <Link href="/register" style={{ color: "var(--color-flame)", fontWeight: 500 }}>
-          Daftar
-        </Link>
-      </p>
     </div>
   );
 }

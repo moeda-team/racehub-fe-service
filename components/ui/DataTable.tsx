@@ -12,7 +12,8 @@ export interface Column<T> {
 interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
-  keyField: keyof T;
+  keyField?: keyof T;
+  keyFn?: (row: T) => string;
   className?: string;
 }
 
@@ -20,8 +21,10 @@ export default function DataTable<T>({
   columns,
   data,
   keyField,
+  keyFn,
   className = "",
 }: DataTableProps<T>) {
+  const getKey = keyFn ?? ((row: T) => String(row[keyField!]));
   return (
     <div style={{ overflowX: "auto" }} className={className}>
       <table className="dtable">
@@ -34,7 +37,7 @@ export default function DataTable<T>({
         </thead>
         <tbody>
           {data.map((row) => (
-            <tr key={String(row[keyField])}>
+            <tr key={getKey(row)}>
               {columns.map((col) => {
                 const cellClass = [
                   col.bibcol ? "bibcol" : "",

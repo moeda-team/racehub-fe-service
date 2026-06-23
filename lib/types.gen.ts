@@ -340,6 +340,7 @@ export interface WalletBalance {
 
 export interface WithdrawRequest {
   amount: number;
+  bank_account?: string;
 }
 
 export type WalletEntryType = "credit" | "refund" | "withdraw";
@@ -390,6 +391,38 @@ export interface MassRefundResult {
   failed: number;
   results: Refund[];
   errors?: string[];
+}
+
+// === Admin (paginated listings) ===
+
+export interface RegistrationSummary {
+  id: string;
+  registration_number: string;
+  name: string;
+  gender: string;
+  age_class: "" | "Open" | "Master";
+  donation: number;
+  status: RegistrationStatus;
+  bib_number: string;
+  rpc_status: string;
+  raceday_status: string;
+  created_at: string;
+}
+
+export interface AdminEventPage {
+  events: Event[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface AdminRegistrationPage {
+  registrations: RegistrationSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 // === BIB / Check-in / Reporting (F6/F11/F12/F13) ===

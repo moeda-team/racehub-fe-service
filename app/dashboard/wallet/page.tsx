@@ -18,6 +18,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number | null>(null);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [amount, setAmount] = useState("");
+  const [bankAccount, setBankAccount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -58,9 +59,12 @@ export default function WalletPage() {
     }
     setBusy(true);
     try {
-      const res = await api.post<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet/withdraw", { amount: n });
+      const body: { amount: number; bank_account?: string } = { amount: n };
+      if (bankAccount.trim()) body.bank_account = bankAccount.trim();
+      const res = await api.post<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet/withdraw", body);
       setBalance(res.data.balance);
       setAmount("");
+      setBankAccount("");
       setNotice(`Penarikan ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`);
       await load();
     } catch (err) {
@@ -83,21 +87,35 @@ export default function WalletPage() {
 
       <div style={card}>
         <div style={{ fontWeight: 600, marginBottom: 12 }}>Tarik Saldo</div>
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-          <div className="field" style={{ flex: 1, minWidth: 200 }}>
-            <label className="field-label">Nominal (Rp)</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div className="field" style={{ flex: 1, minWidth: 200 }}>
+              <label className="field-label">Nominal (Rp)</label>
+              <input
+                className="field-input"
+                type="number"
+                min={0}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <div className="field">
+            <label className="field-label">No. Rekening Tujuan (opsional)</label>
             <input
               className="field-input"
-              type="number"
-              min={0}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
+              type="text"
+              value={bankAccount}
+              onChange={(e) => setBankAccount(e.target.value)}
+              placeholder="Contoh: BCA 1234567890"
             />
           </div>
-          <Button variant="primary" size="md" disabled={busy} onClick={handleWithdraw}>
-            {busy ? "Memproses…" : "Tarik"}
-          </Button>
+          <div>
+            <Button variant="primary" size="md" disabled={busy} onClick={handleWithdraw}>
+              {busy ? "Memproses…" : "Tarik"}
+            </Button>
+          </div>
         </div>
         <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 8 }}>
           Penarikan dibatasi saldo tersedia. Donasi dilaporkan terpisah per event (lihat detail event).

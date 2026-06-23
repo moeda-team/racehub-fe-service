@@ -365,7 +365,7 @@ function RecapTable({ eventId }: { eventId: string }) {
     { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
     { key: "total", header: "Jumlah", render: (r) => r.total, mono: true },
   ];
-  return <DataTable columns={cols} data={rows} keyField={"distance_id" as keyof RecapRow} />;
+  return <DataTable columns={cols} data={rows} keyFn={(r) => `${r.distance_id}-${r.gender}-${r.age_class}`} />;
 }
 
 // BibCard generates the BIB batch (FR-1301..1305) with regeneration confirmation.
