@@ -53,6 +53,7 @@ export default function RpcPage() {
 
   return (
     <main
+      className="rh-reveal"
       style={{
         minHeight: "100vh",
         background: "var(--color-ink)",

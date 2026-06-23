@@ -83,7 +83,7 @@ function RegisterForm() {
   }
 
   return (
-    <>
+    <div className="rh-reveal">
       <h1
         style={{
           fontFamily: "var(--font-display)",
@@ -180,6 +180,6 @@ function RegisterForm() {
           Masuk
         </Link>
       </p>
-    </>
+    </div>
   );
 }

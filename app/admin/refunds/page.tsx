@@ -90,7 +90,7 @@ export default function AdminRefundsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 720 }}>
+    <div className="rh-reveal" style={{ maxWidth: 720 }}>
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 700, marginBottom: 8 }}>Refund</h1>
       <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}>
         Nominal refund dihitung server: <code>total − fee Midtrans − donasi</code>. Donasi tidak dikembalikan dan

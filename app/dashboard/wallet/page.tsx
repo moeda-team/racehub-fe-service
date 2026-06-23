@@ -71,7 +71,7 @@ export default function WalletPage() {
   }
 
   return (
-    <div>
+    <div className="rh-reveal">
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Wallet</h1>
 
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}

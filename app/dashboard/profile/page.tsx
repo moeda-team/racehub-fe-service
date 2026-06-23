@@ -51,7 +51,7 @@ function ProfileForm({ profile }: { profile: OrganizerProfile }) {
   }
 
   return (
-    <div style={{ maxWidth: 480 }}>
+    <div className="rh-reveal" style={{ maxWidth: 480 }}>
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, marginBottom: 24 }}>
         Profil Organizer
       </h1>

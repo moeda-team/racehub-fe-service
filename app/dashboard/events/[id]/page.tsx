@@ -24,6 +24,15 @@ import type {
   TicketCategory,
 } from "@/lib/types.gen";
 
+type Tab = "detail" | "kategori" | "peserta" | "keuangan";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "detail", label: "Detail Event" },
+  { id: "kategori", label: "Kategori" },
+  { id: "peserta", label: "Peserta & BIB" },
+  { id: "keuangan", label: "Keuangan" },
+];
+
 export default function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const eventId = id;
@@ -32,6 +41,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("detail");
 
   const load = useCallback(async () => {
     try {
@@ -49,9 +59,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
     (async () => {
       if (!cancelled) await load();
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [load]);
 
   async function handleUpdate(values: EventFormValues) {
@@ -78,10 +86,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   if (loadError || !detail) {
     return (
       <div>
-        <Link
-          href="/dashboard/events"
-          style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}
-        >
+        <Link href="/dashboard/events" style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}>
           ← Kembali ke Event Saya
         </Link>
         <Alert variant="danger">{loadError ?? "Event tidak ditemukan."}</Alert>
@@ -93,16 +98,15 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   const status = eventStatusDisplay(event.status);
 
   return (
-    <div className="rh-reveal" style={{ maxWidth: 720 }}>
-      <Link
-        href="/dashboard/events"
-        style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}
-      >
-        ← Kembali ke Event Saya
-      </Link>
-
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700 }}>{event.name}</h1>
+    <div className="rh-reveal" style={{ maxWidth: 1100 }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+        <Link href="/dashboard/events" style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+          ← Event Saya
+        </Link>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 700, margin: 0 }}>{event.name}</h1>
         <Badge variant={status.variant}>{status.label}</Badge>
       </div>
 
@@ -112,60 +116,188 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
         </Alert>
       )}
 
+      {/* Status bar — always visible */}
       <StatusSection event={event} onChanged={load} onNotice={setNotice} />
 
-      <Section title="Detail Event">
-        <EventForm
-          submitLabel="Simpan Perubahan"
-          initial={{
-            name: event.name,
-            description: event.description,
-            location: event.location,
-            event_date: event.event_date,
-            is_running_event: event.is_running_event,
-            master_age_threshold: event.master_age_threshold,
-            refund_cutoff_date: event.refund_cutoff_date ?? "",
-            registration_close_date: event.registration_close_date ?? "",
-            donation_enabled: event.donation_enabled,
-            total_quota: event.total_quota,
-          }}
-          onSubmit={handleUpdate}
-        />
-      </Section>
+      {/* Tab bar */}
+      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--color-line)", marginTop: 20, marginBottom: 0 }}>
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setActiveTab(t.id)}
+            style={{
+              padding: "8px 20px",
+              fontSize: 14,
+              fontWeight: activeTab === t.id ? 600 : 400,
+              color: activeTab === t.id ? "var(--color-flame)" : "var(--color-ink-2)",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === t.id ? "2px solid var(--color-flame)" : "2px solid transparent",
+              cursor: "pointer",
+              marginBottom: -1,
+              transition: "color 0.15s",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <Section title="Kategori Jarak">
-        <DistanceManager
-          eventId={eventId}
-          distances={detail.distance_categories}
-          onChanged={load}
-        />
-      </Section>
+      {/* Tab panels */}
+      <div style={{ paddingTop: 24 }}>
+        {activeTab === "detail" && (
+          <div style={{ maxWidth: 680 }}>
+            <EventForm
+              submitLabel="Simpan Perubahan"
+              initial={{
+                name: event.name,
+                description: event.description,
+                location: event.location,
+                event_date: event.event_date,
+                is_running_event: event.is_running_event,
+                master_age_threshold: event.master_age_threshold,
+                refund_cutoff_date: event.refund_cutoff_date ?? "",
+                registration_close_date: event.registration_close_date ?? "",
+                donation_enabled: event.donation_enabled,
+                total_quota: event.total_quota,
+              }}
+              onSubmit={handleUpdate}
+            />
+          </div>
+        )}
 
-      <Section title="Kategori Tiket">
-        <TicketManager
-          eventId={eventId}
-          distances={detail.distance_categories}
-          tickets={detail.ticket_categories}
-          onChanged={load}
-        />
-      </Section>
+        {activeTab === "kategori" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Kategori Jarak</h2>
+              <DistanceManager eventId={eventId} distances={detail.distance_categories} onChanged={load} />
+            </div>
+            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Kategori Tiket</h2>
+              <TicketManager
+                eventId={eventId}
+                distances={detail.distance_categories}
+                tickets={detail.ticket_categories}
+                onChanged={load}
+              />
+            </div>
+          </div>
+        )}
 
-      <Section title="Pendapatan & Donasi">
-        <DonationReportCard eventId={eventId} />
-      </Section>
+        {activeTab === "peserta" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <RegistrationStatusCard event={event} eventId={eventId} onChanged={load} />
+            <div style={{ padding: 16, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 12, marginTop: 0 }}>Nomor BIB</h2>
+              <BibCard eventId={eventId} hasCloseDate={!!event.registration_close_date} />
+            </div>
+            <div style={{ padding: 16, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 12, marginTop: 0 }}>Daftar Peserta</h2>
+              <ParticipantsCard eventId={eventId} />
+            </div>
+          </div>
+        )}
 
-      <Section title="Ringkasan & Rekap Kategori">
-        <DashboardCard eventId={eventId} />
-        <RecapTable eventId={eventId} />
-      </Section>
+        {activeTab === "keuangan" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Pendapatan & Donasi</h2>
+                <DonationReportCard eventId={eventId} />
+              </div>
+              <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Ringkasan</h2>
+                <DashboardCard eventId={eventId} />
+              </div>
+            </div>
+            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Rekap per Kategori</h2>
+              <RecapTable eventId={eventId} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-      <Section title="Nomor BIB">
-        <BibCard eventId={eventId} hasCloseDate={!!event.registration_close_date} />
-      </Section>
+// RegistrationStatusCard shows whether registration is open or closed and lets
+// the organizer close it immediately with one click (prerequisite for BIB generation).
+function RegistrationStatusCard({
+  event,
+  eventId,
+  onChanged,
+}: {
+  event: Event;
+  eventId: string;
+  onChanged: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-      <Section title="Peserta & Export">
-        <ParticipantsCard eventId={eventId} />
-      </Section>
+  // Mirror backend resolveRegistrationClose: prefer explicit close date, fall back to event date.
+  const closeDateStr = event.registration_close_date ?? event.event_date ?? null;
+  const closeDate = closeDateStr ? new Date(closeDateStr) : null;
+  const isClosed = !!closeDate && closeDate <= new Date();
+
+  async function closeNow() {
+    if (!window.confirm("Tutup pendaftaran sekarang? Peserta baru tidak dapat mendaftar setelah ini.")) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await api.put<ApiResponse<Event>>(`/api/v1/events/${eventId}`, {
+        name: event.name,
+        description: event.description,
+        location: event.location,
+        event_date: event.event_date,
+        is_running_event: event.is_running_event,
+        master_age_threshold: event.master_age_threshold,
+        refund_cutoff_date: event.refund_cutoff_date ?? "",
+        registration_close_date: new Date().toISOString(),
+        donation_enabled: event.donation_enabled,
+        total_quota: event.total_quota,
+      });
+      await onChanged();
+    } catch (e) {
+      setErr(e instanceof ApiError ? e.message : "Gagal menutup pendaftaran.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        padding: "12px 16px",
+        border: `1px solid ${isClosed ? "var(--color-sprint)" : "var(--color-warn)"}`,
+        borderRadius: "var(--radius-md)",
+        backgroundColor: "var(--color-panel)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 16,
+        flexWrap: "wrap",
+      }}
+    >
+      <div>
+        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
+          {isClosed ? "✓ Pendaftaran ditutup" : "⚠ Pendaftaran masih terbuka"}
+        </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+          {isClosed && closeDate
+            ? `Ditutup sejak ${closeDate.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}`
+            : closeDate
+            ? `Akan tutup otomatis ${closeDate.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}`
+            : "Belum ada tanggal penutupan — atur di tab Detail atau tutup manual di sini."}
+        </div>
+        {err && <div style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 4 }}>{err}</div>}
+      </div>
+      {!isClosed && (
+        <Button variant="secondary" size="sm" disabled={busy} onClick={closeNow}>
+          {busy ? "Menutup…" : "Tutup Pendaftaran Sekarang"}
+        </Button>
+      )}
     </div>
   );
 }
@@ -180,13 +312,9 @@ function DashboardCard({ eventId }: { eventId: string }) {
       try {
         const res = await api.get<ApiResponse<EventDashboard>>(`/api/v1/events/${eventId}/dashboard`);
         if (!cancelled) setD(res.data);
-      } catch {
-        /* non-fatal */
-      }
+      } catch { /* non-fatal */ }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [eventId]);
 
   if (!d) return <p style={{ color: "var(--color-ink-3)" }}>Memuat ringkasan…</p>;
@@ -194,15 +322,16 @@ function DashboardCard({ eventId }: { eventId: string }) {
   const cells: { label: string; value: string }[] = [
     { label: "Peserta Berbayar", value: String(d.paid_count) },
     { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
-    { label: "Donasi (terpisah)", value: formatRupiah(d.donation_total) },
+    { label: "Donasi", value: formatRupiah(d.donation_total) },
     { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
   ];
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
       {cells.map((c) => (
         <div key={c.label}>
-          <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>{c.label}</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 20, fontWeight: 700 }}>{c.value}</div>
+          <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 2 }}>{c.label}</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700 }}>{c.value}</div>
         </div>
       ))}
     </div>
@@ -223,9 +352,7 @@ function RecapTable({ eventId }: { eventId: string }) {
         if (!cancelled) setRows([]);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [eventId]);
 
   if (!rows) return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
@@ -258,7 +385,6 @@ function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boo
       setMsg(`${res.data.generated} nomor BIB berhasil dibuat (0001…).`);
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
-        // Distinguish "already generated" (offer confirm) from "registration open".
         if (e.message.toLowerCase().includes("already") || e.message.toLowerCase().includes("regenerat")) {
           if (window.confirm("Nomor BIB sudah pernah dibuat. Buat ulang dari awal? Nomor lama akan ditimpa.")) {
             await generate(true);
@@ -278,10 +404,10 @@ function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boo
 
   return (
     <div>
-      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginBottom: 12 }}>
-        Nomor BIB polos satu deret menerus (0001, 0002, …) untuk semua jarak, urut waktu pendaftaran. Hanya bisa
-        dibuat <b>setelah pendaftaran ditutup</b>.
-        {!hasCloseDate && " Atur “Penutupan Pendaftaran” di Detail Event, atau ini memakai tanggal event."}
+      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 12 }}>
+        Nomor polos satu deret menerus (0001, 0002, …) untuk semua jarak, urut waktu pendaftaran. Hanya bisa dibuat{" "}
+        <b>setelah pendaftaran ditutup</b>.
+        {!hasCloseDate && ' Atur "Penutupan Pendaftaran" di tab Detail, atau ini memakai tanggal event.'}
       </p>
       {msg && <Alert variant="info" className="mb-4">{msg}</Alert>}
       {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
@@ -308,9 +434,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
         if (!cancelled) setRows([]);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [eventId]);
 
   async function exportCsv() {
@@ -380,8 +504,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
   );
 }
 
-// DonationReportCard shows the server-computed ticket-revenue vs donation split
-// (FR-804/1405). Donation is reported separately and is non-refundable.
+// DonationReportCard shows the server-computed ticket-revenue vs donation split (FR-804/1405).
 function DonationReportCard({ eventId }: { eventId: string }) {
   const [report, setReport] = useState<DonationReport | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -396,47 +519,24 @@ function DonationReportCard({ eventId }: { eventId: string }) {
         if (!cancelled) setErr("Gagal memuat laporan donasi.");
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [eventId]);
 
   if (err) return <p style={{ color: "var(--color-ink-3)" }}>{err}</p>;
   if (!report) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Pendapatan Tiket</div>
+        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 2 }}>Pendapatan Tiket</div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700 }}>{formatRupiah(report.ticket_revenue)}</div>
       </div>
       <div>
-        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Total Donasi (terpisah)</div>
+        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 2 }}>Total Donasi (terpisah)</div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700, color: "var(--color-sprint)" }}>{formatRupiah(report.donation_total)}</div>
         <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 4 }}>Non-refundable, tetap disalurkan.</div>
       </div>
     </div>
-  );
-}
-
-// --- Layout helpers ---
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section
-      style={{
-        marginTop: 24,
-        padding: 20,
-        border: "1px solid var(--color-line)",
-        borderRadius: "var(--radius-md)",
-        backgroundColor: "var(--color-surface)",
-      }}
-    >
-      <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
-        {title}
-      </h2>
-      {children}
-    </section>
   );
 }
 
@@ -488,20 +588,17 @@ function StatusSection({
   const isPublished = event.status === "published";
   const terminal = event.status === "cancelled" || event.status === "finished";
 
+  if (terminal && !error) {
+    return (
+      <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 0 }}>
+        Tidak ada aksi status yang tersedia untuk event ini.
+      </p>
+    );
+  }
+
   return (
-    <div
-      style={{
-        padding: 16,
-        border: "1px solid var(--color-line)",
-        borderRadius: "var(--radius-md)",
-        backgroundColor: "var(--color-panel)",
-      }}
-    >
-      {error && (
-        <Alert variant="danger" className="mb-4">
-          {error}
-        </Alert>
-      )}
+    <div style={{ padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-panel)" }}>
+      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {event.rejection_reason && (
         <Alert variant="warn" className="mb-4">
@@ -509,47 +606,30 @@ function StatusSection({
         </Alert>
       )}
 
-      {isDraft && event.submitted_for_review && (
-        <p style={{ fontSize: 13, color: "var(--color-warn)", marginBottom: 12 }}>
-          ⏳ Menunggu persetujuan admin. Event akan terbit otomatis setelah disetujui.
-        </p>
-      )}
-      {isDraft && !event.submitted_for_review && (
-        <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
-          Event masih draft. Ajukan untuk persetujuan admin agar bisa terbit ke publik.
-        </p>
-      )}
-      {terminal && (
-        <p style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-          Tidak ada aksi status yang tersedia untuk event ini.
-        </p>
-      )}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        {isDraft && event.submitted_for_review && (
+          <span style={{ fontSize: 13, color: "var(--color-warn)" }}>
+            ⏳ Menunggu persetujuan admin.
+          </span>
+        )}
+        {isDraft && !event.submitted_for_review && (
+          <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+            Draft — belum diajukan ke admin.
+          </span>
+        )}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {isDraft && !event.submitted_for_review && (
           <Button variant="primary" size="sm" disabled={busy} onClick={submitForReview}>
             Ajukan untuk Persetujuan
           </Button>
         )}
         {isPublished && (
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={busy}
-            onClick={() => transition("finished", "Tandai event sebagai selesai?")}
-          >
+          <Button variant="secondary" size="sm" disabled={busy} onClick={() => transition("finished", "Tandai event sebagai selesai?")}>
             Tandai Selesai
           </Button>
         )}
         {(isDraft || isPublished) && (
-          <Button
-            variant="danger"
-            size="sm"
-            disabled={busy}
-            onClick={() =>
-              transition("cancelled", "Batalkan event ini? Tindakan ini tidak dapat dibatalkan.")
-            }
-          >
+          <Button variant="danger" size="sm" disabled={busy} onClick={() => transition("cancelled", "Batalkan event ini? Tindakan ini tidak dapat dibatalkan.")}>
             Batalkan Event
           </Button>
         )}
@@ -575,17 +655,11 @@ function DistanceManager({
   const [busy, setBusy] = useState(false);
 
   async function add() {
-    if (!name.trim()) {
-      setError("Nama jarak wajib diisi.");
-      return;
-    }
+    if (!name.trim()) { setError("Nama jarak wajib diisi."); return; }
     setError(null);
     setBusy(true);
     try {
-      await api.post(`/api/v1/events/${eventId}/distances`, {
-        name: name.trim(),
-        quota: Number(quota) || 0,
-      });
+      await api.post(`/api/v1/events/${eventId}/distances`, { name: name.trim(), quota: Number(quota) || 0 });
       setName("");
       setQuota("0");
       await onChanged();
@@ -609,40 +683,18 @@ function DistanceManager({
 
   return (
     <div>
-      {error && (
-        <Alert variant="danger" className="mb-4">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {distances.length === 0 ? (
         <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 12 }}>Belum ada kategori jarak.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 6 }}>
           {distances.map((d) => (
-            <li
-              key={d.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 12px",
-                border: "1px solid var(--color-line)",
-                borderRadius: "var(--radius-sm)",
-              }}
-            >
-              <span>{d.name}</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>
-                  {d.quota_used}/{d.quota}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => remove(d.id)}
-                  style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 13 }}
-                >
-                  Hapus
-                </button>
+            <li key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
+              <span style={{ fontSize: 14 }}>{d.name}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-ink-3)" }}>{d.quota_used}/{d.quota}</span>
+                <button type="button" onClick={() => remove(d.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 13 }}>Hapus</button>
               </span>
             </li>
           ))}
@@ -650,28 +702,15 @@ function DistanceManager({
       )}
 
       <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-        <div className="field" style={{ flex: 1, minWidth: 160 }}>
+        <div className="field" style={{ flex: 1, minWidth: 100 }}>
           <label className="field-label">Nama Jarak</label>
-          <input
-            className="field-input"
-            placeholder="Mis. 5K"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <input className="field-input" placeholder="Mis. 5K" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <div className="field" style={{ width: 120 }}>
+        <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
-          <input
-            className="field-input"
-            type="number"
-            min={0}
-            value={quota}
-            onChange={(e) => setQuota(e.target.value)}
-          />
+          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(e.target.value)} />
         </div>
-        <Button variant="secondary" size="md" disabled={busy} onClick={add}>
-          Tambah
-        </Button>
+        <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
     </div>
   );
@@ -700,14 +739,8 @@ function TicketManager({
   const distanceName = (id: string) => distances.find((d) => d.id === id)?.name ?? "—";
 
   async function add() {
-    if (!name.trim()) {
-      setError("Nama tiket wajib diisi.");
-      return;
-    }
-    if (!distanceId) {
-      setError("Pilih kategori jarak untuk tiket ini.");
-      return;
-    }
+    if (!name.trim()) { setError("Nama tiket wajib diisi."); return; }
+    if (!distanceId) { setError("Pilih kategori jarak untuk tiket ini."); return; }
     setError(null);
     setBusy(true);
     try {
@@ -717,10 +750,7 @@ function TicketManager({
         quota: Number(quota) || 0,
         distance_category_id: distanceId,
       });
-      setName("");
-      setPrice("0");
-      setQuota("0");
-      setDistanceId("");
+      setName(""); setPrice("0"); setQuota("0"); setDistanceId("");
       await onChanged();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Gagal menambah tiket.");
@@ -741,53 +771,27 @@ function TicketManager({
   }
 
   if (distances.length === 0) {
-    return (
-      <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
-        Tambahkan kategori jarak terlebih dahulu sebelum membuat tiket.
-      </p>
-    );
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Tambahkan kategori jarak terlebih dahulu.</p>;
   }
 
   return (
     <div>
-      {error && (
-        <Alert variant="danger" className="mb-4">
-          {error}
-        </Alert>
-      )}
+      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {tickets.length === 0 ? (
         <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 12 }}>Belum ada kategori tiket.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 6 }}>
           {tickets.map((t) => (
-            <li
-              key={t.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 12px",
-                border: "1px solid var(--color-line)",
-                borderRadius: "var(--radius-sm)",
-              }}
-            >
-              <span>
+            <li key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
+              <span style={{ fontSize: 14 }}>
                 {t.name}
-                <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}> · {distanceName(t.distance_category_id)}</span>
+                <span style={{ color: "var(--color-ink-3)", fontSize: 12 }}> · {distanceName(t.distance_category_id)}</span>
               </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(t.price)}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>
-                  {t.quota_used}/{t.quota}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => remove(t.id)}
-                  style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 13 }}
-                >
-                  Hapus
-                </button>
+              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{formatRupiah(t.price)}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-ink-3)" }}>{t.quota_used}/{t.quota}</span>
+                <button type="button" onClick={() => remove(t.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 13 }}>Hapus</button>
               </span>
             </li>
           ))}
@@ -795,49 +799,26 @@ function TicketManager({
       )}
 
       <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
-        <div className="field" style={{ flex: 1, minWidth: 140 }}>
+        <div className="field" style={{ flex: 1, minWidth: 100 }}>
           <label className="field-label">Nama Tiket</label>
-          <input
-            className="field-input"
-            placeholder="Mis. Early Bird"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <input className="field-input" placeholder="Mis. Early Bird" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <div className="field" style={{ width: 160 }}>
+        <div className="field" style={{ width: 130 }}>
           <label className="field-label">Jarak</label>
           <select className="field-input" value={distanceId} onChange={(e) => setDistanceId(e.target.value)}>
             <option value="">Pilih jarak</option>
-            {distances.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
+            {distances.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </div>
-        <div className="field" style={{ width: 140 }}>
+        <div className="field" style={{ width: 120 }}>
           <label className="field-label">Harga (Rp)</label>
-          <input
-            className="field-input"
-            type="number"
-            min={0}
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
+          <input className="field-input" type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
-        <div className="field" style={{ width: 110 }}>
+        <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
-          <input
-            className="field-input"
-            type="number"
-            min={0}
-            value={quota}
-            onChange={(e) => setQuota(e.target.value)}
-          />
+          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(e.target.value)} />
         </div>
-        <Button variant="secondary" size="md" disabled={busy} onClick={add}>
-          Tambah
-        </Button>
+        <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
       <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 8 }}>
         Kuota tiket tidak boleh melebihi kuota jarak yang dipilih (divalidasi server).

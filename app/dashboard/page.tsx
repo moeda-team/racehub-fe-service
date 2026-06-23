@@ -39,7 +39,7 @@ export default function DashboardPage() {
   const publishedCount = events.filter((e) => e.status === "published").length;
 
   return (
-    <div>
+    <div className="rh-reveal">
       <div
         style={{
           display: "flex",
@@ -48,9 +48,7 @@ export default function DashboardPage() {
           marginBottom: 24,
         }}
       >
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700 }}>
-          Dashboard
-        </h1>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700 }}>Dashboard</h1>
         <Link href="/dashboard/events/new">
           <Button variant="primary" size="md">
             + Buat Event
@@ -74,11 +72,7 @@ export default function DashboardPage() {
       >
         <StatCard label="Total Event" value={String(events.length)} />
         <StatCard label="Event Terbit" value={String(publishedCount)} />
-        <StatCard
-          label="Saldo Wallet"
-          value={wallet ? formatRupiah(wallet.balance) : "—"}
-          accent
-        />
+        <StatCard label="Saldo Wallet" value={wallet ? formatRupiah(wallet.balance) : "—"} accent />
       </div>
 
       <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 12 }}>
@@ -97,7 +91,7 @@ export default function DashboardPage() {
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {events.slice(0, 5).map((ev) => {
+          {events.slice(0, 7).map((ev) => {
             const status = eventStatusDisplay(ev.status);
             return (
               <Link

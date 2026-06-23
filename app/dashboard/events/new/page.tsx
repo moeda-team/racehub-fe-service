@@ -26,7 +26,7 @@ export default function NewEventPage() {
   }
 
   return (
-    <div>
+    <div className="rh-reveal">
       <Link
         href="/dashboard/events"
         style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}

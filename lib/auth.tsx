@@ -25,7 +25,7 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, keepSignedIn?: boolean) => Promise<void>;
   register: (data: {
     email: string;
     password: string;
@@ -83,10 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!token;
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, keepSignedIn = false) => {
     const res = await api.post<ApiResponse<OrganizerLoginResponse>>(
       "/api/v1/organizers/login",
-      { email, password }
+      { email, password, keep_signed_in: keepSignedIn }
     );
     const newToken = res.data.token;
     setAuthToken(newToken);

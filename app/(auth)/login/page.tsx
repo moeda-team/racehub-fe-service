@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
@@ -11,11 +11,22 @@ import Alert from "@/components/ui/Alert";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading || isAuthenticated) {
+    return null;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -23,7 +34,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
+      await login(email, password, keepSignedIn);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {
@@ -37,7 +48,7 @@ export default function LoginPage() {
   }
 
   return (
-    <>
+    <div className="rh-reveal">
       <h1
         style={{
           fontFamily: "var(--font-display)",
@@ -83,6 +94,24 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 14,
+            color: "var(--color-ink-2)",
+            cursor: "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={keepSignedIn}
+            onChange={(e) => setKeepSignedIn(e.target.checked)}
+            style={{ width: 16, height: 16, accentColor: "var(--color-flame)", cursor: "pointer" }}
+          />
+          Tetap masuk
+        </label>
         <Button type="submit" variant="primary" size="md" disabled={isSubmitting} style={{ width: "100%" }}>
           {isSubmitting ? "Memproses..." : "Masuk"}
         </Button>
@@ -101,6 +130,6 @@ export default function LoginPage() {
           Daftar
         </Link>
       </p>
-    </>
+    </div>
   );
 }

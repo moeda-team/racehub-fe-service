@@ -73,7 +73,7 @@ export default function AdminApprovalsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div className="rh-reveal" style={{ maxWidth: 760 }}>
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 700, marginBottom: 16 }}>
         Antrian Persetujuan
       </h1>
