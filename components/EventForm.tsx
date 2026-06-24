@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, InputHTMLAttributes, useId, useState } from "react";
+import { ChangeEvent, FormEvent, InputHTMLAttributes, useId, useState } from "react";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import { normalizeNumberInput } from "@/lib/format";
 
 export interface EventFormValues {
   name: string;
@@ -33,12 +34,22 @@ interface LabeledInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 function LabeledInput({ label, hint, error, ...rest }: LabeledInputProps) {
   const id = useId();
+  // Number inputs: strip leading zeros so a field starting at "0" doesn't keep
+  // it (e.g. "09000" -> "9000").
+  const onChange =
+    rest.type === "number" && rest.onChange
+      ? (e: ChangeEvent<HTMLInputElement>) => {
+          const normalized = normalizeNumberInput(e.target.value);
+          if (normalized !== e.target.value) e.target.value = normalized;
+          rest.onChange!(e);
+        }
+      : rest.onChange;
   return (
     <div className="field">
       <label htmlFor={id} className="field-label">
         {label}
       </label>
-      <input id={id} className="field-input" aria-invalid={!!error || undefined} {...rest} />
+      <input id={id} className="field-input" aria-invalid={!!error || undefined} {...rest} onChange={onChange} />
       {error ? (
         <span className="field-error" role="alert">
           {error}

@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { formatRupiah } from "@/lib/format";
+import { formatRupiah, normalizeNumberInput } from "@/lib/format";
 import type {
   ApiResponse,
   CreateRegistrationRequest,
@@ -300,7 +300,9 @@ function LabeledInput({
         value={value}
         min={min}
         required={required}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) =>
+          onChange(type === "number" ? normalizeNumberInput(e.target.value) : e.target.value)
+        }
       />
       {hint && <span className="field-hint">{hint}</span>}
     </div>

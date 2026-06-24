@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError, getAuthToken } from "@/lib/api";
-import { formatRupiah } from "@/lib/format";
+import { formatRupiah, normalizeNumberInput } from "@/lib/format";
 import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, { EventFormValues } from "@/components/EventForm";
 import Badge from "@/components/ui/Badge";
@@ -708,7 +708,7 @@ function DistanceManager({
         </div>
         <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
-          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(e.target.value)} />
+          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(normalizeNumberInput(e.target.value))} />
         </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
@@ -812,11 +812,11 @@ function TicketManager({
         </div>
         <div className="field" style={{ width: 120 }}>
           <label className="field-label">Harga (Rp)</label>
-          <input className="field-input" type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} />
+          <input className="field-input" type="number" min={0} value={price} onChange={(e) => setPrice(normalizeNumberInput(e.target.value))} />
         </div>
         <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
-          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(e.target.value)} />
+          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(normalizeNumberInput(e.target.value))} />
         </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>

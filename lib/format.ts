@@ -14,6 +14,15 @@ export function formatRupiah(amount: number): string {
 }
 
 /**
+ * Normalize a numeric <input type="number"> value string so it never keeps a
+ * leading zero: "09000" -> "9000", "007" -> "7". A lone "0" and decimals like
+ * "0.5" are preserved. DISPLAY ONLY — does not coerce or compute.
+ */
+export function normalizeNumberInput(value: string): string {
+  return value.replace(/^0+(?=\d)/, "");
+}
+
+/**
  * Format an RFC3339 date string for display (id-ID). DISPLAY ONLY.
  */
 export function formatDate(iso: string | null | undefined): string {

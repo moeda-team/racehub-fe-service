@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import { formatRupiah } from "@/lib/format";
+import { formatRupiah, normalizeNumberInput } from "@/lib/format";
 import type { ApiResponse, LedgerEntry, WalletBalance } from "@/lib/types.gen";
 import StatCard from "@/components/ui/StatCard";
 import Button from "@/components/ui/Button";
@@ -96,7 +96,7 @@ export default function WalletPage() {
                 type="number"
                 min={0}
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => setAmount(normalizeNumberInput(e.target.value))}
                 placeholder="0"
               />
             </div>

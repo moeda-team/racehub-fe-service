@@ -1,4 +1,5 @@
-import { InputHTMLAttributes, SelectHTMLAttributes, ReactNode, useId } from "react";
+import { ChangeEvent, ChangeEventHandler, InputHTMLAttributes, SelectHTMLAttributes, ReactNode, useId } from "react";
+import { normalizeNumberInput } from "@/lib/format";
 
 interface FieldBaseProps {
   label: string;
@@ -41,6 +42,17 @@ export default function Field(props: FieldProps) {
   const inputId = props.id ?? id;
   const hasError = !!error;
 
+  // For number inputs, strip leading zeros before bubbling the change up so a
+  // field that starts at "0" doesn't keep it (e.g. "09000" -> "9000").
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> | undefined =
+    props.type === "number" && props.onChange
+      ? (e: ChangeEvent<HTMLInputElement>) => {
+          const normalized = normalizeNumberInput(e.target.value);
+          if (normalized !== e.target.value) e.target.value = normalized;
+          props.onChange!(e);
+        }
+      : (props.onChange as ChangeEventHandler<HTMLInputElement> | undefined);
+
   return (
     <div className={`field ${className}`}>
       <label htmlFor={inputId} className="field-label">
@@ -71,7 +83,7 @@ export default function Field(props: FieldProps) {
           name={props.name}
           placeholder={props.placeholder}
           value={props.value}
-          onChange={props.onChange}
+          onChange={handleInputChange}
           required={props.required}
         />
       )}

@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import type {
@@ -209,7 +210,13 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           <div style={{ fontWeight: 600, marginBottom: 8 }}>Instruksi Pembayaran</div>
           <Row label="Metode" value={charge.quote.payment_method_label} />
           {charge.va_number && <Row label="Nomor Virtual Account" value={charge.va_number} mono />}
-          {charge.qr_string && <Row label="Kode QR / Tautan" value={charge.qr_string} mono />}
+          {charge.qr_string && <QrDisplay value={charge.qr_string} />}
+          <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
+          <Row label="Harga Tiket" value={formatRupiah(charge.quote.price)} mono />
+          <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />
+          <Row label="Fee Platform" value={formatRupiah(charge.quote.fee_platform)} mono />
+          <Row label={`Fee Admin · ${charge.quote.payment_method_label}`} value={formatRupiah(charge.quote.fee_midtrans)} mono />
+          <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
           <Row label="Sub Total" value={formatRupiah(charge.quote.sub_total)} mono />
           <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -231,6 +238,39 @@ const card: React.CSSProperties = {
   borderRadius: "var(--radius-md)",
   backgroundColor: "var(--color-surface)",
 };
+
+// QR rendering for QRIS/GoPay. Midtrans returns either a raw QRIS payload
+// (encode it client-side) or a ready-made QR image URL (e.g. GoPay
+// generate-qr-code). A URL must be shown as <img>, never re-encoded — its
+// pixels already are the payment QR.
+function QrDisplay({ value }: { value: string }) {
+  const isUrl = /^https?:\/\//i.test(value);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0" }}>
+      <span style={{ alignSelf: "flex-start", color: "var(--color-ink-3)", fontSize: 14 }}>
+        Kode QR — pindai untuk membayar
+      </span>
+      <div style={{ background: "#fff", padding: 12, borderRadius: "var(--radius-md)" }}>
+        {isUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt="Kode QR pembayaran" width={280} height={280} style={{ display: "block", width: "100%", maxWidth: 280, height: "auto" }} />
+        ) : (
+          <QRCodeSVG value={value} size={280} level="M" style={{ width: "100%", maxWidth: 280, height: "auto" }} />
+        )}
+      </div>
+      {isUrl && (
+        <a
+          href={value}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontSize: 13, color: "var(--color-flame)" }}
+        >
+          Buka kode QR di tab baru
+        </a>
+      )}
+    </div>
+  );
+}
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
