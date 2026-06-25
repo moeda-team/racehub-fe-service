@@ -16,6 +16,7 @@ export interface EventFormValues {
   registration_close_date: string; // RFC3339 or ""
   donation_enabled: boolean;
   total_quota: number;
+  refund_donation_on_cancel: boolean;
 }
 
 interface EventFormProps {
@@ -97,6 +98,7 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
   const [refundCutoff, setRefundCutoff] = useState(toLocalInput(initial?.refund_cutoff_date ?? ""));
   const [regClose, setRegClose] = useState(toLocalInput(initial?.registration_close_date ?? ""));
   const [donationEnabled, setDonationEnabled] = useState(initial?.donation_enabled ?? false);
+  const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(initial?.refund_donation_on_cancel ?? false);
   const [totalQuota, setTotalQuota] = useState(String(initial?.total_quota ?? 0));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -131,6 +133,7 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         registration_close_date: toRFC3339(regClose),
         donation_enabled: donationEnabled,
         total_quota: Number(totalQuota) || 0,
+        refund_donation_on_cancel: refundDonationOnCancel,
       });
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.");
@@ -230,6 +233,20 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
           Aktifkan donasi (bebas fee, non-refundable)
         </label>
       </div>
+
+      {donationEnabled && (
+        <div style={toggleRow}>
+          <input
+            id="refund_donation_on_cancel"
+            type="checkbox"
+            checked={refundDonationOnCancel}
+            onChange={(e) => setRefundDonationOnCancel(e.target.checked)}
+          />
+          <label htmlFor="refund_donation_on_cancel" style={{ fontSize: 14 }}>
+            Kembalikan donasi jika event dibatalkan
+          </label>
+        </div>
+      )}
 
       <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
         {isSubmitting ? "Menyimpan…" : submitLabel}

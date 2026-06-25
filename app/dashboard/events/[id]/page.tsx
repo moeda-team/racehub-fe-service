@@ -14,6 +14,7 @@ import type {
   ApiResponse,
   BibResult,
   DistanceCategory,
+  DonationLedgerEntry,
   DonationReport,
   Event,
   EventDashboard,
@@ -21,12 +22,13 @@ import type {
   EventStatus,
   ParticipantRow,
   RecapRow,
+  Refund,
   TicketCategory,
 } from "@/lib/types.gen";
 
-type Tab = "detail" | "kategori" | "peserta" | "keuangan";
+type Tab = "detail" | "kategori" | "peserta" | "keuangan" | "refund";
 
-const TABS: { id: Tab; label: string }[] = [
+const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
   { id: "kategori", label: "Kategori" },
   { id: "peserta", label: "Peserta & BIB" },
@@ -74,6 +76,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
       total_quota: values.total_quota,
+      refund_donation_on_cancel: values.refund_donation_on_cancel,
     });
     setDetail((prev) => (prev ? { ...prev, event: res.data } : prev));
     setNotice("Perubahan event tersimpan.");
@@ -121,7 +124,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
 
       {/* Tab bar */}
       <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--color-line)", marginTop: 20, marginBottom: 0 }}>
-        {TABS.map((t) => (
+        {[...BASE_TABS, ...(event.status === "cancelled" ? [{ id: "refund" as Tab, label: "Refund" }] : [])].map((t) => (
           <button
             key={t.id}
             type="button"
@@ -161,6 +164,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
                 registration_close_date: event.registration_close_date ?? "",
                 donation_enabled: event.donation_enabled,
                 total_quota: event.total_quota,
+                refund_donation_on_cancel: event.refund_donation_on_cancel ?? false,
               }}
               onSubmit={handleUpdate}
             />
@@ -199,6 +203,15 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
           </div>
         )}
 
+        {activeTab === "refund" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Status Refund Peserta</h2>
+              <RefundsCard eventId={eventId} />
+            </div>
+          </div>
+        )}
+
         {activeTab === "keuangan" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -214,6 +227,10 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
             <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Rekap per Kategori</h2>
               <RecapTable eventId={eventId} />
+            </div>
+            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Wallet Donasi</h2>
+              <DonationLedgerCard eventId={eventId} />
             </div>
           </div>
         )}
@@ -539,6 +556,148 @@ function DonationReportCard({ eventId }: { eventId: string }) {
     </div>
   );
 }
+
+// DonationLedgerCard lists settled donation entries for an event (wallet donasi).
+function DonationLedgerCard({ eventId }: { eventId: string }) {
+  const [entries, setEntries] = useState<DonationLedgerEntry[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<DonationLedgerEntry[]>>(`/api/v1/events/${eventId}/donations/ledger`);
+        if (!cancelled) setEntries(res.data ?? []);
+      } catch {
+        if (!cancelled) setErr("Gagal memuat ledger donasi.");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  if (err) return <Alert variant="danger">{err}</Alert>;
+  if (!entries) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
+
+  const total = entries.reduce((s, e) => s + e.amount, 0);
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 12 }}>
+        Donasi yang sudah settled dari peserta. Pisah dari pendapatan tiket dan tidak bisa di-withdraw — disalurkan ke penerima donasi.
+      </p>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Total Donasi Settled</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700, color: "var(--color-sprint)" }}>
+          {formatRupiah(total)}
+        </div>
+      </div>
+      {entries.length === 0 ? (
+        <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>Belum ada donasi yang masuk.</p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--color-line)", textAlign: "left" }}>
+                <th style={th}>Referensi</th>
+                <th style={th}>Nominal</th>
+                <th style={th}>Waktu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((e) => (
+                <tr key={e.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
+                  <td style={td}><code style={{ fontSize: 11 }}>{e.reference_id}</code></td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)", color: "var(--color-sprint)" }}>+{formatRupiah(e.amount)}</td>
+                  <td style={{ ...td, color: "var(--color-ink-3)" }}>{e.created_at ? new Date(e.created_at).toLocaleString("id-ID") : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// RefundsCard shows the refund list for a cancelled event (organizer view).
+function RefundsCard({ eventId }: { eventId: string }) {
+  const [refunds, setRefunds] = useState<Refund[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<Refund[]>>(`/api/v1/events/${eventId}/refunds`);
+        if (!cancelled) setRefunds(res.data ?? []);
+      } catch {
+        if (!cancelled) setErr("Gagal memuat data refund.");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
+    completed: { label: "Selesai", variant: "ok" },
+    processing: { label: "Diproses", variant: "warn" },
+    rejected: { label: "Ditolak", variant: "danger" },
+  };
+
+  if (err) return <Alert variant="danger">{err}</Alert>;
+  if (!refunds) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
+  if (refunds.length === 0)
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada refund untuk event ini.</p>;
+
+  const done = refunds.filter((r) => r.status === "completed").length;
+  const processing = refunds.filter((r) => r.status === "processing").length;
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Total Refund</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18 }}>{refunds.length}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Selesai</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18, color: "var(--color-sprint)" }}>{done}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Menunggu</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18, color: "var(--color-warn)" }}>{processing}</div>
+        </div>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--color-line)", textAlign: "left" }}>
+              <th style={th}>Reg. ID</th>
+              <th style={th}>Nominal</th>
+              <th style={th}>Metode</th>
+              <th style={th}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {refunds.map((r) => {
+              const s = REFUND_STATUS[r.status] ?? { label: r.status, variant: "warn" as const };
+              return (
+                <tr key={r.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
+                  <td style={td}><code style={{ fontSize: 11 }}>{r.registration_id.slice(0, 8)}…</code></td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{formatRupiah(r.amount)}</td>
+                  <td style={td}>{r.method} · {r.mode === "auto" ? "Otomatis" : "Manual"}</td>
+                  <td style={td}><Badge variant={s.variant}>{s.label}</Badge></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+const th: React.CSSProperties = { padding: "6px 8px", fontWeight: 600, color: "var(--color-ink-3)", fontSize: 12 };
+const td: React.CSSProperties = { padding: "8px 8px" };
 
 // --- Status transitions ---
 
