@@ -68,8 +68,7 @@ export interface Event {
   refund_cutoff_date: string | null;
   registration_close_date: string | null;
   donation_enabled: boolean;
-  total_quota: number;
-  total_quota_used: number;
+  refund_donation_on_cancel: boolean;
   submitted_for_review: boolean;
   rejection_reason: string;
   reviewed_at: string | null;
@@ -96,8 +95,6 @@ export interface PublicEvent {
   master_age_threshold: number;
   refund_cutoff_date: string | null;
   donation_enabled: boolean;
-  total_quota: number;
-  total_quota_used: number;
   quota_remaining: number;
 }
 
@@ -176,7 +173,6 @@ export interface CreateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
-  total_quota?: number;
 }
 
 export interface UpdateEventRequest {
@@ -189,7 +185,6 @@ export interface UpdateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
-  total_quota?: number;
 }
 
 export interface EventListResponse {
@@ -283,7 +278,7 @@ export interface PaymentQuoteResponse {
   payment_method_label: string;
 }
 
-export type PaymentMethod = "va" | "gopay" | "card" | "qris";
+export type PaymentMethod = "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
 
 export interface PaymentChargeRequest {
   registration_id: string;
@@ -295,7 +290,10 @@ export interface PaymentChargeResponse {
   transaction_id: string;
   status: string;
   va_number?: string;
+  biller_code?: string;
+  bill_key?: string;
   qr_string?: string;
+  deeplink_url?: string;
   quote: PaymentQuoteResponse;
 }
 
@@ -336,6 +334,8 @@ export interface ETicket {
 
 export interface WalletBalance {
   balance: number;
+  total_collected: number;
+  total_withdrawn: number;
 }
 
 export interface WithdrawRequest {
@@ -358,6 +358,34 @@ export interface DonationReport {
   event_id: string;
   ticket_revenue: number;
   donation_total: number;
+}
+
+export interface DonationLedgerEntry {
+  id: string;
+  event_id: string;
+  amount: number;
+  reference_id: string;
+  description: string;
+  created_at: string;
+}
+
+// PlatformRevenue is now PlatformWalletBalance — kept for backward compat with admin/platform page.
+export interface PlatformRevenue {
+  balance: number;
+  total_collected: number;
+  total_withdrawn: number;
+}
+
+export interface DonationWalletBalance {
+  balance: number;
+  total_collected: number;
+  total_withdrawn: number;
+}
+
+export interface PlatformWalletBalance {
+  balance: number;
+  total_collected: number;
+  total_withdrawn: number;
 }
 
 // === Refund (F9) ===

@@ -6,8 +6,7 @@ interface EventCardProps {
   date: string;
   distances: string[];
   price: string;
-  quotaUsed: number;
-  quotaTotal: number;
+  quotaRemaining?: number;
   href?: string;
   className?: string;
 }
@@ -18,37 +17,33 @@ export default function EventCard({
   date,
   distances,
   price,
-  quotaUsed,
-  quotaTotal,
+  quotaRemaining,
   href,
   className = "",
 }: EventCardProps) {
-  const pct = quotaTotal > 0 ? Math.round((quotaUsed / quotaTotal) * 100) : 0;
-
   const content = (
     <>
-      <div className="evcard-top" />
+      <div className="evcard-top">
+        <div className="evcard-top-when">{date}</div>
+        <div className="evcard-top-ttl">{title}</div>
+      </div>
       <div className="evcard-body">
-        <div className="evcard-title">{title}</div>
-        <div className="evcard-meta">
-          {location} &middot; {date}
-        </div>
+        <div className="evcard-meta">📍 {location}</div>
         <div className="evcard-pills">
           {distances.map((d) => (
             <Pill key={d}>{d}</Pill>
           ))}
         </div>
-        <div className="evcard-price">{price}</div>
-        <div className="evcard-quota">
-          <div className="evcard-quota-bar">
-            <div
-              className="evcard-quota-fill"
-              style={{ width: `${pct}%` }}
-            />
+        <div className="evcard-foot">
+          <div>
+            <div className="evcard-price-k">Mulai dari</div>
+            <div className="evcard-price-v">{price}</div>
           </div>
-          <div className="evcard-quota-text">
-            {quotaUsed} / {quotaTotal} peserta
-          </div>
+          {quotaRemaining !== undefined && (
+            <div className="evcard-quota">
+              <div className="evcard-quota-text">{quotaRemaining} slot tersisa</div>
+            </div>
+          )}
         </div>
       </div>
     </>

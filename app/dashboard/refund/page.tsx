@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ApiError } from "@/lib/api";
-import { adminApi } from "@/lib/admin";
+import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import type {
   ApiResponse,
@@ -31,15 +30,13 @@ const REG_STATUS_LABEL: Record<string, string> = {
   expired: "Kedaluwarsa",
 };
 
-export default function AdminRefundsPage() {
-  // --- Event lookup state ---
+export default function DashboardRefundPage() {
   const [lookupEventId, setLookupEventId] = useState("");
   const [registrations, setRegistrations] = useState<RegistrationSummary[] | null>(null);
   const [pendingRefunds, setPendingRefunds] = useState<Refund[] | null>(null);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [lookupErr, setLookupErr] = useState<string | null>(null);
 
-  // --- Single refund state ---
   const [selectedReg, setSelectedReg] = useState<RegistrationSummary | null>(null);
   const [reason, setReason] = useState("");
   const [bankAccount, setBankAccount] = useState("");
@@ -47,7 +44,6 @@ export default function AdminRefundsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // --- Mass refund state ---
   const [massEventId, setMassEventId] = useState("");
   const [massReason, setMassReason] = useState("");
   const [mass, setMass] = useState<MassRefundResult | null>(null);
@@ -68,8 +64,8 @@ export default function AdminRefundsPage() {
     setLookupBusy(true);
     try {
       const [regRes, refRes] = await Promise.all([
-        adminApi.get<ApiResponse<AdminRegistrationPage>>(`/api/v1/admin/events/${id}/registrations`),
-        adminApi.get<ApiResponse<Refund[]>>(`/api/v1/admin/events/${id}/refunds`),
+        api.get<ApiResponse<AdminRegistrationPage>>(`/api/v1/events/${id}/registrations`),
+        api.get<ApiResponse<Refund[]>>(`/api/v1/events/${id}/refunds`),
       ]);
       setRegistrations(regRes.data.registrations ?? []);
       setPendingRefunds(refRes.data ?? []);
@@ -97,8 +93,8 @@ export default function AdminRefundsPage() {
     }
     setBusy(true);
     try {
-      const res = await adminApi.post<ApiResponse<Refund>>(
-        `/api/v1/admin/registrations/${selectedReg.id}/refund`,
+      const res = await api.post<ApiResponse<Refund>>(
+        `/api/v1/events/${lookupEventId.trim()}/registrations/${selectedReg.id}/refund`,
         { reason, bank_account: bankAccount || undefined },
       );
       setRefund(res.data);
@@ -114,7 +110,7 @@ export default function AdminRefundsPage() {
     setBusy(true);
     setErr(null);
     try {
-      const res = await adminApi.post<ApiResponse<Refund>>(`/api/v1/admin/refunds/${refundId}/complete`);
+      const res = await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refundId}/complete`);
       setRefund(res.data);
       await loadEventData();
     } catch (e) {
@@ -135,7 +131,7 @@ export default function AdminRefundsPage() {
     if (!window.confirm("Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.")) return;
     setMassBusy(true);
     try {
-      const res = await adminApi.post<ApiResponse<MassRefundResult>>(`/api/v1/admin/events/${id}/refund-all`, {
+      const res = await api.post<ApiResponse<MassRefundResult>>(`/api/v1/events/${id}/refund-all`, {
         reason: massReason,
       });
       setMass(res.data);

@@ -4,6 +4,8 @@ interface LineItem {
 }
 
 interface PaymentBreakdownProps {
+  /** Short subtitle shown on the right of the dark header, e.g. "10K · Reguler" */
+  subtitle?: string;
   method?: string;
   methodOptions?: { value: string; label: string }[];
   onMethodChange?: (method: string) => void;
@@ -13,6 +15,7 @@ interface PaymentBreakdownProps {
 }
 
 export default function PaymentBreakdown({
+  subtitle,
   method,
   methodOptions,
   onMethodChange,
@@ -22,40 +25,38 @@ export default function PaymentBreakdown({
 }: PaymentBreakdownProps) {
   return (
     <div className={`pay ${className}`}>
-      <div className="pay-title">Rincian Pembayaran</div>
+      <div className="pay-ph">
+        <div className="pay-ph-title">Rincian Pembayaran</div>
+        {subtitle && <div className="pay-ph-sub">{subtitle}</div>}
+      </div>
 
       {methodOptions && methodOptions.length > 0 && (
-        <div className="pay-method">
-          <label htmlFor="pay-method" style={{ fontSize: 14, fontWeight: 500, color: "var(--color-ink-2)", marginBottom: 6, display: "block" }}>
-            Metode Pembayaran
-          </label>
-          <select
-            id="pay-method"
-            className="field-input"
-            value={method ?? ""}
-            onChange={(e) => onMethodChange?.(e.target.value)}
-            style={{ width: "100%" }}
-          >
-            <option value="">Pilih metode...</option>
-            {methodOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+        <div className="pay-methods">
+          {methodOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`pay-mbtn${method === opt.value ? " on" : ""}`}
+              onClick={() => onMethodChange?.(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       )}
 
-      {lines.map((line, i) => (
-        <div key={i} className="pay-line">
-          <span className="pay-line-lab">{line.label}</span>
-          <span className="pay-line-val">{line.value}</span>
-        </div>
-      ))}
+      <div className="pay-lines">
+        {lines.map((line, i) => (
+          <div key={i} className="pay-pln">
+            <span className="pay-pln-l">{line.label}</span>
+            <span className="pay-pln-v">{line.value}</span>
+          </div>
+        ))}
+      </div>
 
-      <div className="pay-line pay-total">
-        <span className="pay-line-lab">Sub Total</span>
-        <span className="pay-line-val">{total}</span>
+      <div className="pay-total">
+        <span className="pay-total-l">Sub Total</span>
+        <span className="pay-total-v">{total}</span>
       </div>
     </div>
   );

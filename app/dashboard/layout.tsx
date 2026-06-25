@@ -10,6 +10,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/events", label: "Event Saya" },
   { href: "/dashboard/wallet", label: "Wallet" },
+  { href: "/dashboard/refund", label: "Refund" },
   { href: "/rpc", label: "RPC / Check-in" },
 ];
 
@@ -17,6 +18,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, isLoading, profile, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Guard: redirect to login when not authenticated.
   useEffect(() => {
@@ -24,6 +26,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       router.replace("/login");
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Close mobile menu on route change.
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -41,11 +46,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  const onLogout = () => { logout(); router.replace("/login"); };
+
   return (
     <div className="dash-shell">
       <aside className="dash-aside">
         <Link href="/" className="dash-brand">
-          RaceHub
+          <span className="dash-brand-dot">L</span>
+          LowkeyThings
         </Link>
         <nav className="dash-nav">
           {navItems.map((item) => {
@@ -65,16 +73,44 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
 
+        {/* Mobile-only hamburger */}
+        <button
+          type="button"
+          className="dash-hamburger"
+          aria-label="Menu navigasi"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <HamburgerIcon open={menuOpen} />
+        </button>
+
         <div className="dash-foot">
-          <ProfileMenu
-            profile={profile}
-            onLogout={() => {
-              logout();
-              router.replace("/login");
-            }}
-          />
+          <ProfileMenu profile={profile} onLogout={onLogout} />
         </div>
       </aside>
+
+      {/* Mobile nav dropdown */}
+      {menuOpen && (
+        <nav className="dash-mobile-menu">
+          {navItems.map((item) => {
+            const active =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`dash-mobile-link${active ? " active" : ""}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+
       <main className="dash-main">{children}</main>
     </div>
   );
@@ -149,6 +185,25 @@ function initials(name: string): string {
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2);
   return parts[0][0] + parts[parts.length - 1][0];
+}
+
+function HamburgerIcon({ open }: { open: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      {open ? (
+        <>
+          <line x1="4" y1="4" x2="16" y2="16" />
+          <line x1="16" y1="4" x2="4" y2="16" />
+        </>
+      ) : (
+        <>
+          <line x1="3" y1="6" x2="17" y2="6" />
+          <line x1="3" y1="10" x2="17" y2="10" />
+          <line x1="3" y1="14" x2="17" y2="14" />
+        </>
+      )}
+    </svg>
+  );
 }
 
 function ChevronIcon() {

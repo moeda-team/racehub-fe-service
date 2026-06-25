@@ -27,47 +27,51 @@ export default function Ticket({
   qrToken,
   className = "",
 }: TicketProps) {
+  const dashIdx = registrationNumber.indexOf("-");
+  const regPrefix = dashIdx !== -1 ? registrationNumber.slice(0, dashIdx + 1) : "";
+  const regCode = dashIdx !== -1 ? registrationNumber.slice(dashIdx + 1) : registrationNumber;
+
   return (
     <div className={`ticket ${className}`}>
-      <div className="ticket-info">
-        <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600 }}>
-          {event}
+      {/* Stub on the LEFT — QR + registration code, perforated right edge */}
+      <div className="stub">
+        <div className="qr">
+          <QRCodeSVG value={qrToken} size={72} level="M" />
         </div>
-        <div className="ticket-grid">
-          <div className="ticket-grid-item">
-            <span className="ticket-grid-lab">Nama</span>
-            <span className="ticket-grid-val">{name}</span>
-          </div>
-          <div className="ticket-grid-item">
-            <span className="ticket-grid-lab">Jarak</span>
-            <span className="ticket-grid-val">{distance}</span>
+        <div className="bibn">
+          {regPrefix}<b>{regCode}</b>
+        </div>
+      </div>
+
+      {/* Info on the RIGHT */}
+      <div className="info">
+        <div className="ev">{event}</div>
+        <div className="nm">{name}</div>
+        <div className="grid">
+          <div>
+            <div className="k">Jarak</div>
+            <div className="v">{distance}</div>
           </div>
           {gender && (
-            <div className="ticket-grid-item">
-              <span className="ticket-grid-lab">Jenis Kelamin</span>
-              <span className="ticket-grid-val">
+            <div>
+              <div className="k">Jenis Kelamin</div>
+              <div className="v">
                 {gender === "male" ? "Laki-laki" : gender === "female" ? "Perempuan" : gender}
-              </span>
+              </div>
             </div>
           )}
           {ageClass && (
-            <div className="ticket-grid-item">
-              <span className="ticket-grid-lab">Kelas Usia</span>
-              <span className="ticket-grid-val">{ageClass}</span>
+            <div>
+              <div className="k">Kelas Usia</div>
+              <div className="v">{ageClass}</div>
             </div>
           )}
           {date && (
-            <div className="ticket-grid-item">
-              <span className="ticket-grid-lab">Tanggal</span>
-              <span className="ticket-grid-val">{date}</span>
+            <div>
+              <div className="k">Tanggal</div>
+              <div className="v">{date}</div>
             </div>
           )}
-        </div>
-      </div>
-      <div className="ticket-stub">
-        <div className="ticket-bib" style={{ fontFamily: "var(--font-mono)" }}>{registrationNumber}</div>
-        <div className="ticket-qr" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <QRCodeSVG value={qrToken} size={72} level="M" />
         </div>
       </div>
     </div>
