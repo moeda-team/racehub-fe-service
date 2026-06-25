@@ -118,7 +118,7 @@ export default function WalletPage() {
           </div>
         </div>
         <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 8 }}>
-          Saldo ini adalah harga tiket bersih — tidak termasuk fee platform (pendapatan RaceHub) dan donasi (disalurkan terpisah).
+          Saldo ini adalah harga tiket bersih — tidak termasuk fee admin (pendapatan RaceHub) dan donasi (disalurkan terpisah).
           Lihat tab Keuangan di detail event untuk rincian donasi.
         </p>
       </div>

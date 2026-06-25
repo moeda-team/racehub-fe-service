@@ -53,7 +53,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <nav style={{ display: "flex", gap: 16, fontSize: 14 }}>
             <Link href="/admin" style={{ color: "var(--color-ink-4)" }}>Approval</Link>
             <Link href="/admin/refunds" style={{ color: "var(--color-ink-4)" }}>Refund</Link>
-            <Link href="/admin/platform" style={{ color: "var(--color-ink-4)" }}>Platform</Link>
+            <Link href="/admin/platform" style={{ color: "var(--color-ink-4)" }}>Wallet Admin</Link>
           </nav>
         </div>
         <button

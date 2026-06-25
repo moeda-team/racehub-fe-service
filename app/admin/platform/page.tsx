@@ -27,11 +27,11 @@ export default function AdminPlatformPage() {
   return (
     <div className="rh-reveal" style={{ maxWidth: 760 }}>
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 700, marginBottom: 8 }}>
-        Revenue Platform
+        Wallet Admin
       </h1>
       <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginBottom: 24 }}>
-        Total fee platform (feePlatform) yang terkumpul dari seluruh pembayaran yang settled.
-        Ini adalah pendapatan RaceHub — terpisah dari wallet organizer dan donasi.
+        Total fee admin yang terkumpul dari seluruh pembayaran yang settled.
+        Ini adalah pendapatan RaceHub — terpisah dari wallet organizer dan wallet donasi.
       </p>
 
       {error && <Alert variant="danger">{error}</Alert>}
@@ -39,7 +39,7 @@ export default function AdminPlatformPage() {
       {revenue && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
           <StatCard
-            label="Total Fee Platform"
+            label="Total Fee Admin"
             value={formatRupiah(revenue.total)}
             accent
           />
