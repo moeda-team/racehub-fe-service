@@ -67,7 +67,7 @@ export default function LoginPage() {
           textAlign: "center",
         }}
       >
-        Masuk ke akun organizer RaceHub Anda
+        Masuk ke akun organizer LowkeyThings Anda
       </p>
 
       {error && (

@@ -68,6 +68,7 @@ export interface Event {
   refund_cutoff_date: string | null;
   registration_close_date: string | null;
   donation_enabled: boolean;
+  refund_donation_on_cancel: boolean;
   total_quota: number;
   total_quota_used: number;
   submitted_for_review: boolean;
@@ -283,7 +284,7 @@ export interface PaymentQuoteResponse {
   payment_method_label: string;
 }
 
-export type PaymentMethod = "va" | "gopay" | "card" | "qris";
+export type PaymentMethod = "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
 
 export interface PaymentChargeRequest {
   registration_id: string;
@@ -295,7 +296,10 @@ export interface PaymentChargeResponse {
   transaction_id: string;
   status: string;
   va_number?: string;
+  biller_code?: string;
+  bill_key?: string;
   qr_string?: string;
+  deeplink_url?: string;
   quote: PaymentQuoteResponse;
 }
 
@@ -358,6 +362,19 @@ export interface DonationReport {
   event_id: string;
   ticket_revenue: number;
   donation_total: number;
+}
+
+export interface DonationLedgerEntry {
+  id: string;
+  event_id: string;
+  amount: number;
+  reference_id: string;
+  description: string;
+  created_at: string;
+}
+
+export interface PlatformRevenue {
+  total: number;
 }
 
 // === Refund (F9) ===

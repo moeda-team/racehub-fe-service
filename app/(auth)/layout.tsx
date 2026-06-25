@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           textAlign: "center",
         }}
       >
-        RaceHub
+        LowkeyThings
       </Link>
       <div
         style={{

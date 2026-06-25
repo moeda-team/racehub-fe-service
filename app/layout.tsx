@@ -25,7 +25,7 @@ const spline = Spline_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RaceHub — Platform Event Lari Indonesia",
+  title: "LowkeyThings — Platform Event Lari Indonesia",
   description:
     "Telusuri, daftar, dan kelola event lari di seluruh Indonesia. Transparan, cepat, dan aman.",
 };

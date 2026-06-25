@@ -16,8 +16,16 @@ const variantClass: Record<AlertVariant, string> = {
 
 const variantIcon: Record<AlertVariant, string> = {
   warn: "!",
-  danger: "x",
+  danger: "×",
   info: "i",
+};
+
+/* Bright semantic color for the icon circle background — distinct from the
+   darker text color used by each alert variant. */
+const variantIconBg: Record<AlertVariant, string> = {
+  warn: "var(--color-warn)",
+  danger: "var(--color-danger)",
+  info: "var(--color-sprint)",
 };
 
 export default function Alert({
@@ -35,11 +43,13 @@ export default function Alert({
           width: 20,
           height: 20,
           borderRadius: "50%",
-          background: "currentColor",
+          background: variantIconBg[variant],
           color: "white",
-          fontSize: 12,
-          fontWeight: 700,
+          fontFamily: "var(--font-display)",
+          fontSize: 13,
+          fontWeight: 800,
           flexShrink: 0,
+          marginTop: 1,
         }}
       >
         {variantIcon[variant]}

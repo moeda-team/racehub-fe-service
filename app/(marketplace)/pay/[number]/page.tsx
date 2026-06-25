@@ -19,10 +19,14 @@ import PaymentBreakdown from "@/components/ui/PaymentBreakdown";
 
 // Methods offered. Order/label only — fees come from the server (FR-508).
 const METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
-  { value: "va", label: "Virtual Account" },
-  { value: "gopay", label: "GoPay" },
-  { value: "qris", label: "QRIS" },
-  { value: "card", label: "Kartu Kredit/Debit" },
+  { value: "va_bca",     label: "VA BCA" },
+  { value: "va_bni",     label: "VA BNI" },
+  { value: "va_bri",     label: "VA BRI" },
+  { value: "va_mandiri", label: "VA Mandiri" },
+  { value: "va_permata", label: "VA Permata" },
+  { value: "gopay",      label: "GoPay" },
+  { value: "qris",       label: "QRIS" },
+  { value: "card",       label: "Kartu Kredit/Debit" },
 ];
 
 type StatusVariant = "warn" | "ok" | "danger" | "neutral";
@@ -210,7 +214,9 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           <div style={{ fontWeight: 600, marginBottom: 8 }}>Instruksi Pembayaran</div>
           <Row label="Metode" value={charge.quote.payment_method_label} />
           {charge.va_number && <Row label="Nomor Virtual Account" value={charge.va_number} mono />}
-          {charge.qr_string && <QrDisplay value={charge.qr_string} />}
+          {charge.biller_code && <Row label="Kode Biller (Mandiri)" value={charge.biller_code} mono />}
+          {charge.bill_key && <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />}
+          {charge.qr_string && <QrDisplay value={charge.qr_string} deeplinkUrl={charge.deeplink_url} />}
           <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
           <Row label="Harga Tiket" value={formatRupiah(charge.quote.price)} mono />
           <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />
@@ -243,7 +249,7 @@ const card: React.CSSProperties = {
 // (encode it client-side) or a ready-made QR image URL (e.g. GoPay
 // generate-qr-code). A URL must be shown as <img>, never re-encoded — its
 // pixels already are the payment QR.
-function QrDisplay({ value }: { value: string }) {
+function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string }) {
   const isUrl = /^https?:\/\//i.test(value);
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0" }}>
@@ -258,15 +264,51 @@ function QrDisplay({ value }: { value: string }) {
           <QRCodeSVG value={value} size={280} level="M" style={{ width: "100%", maxWidth: 280, height: "auto" }} />
         )}
       </div>
-      {isUrl && (
-        <a
-          href={value}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ fontSize: 13, color: "var(--color-flame)" }}
-        >
-          Buka kode QR di tab baru
-        </a>
+      {(isUrl || deeplinkUrl) && (
+        <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", justifyContent: "center" }}>
+          {isUrl && (
+            <a
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "10px 20px",
+                borderRadius: "var(--radius-pill)",
+                border: "1.5px solid var(--color-line-2)",
+                background: "var(--color-surface)",
+                color: "var(--color-ink)",
+                fontFamily: "var(--font-body)",
+                fontWeight: 600,
+                fontSize: 14,
+                textDecoration: "none",
+              }}
+            >
+              Buka QR di tab baru
+            </a>
+          )}
+          {deeplinkUrl && (
+            <a
+              href={deeplinkUrl}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "10px 20px",
+                borderRadius: "var(--radius-pill)",
+                background: "var(--color-flame)",
+                color: "#fff",
+                fontFamily: "var(--font-body)",
+                fontWeight: 600,
+                fontSize: 14,
+                textDecoration: "none",
+                boxShadow: "var(--shadow-sh-flame)",
+              }}
+            >
+              Buka di GoPay
+            </a>
+          )}
+        </div>
       )}
     </div>
   );

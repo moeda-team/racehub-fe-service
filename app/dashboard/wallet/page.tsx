@@ -9,8 +9,8 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 
 const ENTRY_LABEL: Record<string, string> = {
-  credit: "Pemasukan tiket",
-  refund: "Refund",
+  credit: "Pemasukan tiket (harga bersih)",
+  refund: "Refund peserta",
   withdraw: "Penarikan",
 };
 
@@ -118,7 +118,8 @@ export default function WalletPage() {
           </div>
         </div>
         <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 8 }}>
-          Penarikan dibatasi saldo tersedia. Donasi dilaporkan terpisah per event (lihat detail event).
+          Saldo ini adalah harga tiket bersih — tidak termasuk fee platform (pendapatan RaceHub) dan donasi (disalurkan terpisah).
+          Lihat tab Keuangan di detail event untuk rincian donasi.
         </p>
       </div>
 

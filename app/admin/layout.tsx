@@ -48,11 +48,12 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
-            RaceHub Admin
+            LowkeyThings Admin
           </span>
           <nav style={{ display: "flex", gap: 16, fontSize: 14 }}>
             <Link href="/admin" style={{ color: "var(--color-ink-4)" }}>Approval</Link>
             <Link href="/admin/refunds" style={{ color: "var(--color-ink-4)" }}>Refund</Link>
+            <Link href="/admin/platform" style={{ color: "var(--color-ink-4)" }}>Platform</Link>
           </nav>
         </div>
         <button
@@ -116,7 +117,7 @@ function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
         }}
       >
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, marginBottom: 16, textAlign: "center" }}>
-          Admin RaceHub
+          Admin LowkeyThings
         </h1>
         {error && (
           <Alert variant="danger" className="mb-4">
