@@ -69,8 +69,6 @@ export interface Event {
   registration_close_date: string | null;
   donation_enabled: boolean;
   refund_donation_on_cancel: boolean;
-  total_quota: number;
-  total_quota_used: number;
   submitted_for_review: boolean;
   rejection_reason: string;
   reviewed_at: string | null;
@@ -97,8 +95,6 @@ export interface PublicEvent {
   master_age_threshold: number;
   refund_cutoff_date: string | null;
   donation_enabled: boolean;
-  total_quota: number;
-  total_quota_used: number;
   quota_remaining: number;
 }
 
@@ -177,7 +173,6 @@ export interface CreateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
-  total_quota?: number;
 }
 
 export interface UpdateEventRequest {
@@ -190,7 +185,6 @@ export interface UpdateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
-  total_quota?: number;
 }
 
 export interface EventListResponse {
@@ -340,6 +334,8 @@ export interface ETicket {
 
 export interface WalletBalance {
   balance: number;
+  total_collected: number;
+  total_withdrawn: number;
 }
 
 export interface WithdrawRequest {
@@ -373,8 +369,23 @@ export interface DonationLedgerEntry {
   created_at: string;
 }
 
+// PlatformRevenue is now PlatformWalletBalance — kept for backward compat with admin/platform page.
 export interface PlatformRevenue {
-  total: number;
+  balance: number;
+  total_collected: number;
+  total_withdrawn: number;
+}
+
+export interface DonationWalletBalance {
+  balance: number;
+  total_collected: number;
+  total_withdrawn: number;
+}
+
+export interface PlatformWalletBalance {
+  balance: number;
+  total_collected: number;
+  total_withdrawn: number;
 }
 
 // === Refund (F9) ===

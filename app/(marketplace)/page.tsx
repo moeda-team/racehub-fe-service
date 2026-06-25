@@ -174,8 +174,6 @@ export default function MarketplacePage() {
                 date={formatDate(ev.event_date)}
                 distances={ev.is_running_event ? ["Event Lari"] : []}
                 price=""
-                quotaUsed={ev.total_quota_used}
-                quotaTotal={ev.total_quota}
               />
             ))}
           </div>

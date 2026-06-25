@@ -204,7 +204,7 @@ export default function EventListPage() {
                         color: "var(--color-ink-3)",
                       }}
                     >
-                      {ev.total_quota_used}/{ev.total_quota}
+                      {ev.is_running_event ? "Lari" : "Umum"}
                     </span>
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </div>

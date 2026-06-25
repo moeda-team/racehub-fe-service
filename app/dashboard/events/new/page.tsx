@@ -20,7 +20,6 @@ export default function NewEventPage() {
       refund_cutoff_date: values.refund_cutoff_date || undefined,
       registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
-      total_quota: values.total_quota,
     });
     router.push(`/dashboard/events/${res.data.id}`);
   }

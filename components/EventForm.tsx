@@ -15,7 +15,6 @@ export interface EventFormValues {
   refund_cutoff_date: string; // RFC3339 or ""
   registration_close_date: string; // RFC3339 or ""
   donation_enabled: boolean;
-  total_quota: number;
   refund_donation_on_cancel: boolean;
 }
 
@@ -99,7 +98,6 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
   const [regClose, setRegClose] = useState(toLocalInput(initial?.registration_close_date ?? ""));
   const [donationEnabled, setDonationEnabled] = useState(initial?.donation_enabled ?? false);
   const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(initial?.refund_donation_on_cancel ?? false);
-  const [totalQuota, setTotalQuota] = useState(String(initial?.total_quota ?? 0));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -108,7 +106,6 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
   function validate(): boolean {
     const next: Record<string, string> = {};
     if (!name.trim()) next.name = "Nama event wajib diisi";
-    if (Number(totalQuota) < 0) next.total_quota = "Kuota tidak boleh negatif";
     if (isRunningEvent && Number(masterAgeThreshold) <= 0) {
       next.master_age_threshold = "Ambang Master harus lebih dari 0";
     }
@@ -132,7 +129,6 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         refund_cutoff_date: toRFC3339(refundCutoff),
         registration_close_date: toRFC3339(regClose),
         donation_enabled: donationEnabled,
-        total_quota: Number(totalQuota) || 0,
         refund_donation_on_cancel: refundDonationOnCancel,
       });
     } catch (err) {
@@ -172,16 +168,6 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         value={eventDate}
         onChange={(e) => setEventDate(e.target.value)}
       />
-      <LabeledInput
-        label="Total Kuota Event"
-        type="number"
-        min={0}
-        value={totalQuota}
-        onChange={(e) => setTotalQuota(e.target.value)}
-        error={errors.total_quota}
-        hint="Batas total peserta seluruh kategori"
-      />
-
       <div style={toggleRow}>
         <input
           id="is_running_event"

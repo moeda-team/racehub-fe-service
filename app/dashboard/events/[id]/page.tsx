@@ -75,7 +75,6 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       refund_cutoff_date: values.refund_cutoff_date || undefined,
       registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
-      total_quota: values.total_quota,
       refund_donation_on_cancel: values.refund_donation_on_cancel,
     });
     setDetail((prev) => (prev ? { ...prev, event: res.data } : prev));
@@ -89,7 +88,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   if (loadError || !detail) {
     return (
       <div>
-        <Link href="/dashboard/events" style={{ fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 }}>
+        <Link href="/dashboard/events" style={{ fontSize: 14, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 16 }}>
           ← Kembali ke Event Saya
         </Link>
         <Alert variant="danger">{loadError ?? "Event tidak ditemukan."}</Alert>
@@ -101,15 +100,15 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   const status = eventStatusDisplay(event.status);
 
   return (
-    <div className="rh-reveal" style={{ maxWidth: 1100 }}>
+    <div className="rh-reveal" style={{ maxWidth: 1200 }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-        <Link href="/dashboard/events" style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+        <Link href="/dashboard/events" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           ← Event Saya
         </Link>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 700, margin: 0 }}>{event.name}</h1>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 700, margin: 0 }}>{event.name}</h1>
         <Badge variant={status.variant}>{status.label}</Badge>
       </div>
 
@@ -123,15 +122,15 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       <StatusSection event={event} onChanged={load} onNotice={setNotice} />
 
       {/* Tab bar */}
-      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--color-line)", marginTop: 20, marginBottom: 0 }}>
+      <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--color-line)", marginTop: 24, marginBottom: 0 }}>
         {[...BASE_TABS, ...(event.status === "cancelled" ? [{ id: "refund" as Tab, label: "Refund" }] : [])].map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setActiveTab(t.id)}
             style={{
-              padding: "8px 20px",
-              fontSize: 14,
+              padding: "11px 26px",
+              fontSize: 15,
               fontWeight: activeTab === t.id ? 600 : 400,
               color: activeTab === t.id ? "var(--color-flame)" : "var(--color-ink-2)",
               background: "none",
@@ -148,9 +147,9 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       </div>
 
       {/* Tab panels */}
-      <div style={{ paddingTop: 24 }}>
+      <div style={{ paddingTop: 28 }}>
         {activeTab === "detail" && (
-          <div style={{ maxWidth: 680 }}>
+          <div style={{ maxWidth: 720 }}>
             <EventForm
               submitLabel="Simpan Perubahan"
               initial={{
@@ -163,7 +162,6 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
                 refund_cutoff_date: event.refund_cutoff_date ?? "",
                 registration_close_date: event.registration_close_date ?? "",
                 donation_enabled: event.donation_enabled,
-                total_quota: event.total_quota,
                 refund_donation_on_cancel: event.refund_donation_on_cancel ?? false,
               }}
               onSubmit={handleUpdate}
@@ -172,13 +170,13 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
         )}
 
         {activeTab === "kategori" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
-            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Kategori Jarak</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Kategori Jarak</h2>
               <DistanceManager eventId={eventId} distances={detail.distance_categories} onChanged={load} />
             </div>
-            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Kategori Tiket</h2>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Kategori Tiket</h2>
               <TicketManager
                 eventId={eventId}
                 distances={detail.distance_categories}
@@ -190,46 +188,44 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
         )}
 
         {activeTab === "peserta" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <RegistrationStatusCard event={event} eventId={eventId} onChanged={load} />
-            <div style={{ padding: 16, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 12, marginTop: 0 }}>Nomor BIB</h2>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Nomor BIB</h2>
               <BibCard eventId={eventId} hasCloseDate={!!event.registration_close_date} />
             </div>
-            <div style={{ padding: 16, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 12, marginTop: 0 }}>Daftar Peserta</h2>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Daftar Peserta</h2>
               <ParticipantsCard eventId={eventId} />
             </div>
           </div>
         )}
 
         {activeTab === "refund" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Status Refund Peserta</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Status Refund Peserta</h2>
               <RefundsCard eventId={eventId} />
             </div>
           </div>
         )}
 
         {activeTab === "keuangan" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-              <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Pendapatan & Donasi</h2>
-                <DonationReportCard eventId={eventId} />
-              </div>
-              <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Ringkasan</h2>
-                <DashboardCard eventId={eventId} />
-              </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Pendapatan & Donasi</h2>
+              <DonationReportCard eventId={eventId} />
             </div>
-            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Rekap per Kategori</h2>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Ringkasan</h2>
+              <DashboardCard eventId={eventId} />
+            </div>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Rekap per Kategori</h2>
               <RecapTable eventId={eventId} />
             </div>
-            <div style={{ padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 16, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Wallet Donasi</h2>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Wallet Donasi</h2>
               <DonationLedgerCard eventId={eventId} />
             </div>
           </div>
@@ -273,7 +269,6 @@ function RegistrationStatusCard({
         refund_cutoff_date: event.refund_cutoff_date ?? "",
         registration_close_date: new Date().toISOString(),
         donation_enabled: event.donation_enabled,
-        total_quota: event.total_quota,
       });
       await onChanged();
     } catch (e) {
@@ -286,7 +281,7 @@ function RegistrationStatusCard({
   return (
     <div
       style={{
-        padding: "12px 16px",
+        padding: "18px 22px",
         border: `1px solid ${isClosed ? "var(--color-sprint)" : "var(--color-warn)"}`,
         borderRadius: "var(--radius-md)",
         backgroundColor: "var(--color-panel)",
@@ -298,10 +293,10 @@ function RegistrationStatusCard({
       }}
     >
       <div>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
+        <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
           {isClosed ? "✓ Pendaftaran ditutup" : "⚠ Pendaftaran masih terbuka"}
         </div>
-        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+        <div style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           {isClosed && closeDate
             ? `Ditutup sejak ${closeDate.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}`
             : closeDate
@@ -344,11 +339,11 @@ function DashboardCard({ eventId }: { eventId: string }) {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
       {cells.map((c) => (
         <div key={c.label}>
-          <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 2 }}>{c.label}</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700 }}>{c.value}</div>
+          <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>{c.label}</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700 }}>{c.value}</div>
         </div>
       ))}
     </div>
@@ -374,7 +369,7 @@ function RecapTable({ eventId }: { eventId: string }) {
 
   if (!rows) return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
   if (rows.length === 0)
-    return <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada peserta berbayar untuk direkap.</p>;
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada peserta berbayar untuk direkap.</p>;
 
   const cols: Column<RecapRow>[] = [
     { key: "distance", header: "Jarak", render: (r) => r.distance_name },
@@ -421,7 +416,7 @@ function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boo
 
   return (
     <div>
-      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 12 }}>
+      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 16 }}>
         Nomor polos satu deret menerus (0001, 0002, …) untuk semua jarak, urut waktu pendaftaran. Hanya bisa dibuat{" "}
         <b>setelah pendaftaran ditutup</b>.
         {!hasCloseDate && ' Atur "Penutupan Pendaftaran" di tab Detail, atau ini memakai tanggal event.'}
@@ -503,8 +498,8 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, gap: 12 }}>
-        <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 12 }}>
+        <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           {rows ? `${rows.length} peserta ditampilkan` : "Memuat…"}
         </span>
         <Button variant="secondary" size="sm" disabled={exporting} onClick={exportCsv}>
@@ -513,7 +508,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
       </div>
       {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
       {rows && rows.length === 0 ? (
-        <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada peserta.</p>
+        <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada peserta.</p>
       ) : rows ? (
         <DataTable columns={cols} data={rows} keyField="id" />
       ) : null}
@@ -543,15 +538,15 @@ function DonationReportCard({ eventId }: { eventId: string }) {
   if (!report) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 2 }}>Pendapatan Tiket</div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700 }}>{formatRupiah(report.ticket_revenue)}</div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Pendapatan Tiket</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 26, fontWeight: 700 }}>{formatRupiah(report.ticket_revenue)}</div>
       </div>
       <div>
-        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 2 }}>Total Donasi (terpisah)</div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700, color: "var(--color-sprint)" }}>{formatRupiah(report.donation_total)}</div>
-        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 4 }}>Non-refundable, tetap disalurkan.</div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Total Donasi (terpisah)</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 26, fontWeight: 700, color: "var(--color-sprint)" }}>{formatRupiah(report.donation_total)}</div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 6 }}>Non-refundable, tetap disalurkan.</div>
       </div>
     </div>
   );
@@ -582,22 +577,22 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 12 }}>
+      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 16 }}>
         Donasi yang sudah settled dari peserta. Pisah dari pendapatan tiket dan tidak bisa di-withdraw — disalurkan ke penerima donasi.
       </p>
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Total Donasi Settled</div>
-        <div style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 700, color: "var(--color-sprint)" }}>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Total Donasi Settled</div>
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 26, fontWeight: 700, color: "var(--color-sprint)" }}>
           {formatRupiah(total)}
         </div>
       </div>
       {entries.length === 0 ? (
-        <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>Belum ada donasi yang masuk.</p>
+        <p style={{ fontSize: 15, color: "var(--color-ink-3)" }}>Belum ada donasi yang masuk.</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--color-line)", textAlign: "left" }}>
+              <tr style={{ borderBottom: "2px solid var(--color-line)", textAlign: "left" }}>
                 <th style={th}>Referensi</th>
                 <th style={th}>Nominal</th>
                 <th style={th}>Waktu</th>
@@ -606,7 +601,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
             <tbody>
               {entries.map((e) => (
                 <tr key={e.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
-                  <td style={td}><code style={{ fontSize: 11 }}>{e.reference_id}</code></td>
+                  <td style={td}><code style={{ fontSize: 12 }}>{e.reference_id}</code></td>
                   <td style={{ ...td, fontFamily: "var(--font-mono)", color: "var(--color-sprint)" }}>+{formatRupiah(e.amount)}</td>
                   <td style={{ ...td, color: "var(--color-ink-3)" }}>{e.created_at ? new Date(e.created_at).toLocaleString("id-ID") : "—"}</td>
                 </tr>
@@ -646,31 +641,31 @@ function RefundsCard({ eventId }: { eventId: string }) {
   if (err) return <Alert variant="danger">{err}</Alert>;
   if (!refunds) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
   if (refunds.length === 0)
-    return <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada refund untuk event ini.</p>;
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada refund untuk event ini.</p>;
 
   const done = refunds.filter((r) => r.status === "completed").length;
   const processing = refunds.filter((r) => r.status === "processing").length;
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 24, marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 32, marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Total Refund</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18 }}>{refunds.length}</div>
+          <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Total Refund</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 24 }}>{refunds.length}</div>
         </div>
         <div>
-          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Selesai</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18, color: "var(--color-sprint)" }}>{done}</div>
+          <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Selesai</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 24, color: "var(--color-sprint)" }}>{done}</div>
         </div>
         <div>
-          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Menunggu</div>
-          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 18, color: "var(--color-warn)" }}>{processing}</div>
+          <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Menunggu</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 24, color: "var(--color-warn)" }}>{processing}</div>
         </div>
       </div>
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid var(--color-line)", textAlign: "left" }}>
+            <tr style={{ borderBottom: "2px solid var(--color-line)", textAlign: "left" }}>
               <th style={th}>Reg. ID</th>
               <th style={th}>Nominal</th>
               <th style={th}>Metode</th>
@@ -682,7 +677,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
               const s = REFUND_STATUS[r.status] ?? { label: r.status, variant: "warn" as const };
               return (
                 <tr key={r.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
-                  <td style={td}><code style={{ fontSize: 11 }}>{r.registration_id.slice(0, 8)}…</code></td>
+                  <td style={td}><code style={{ fontSize: 12 }}>{r.registration_id.slice(0, 8)}…</code></td>
                   <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{formatRupiah(r.amount)}</td>
                   <td style={td}>{r.method} · {r.mode === "auto" ? "Otomatis" : "Manual"}</td>
                   <td style={td}><Badge variant={s.variant}>{s.label}</Badge></td>
@@ -696,8 +691,8 @@ function RefundsCard({ eventId }: { eventId: string }) {
   );
 }
 
-const th: React.CSSProperties = { padding: "6px 8px", fontWeight: 600, color: "var(--color-ink-3)", fontSize: 12 };
-const td: React.CSSProperties = { padding: "8px 8px" };
+const th: React.CSSProperties = { padding: "10px 14px", fontWeight: 600, color: "var(--color-ink-3)", fontSize: 13 };
+const td: React.CSSProperties = { padding: "12px 14px" };
 
 // --- Status transitions ---
 
@@ -728,63 +723,29 @@ function StatusSection({
     }
   }
 
-  async function submitForReview() {
-    if (!window.confirm("Ajukan event ini untuk persetujuan admin?")) return;
-    setError(null);
-    setBusy(true);
-    try {
-      await api.post<ApiResponse<Event>>(`/api/v1/events/${event.id}/submit`);
-      await onChanged();
-      onNotice("Event diajukan untuk persetujuan admin.");
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal mengajukan event.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const isDraft = event.status === "draft";
   const isPublished = event.status === "published";
   const terminal = event.status === "cancelled" || event.status === "finished";
 
   if (terminal && !error) {
     return (
-      <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 0 }}>
+      <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginBottom: 0 }}>
         Tidak ada aksi status yang tersedia untuk event ini.
       </p>
     );
   }
 
   return (
-    <div style={{ padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-panel)" }}>
+    <div style={{ padding: "16px 20px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-panel)" }}>
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
-      {event.rejection_reason && (
-        <Alert variant="warn" className="mb-4">
-          Ditolak admin: {event.rejection_reason}. Perbaiki lalu ajukan ulang.
-        </Alert>
-      )}
-
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-        {isDraft && event.submitted_for_review && (
-          <span style={{ fontSize: 13, color: "var(--color-warn)" }}>
-            ⏳ Menunggu persetujuan admin.
-          </span>
+        {isDraft && (
+          <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>Draft</span>
         )}
-        {isDraft && !event.submitted_for_review && (
-          <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-            Draft — belum diajukan ke admin.
-          </span>
-        )}
-
-        {isDraft && !event.submitted_for_review && (
-          <Button variant="primary" size="sm" disabled={busy} onClick={submitForReview}>
-            Ajukan untuk Persetujuan
-          </Button>
-        )}
-        {isPublished && (
-          <Button variant="secondary" size="sm" disabled={busy} onClick={() => transition("finished", "Tandai event sebagai selesai?")}>
-            Tandai Selesai
+        {isDraft && (
+          <Button variant="primary" size="sm" disabled={busy} onClick={() => transition("published", "Publikasikan event ini? Event akan langsung terlihat di marketplace.")}>
+            Publikasikan
           </Button>
         )}
         {(isDraft || isPublished) && (
@@ -845,15 +806,15 @@ function DistanceManager({
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {distances.length === 0 ? (
-        <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 12 }}>Belum ada kategori jarak.</p>
+        <p style={{ color: "var(--color-ink-3)", fontSize: 15, marginBottom: 16 }}>Belum ada kategori jarak.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
           {distances.map((d) => (
-            <li key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
-              <span style={{ fontSize: 14 }}>{d.name}</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-ink-3)" }}>{d.quota_used}/{d.quota}</span>
-                <button type="button" onClick={() => remove(d.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 13 }}>Hapus</button>
+            <li key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
+              <span style={{ fontSize: 15 }}>{d.name}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{d.quota_used}/{d.quota}</span>
+                <button type="button" onClick={() => remove(d.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14 }}>Hapus</button>
               </span>
             </li>
           ))}
@@ -930,7 +891,7 @@ function TicketManager({
   }
 
   if (distances.length === 0) {
-    return <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Tambahkan kategori jarak terlebih dahulu.</p>;
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Tambahkan kategori jarak terlebih dahulu.</p>;
   }
 
   return (
@@ -938,19 +899,19 @@ function TicketManager({
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {tickets.length === 0 ? (
-        <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 12 }}>Belum ada kategori tiket.</p>
+        <p style={{ color: "var(--color-ink-3)", fontSize: 15, marginBottom: 16 }}>Belum ada kategori tiket.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
           {tickets.map((t) => (
-            <li key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
-              <span style={{ fontSize: 14 }}>
+            <li key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
+              <span style={{ fontSize: 15 }}>
                 {t.name}
-                <span style={{ color: "var(--color-ink-3)", fontSize: 12 }}> · {distanceName(t.distance_category_id)}</span>
+                <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}> · {distanceName(t.distance_category_id)}</span>
               </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12 }}>{formatRupiah(t.price)}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-ink-3)" }}>{t.quota_used}/{t.quota}</span>
-                <button type="button" onClick={() => remove(t.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 13 }}>Hapus</button>
+              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(t.price)}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{t.quota_used}/{t.quota}</span>
+                <button type="button" onClick={() => remove(t.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14 }}>Hapus</button>
               </span>
             </li>
           ))}
@@ -979,7 +940,7 @@ function TicketManager({
         </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
-      <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 8 }}>
+      <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 10 }}>
         Kuota tiket tidak boleh melebihi kuota jarak yang dipilih (divalidasi server).
       </p>
     </div>
