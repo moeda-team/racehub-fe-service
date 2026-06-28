@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { formatRupiah, normalizeNumberInput } from "@/lib/format";
+import { formatRupiah, formatNumberInput, parseNumberInput } from "@/lib/format";
 import type { ApiResponse, DonationWalletBalance, PlatformRevenue, WalletBalance } from "@/lib/types.gen";
 import StatCard from "@/components/ui/StatCard";
 import Button from "@/components/ui/Button";
@@ -206,8 +206,8 @@ function WithdrawForm({
           </div>
           <input
             className="field-input"
-            type="number" min={0} max={balance} value={amount}
-            onChange={(e) => onAmount(normalizeNumberInput(e.target.value))}
+            type="text" inputMode="numeric" value={formatNumberInput(amount)}
+            onChange={(e) => onAmount(parseNumberInput(e.target.value))}
             placeholder="0"
             style={overBalance ? { borderColor: "var(--color-danger, #dc2626)" } : undefined}
           />

@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { formatRupiah, formatDate } from "@/lib/format";
+import { formatRupiah, formatDate, formatNumber } from "@/lib/format";
 import type { ApiResponse, PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
 import Pill from "@/components/ui/Pill";
@@ -77,7 +77,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         {event.is_running_event && <Badge variant="sprint">Event Lari</Badge>}
         {event.donation_enabled && <Badge variant="flame">Donasi Tersedia</Badge>}
         <Badge variant={event.quota_remaining > 0 ? "ok" : "danger"}>
-          {event.quota_remaining > 0 ? `${event.quota_remaining} slot tersisa` : "Kuota habis"}
+          {event.quota_remaining > 0 ? `${formatNumber(event.quota_remaining)} slot tersisa` : "Kuota habis"}
         </Badge>
       </div>
 
@@ -95,7 +95,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {distance_categories.map((d) => (
               <Pill key={d.id}>
-                {d.name} · {d.quota_remaining}/{d.quota} sisa
+                {d.name} · {formatNumber(d.quota_remaining)}/{formatNumber(d.quota)} sisa
               </Pill>
             ))}
           </div>
@@ -139,7 +139,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                       <div>
                         <div style={{ fontWeight: 600 }}>{t.name}</div>
                         <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-                          {t.quota_remaining}/{t.quota} sisa
+                          {formatNumber(t.quota_remaining)}/{formatNumber(t.quota)} sisa
                         </div>
                       </div>
                       <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatRupiah(t.price)}</div>

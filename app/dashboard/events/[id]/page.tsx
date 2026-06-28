@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError, getAuthToken } from "@/lib/api";
-import { formatRupiah, normalizeNumberInput } from "@/lib/format";
+import { formatRupiah, formatNumber, formatNumberInput, parseNumberInput } from "@/lib/format";
 import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, { EventFormValues } from "@/components/EventForm";
 import Badge from "@/components/ui/Badge";
@@ -813,7 +813,7 @@ function DistanceManager({
             <li key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
               <span style={{ fontSize: 15 }}>{d.name}</span>
               <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{d.quota_used}/{d.quota}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{formatNumber(d.quota_used)}/{formatNumber(d.quota)}</span>
                 <button type="button" onClick={() => remove(d.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14 }}>Hapus</button>
               </span>
             </li>
@@ -828,7 +828,7 @@ function DistanceManager({
         </div>
         <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
-          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(normalizeNumberInput(e.target.value))} />
+          <input className="field-input" type="text" inputMode="numeric" value={formatNumberInput(quota)} onChange={(e) => setQuota(parseNumberInput(e.target.value))} />
         </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
@@ -910,7 +910,7 @@ function TicketManager({
               </span>
               <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(t.price)}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{t.quota_used}/{t.quota}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{formatNumber(t.quota_used)}/{formatNumber(t.quota)}</span>
                 <button type="button" onClick={() => remove(t.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14 }}>Hapus</button>
               </span>
             </li>
@@ -932,11 +932,11 @@ function TicketManager({
         </div>
         <div className="field" style={{ width: 120 }}>
           <label className="field-label">Harga (Rp)</label>
-          <input className="field-input" type="number" min={0} value={price} onChange={(e) => setPrice(normalizeNumberInput(e.target.value))} />
+          <input className="field-input" type="text" inputMode="numeric" value={formatNumberInput(price)} onChange={(e) => setPrice(parseNumberInput(e.target.value))} />
         </div>
         <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
-          <input className="field-input" type="number" min={0} value={quota} onChange={(e) => setQuota(normalizeNumberInput(e.target.value))} />
+          <input className="field-input" type="text" inputMode="numeric" value={formatNumberInput(quota)} onChange={(e) => setQuota(parseNumberInput(e.target.value))} />
         </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>

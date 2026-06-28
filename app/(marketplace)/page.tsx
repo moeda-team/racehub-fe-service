@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import { formatDate, formatRupiah } from "@/lib/format";
+import { formatDate, formatRupiah, formatNumber } from "@/lib/format";
 import type { PublicEvent } from "@/lib/types.gen";
 import EventCard from "@/components/ui/EventCard";
 import Alert from "@/components/ui/Alert";
@@ -192,7 +192,7 @@ export default function MarketplacePage() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-                {rangeStart}–{rangeEnd} dari {total} event
+                {formatNumber(rangeStart)}–{formatNumber(rangeEnd)} dari {formatNumber(total)} event
               </span>
               <select
                 value={pageSize}

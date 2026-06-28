@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { formatRupiah, normalizeNumberInput } from "@/lib/format";
+import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import type {
   ApiResponse,
   CreateRegistrationRequest,
@@ -224,14 +224,17 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       {/* Step 3: donation + review */}
       {step === 3 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <LabeledInput
-            label="Donasi (opsional)"
-            type="number"
-            min={0}
-            value={donation}
-            onChange={setDonation}
-            hint="Bebas biaya admin & tidak dapat dikembalikan (non-refundable)"
-          />
+          <div className="field">
+            <label className="field-label">Donasi (opsional)</label>
+            <input
+              className="field-input"
+              type="text"
+              inputMode="numeric"
+              value={formatNumberInput(donation)}
+              onChange={(e) => setDonation(parseNumberInput(e.target.value))}
+            />
+            <span className="field-hint">Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)</span>
+          </div>
 
           <div style={card}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>

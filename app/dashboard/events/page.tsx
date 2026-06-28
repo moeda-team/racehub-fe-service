@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { eventStatusDisplay } from "@/lib/event-status";
+import { formatNumber } from "@/lib/format";
 import type { Event, EventStatus } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -226,7 +227,7 @@ export default function EventListPage() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-                {rangeStart}–{rangeEnd} dari {total} event
+                {formatNumber(rangeStart)}–{formatNumber(rangeEnd)} dari {formatNumber(total)} event
               </span>
               <select
                 value={pageSize}
