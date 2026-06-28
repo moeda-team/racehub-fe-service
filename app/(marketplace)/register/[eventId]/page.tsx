@@ -40,7 +40,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<PublicEventDetail>>(`/api/v1/events/${eventId}`);
+        const res = await api.get<ApiResponse<PublicEventDetail>>(`/api/v1/events/${eventId}`, { auth: false });
         if (!cancelled) setDetail(res.data);
       } catch {
         if (!cancelled) setLoadError("Event tidak ditemukan atau belum dipublikasikan.");

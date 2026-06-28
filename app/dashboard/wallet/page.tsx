@@ -51,6 +51,7 @@ export default function WalletPage() {
     setOrgError(null); setOrgNotice(null);
     const n = Number(orgAmount);
     if (!n || n <= 0) { setOrgError("Masukkan nominal yang valid."); return; }
+    if (org && n > org.balance) { setOrgError(`Nominal melebihi saldo tersedia (${formatRupiah(org.balance)}).`); return; }
     setOrgBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
@@ -68,6 +69,7 @@ export default function WalletPage() {
     setDonError(null); setDonNotice(null);
     const n = Number(donAmount);
     if (!n || n <= 0) { setDonError("Masukkan nominal yang valid."); return; }
+    if (donation && n > donation.balance) { setDonError(`Nominal melebihi saldo donasi (${formatRupiah(donation.balance)}).`); return; }
     setDonBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
@@ -85,6 +87,7 @@ export default function WalletPage() {
     setPlatError(null); setPlatNotice(null);
     const n = Number(platAmount);
     if (!n || n <= 0) { setPlatError("Masukkan nominal yang valid."); return; }
+    if (platform && n > platform.balance) { setPlatError(`Nominal melebihi saldo admin (${formatRupiah(platform.balance)}).`); return; }
     setPlatBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
@@ -120,7 +123,7 @@ export default function WalletPage() {
         </div>
 
         <WithdrawForm
-          amount={orgAmount} bank={orgBank} busy={orgBusy}
+          amount={orgAmount} bank={orgBank} busy={orgBusy} balance={org?.balance ?? 0}
           onAmount={setOrgAmount} onBank={setOrgBank} onSubmit={handleOrgWithdraw}
         />
       </section>
@@ -140,7 +143,7 @@ export default function WalletPage() {
         </div>
 
         <WithdrawForm
-          amount={donAmount} bank={donBank} busy={donBusy}
+          amount={donAmount} bank={donBank} busy={donBusy} balance={donation?.balance ?? 0}
           onAmount={setDonAmount} onBank={setDonBank} onSubmit={handleDonWithdraw}
         />
       </section>
@@ -160,7 +163,7 @@ export default function WalletPage() {
         </div>
 
         <WithdrawForm
-          amount={platAmount} bank={platBank} busy={platBusy}
+          amount={platAmount} bank={platBank} busy={platBusy} balance={platform?.balance ?? 0}
           onAmount={setPlatAmount} onBank={setPlatBank} onSubmit={handlePlatWithdraw}
         />
       </section>
@@ -169,26 +172,62 @@ export default function WalletPage() {
 }
 
 function WithdrawForm({
-  amount, bank, busy, onAmount, onBank, onSubmit,
+  amount, bank, busy, balance, onAmount, onBank, onSubmit,
 }: {
-  amount: string; bank: string; busy: boolean;
+  amount: string; bank: string; busy: boolean; balance: number;
   onAmount: (v: string) => void; onBank: (v: string) => void; onSubmit: () => void;
 }) {
+  const n = Number(amount);
+  const overBalance = n > 0 && balance > 0 && n > balance;
+
   return (
     <div style={card}>
       <div style={{ fontWeight: 600, marginBottom: 12 }}>Tarik Saldo</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div className="field">
-          <label className="field-label">Nominal (Rp)</label>
-          <input className="field-input" type="number" min={0} value={amount}
-            onChange={(e) => onAmount(normalizeNumberInput(e.target.value))} placeholder="0" />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <label className="field-label" style={{ margin: 0 }}>Nominal (Rp)</label>
+            <button
+              type="button"
+              disabled={balance <= 0}
+              onClick={() => onAmount(String(balance))}
+              style={{
+                fontSize: 12, fontWeight: 600, padding: "2px 10px",
+                borderRadius: "var(--radius-pill)",
+                border: "1px solid var(--color-primary)",
+                backgroundColor: "transparent",
+                color: balance <= 0 ? "var(--color-ink-4)" : "var(--color-primary)",
+                cursor: balance <= 0 ? "not-allowed" : "pointer",
+                lineHeight: 1.6,
+              }}
+            >
+              Semua Saldo
+            </button>
+          </div>
+          <input
+            className="field-input"
+            type="number" min={0} max={balance} value={amount}
+            onChange={(e) => onAmount(normalizeNumberInput(e.target.value))}
+            placeholder="0"
+            style={overBalance ? { borderColor: "var(--color-danger, #dc2626)" } : undefined}
+          />
+          {overBalance && (
+            <span style={{ fontSize: 12, color: "var(--color-danger, #dc2626)", marginTop: 4, display: "block" }}>
+              Melebihi saldo tersedia ({formatRupiah(balance)})
+            </span>
+          )}
+          {!overBalance && balance > 0 && (
+            <span style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 4, display: "block" }}>
+              Saldo tersedia: {formatRupiah(balance)}
+            </span>
+          )}
         </div>
         <div className="field">
           <label className="field-label">No. Rekening Tujuan (opsional)</label>
           <input className="field-input" type="text" value={bank}
             onChange={(e) => onBank(e.target.value)} placeholder="Contoh: BCA 1234567890" />
         </div>
-        <Button variant="primary" size="md" disabled={busy} onClick={onSubmit}>
+        <Button variant="primary" size="md" disabled={busy || overBalance || balance <= 0} onClick={onSubmit}>
           {busy ? "Memproses…" : "Tarik"}
         </Button>
       </div>

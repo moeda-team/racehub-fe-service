@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import { formatDate } from "@/lib/format";
-import type { Event } from "@/lib/types.gen";
+import { formatDate, formatRupiah } from "@/lib/format";
+import type { PublicEvent } from "@/lib/types.gen";
 import EventCard from "@/components/ui/EventCard";
 import Alert from "@/components/ui/Alert";
 
 type PagedEvents = {
-  data: Event[];
+  data: PublicEvent[];
   total: number;
   page: number;
   page_size: number;
@@ -19,7 +19,7 @@ const PAGE_SIZE_OPTIONS = [12, 24, 48];
 const DEFAULT_PAGE_SIZE = 12;
 
 export default function MarketplacePage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<PublicEvent[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -173,7 +173,8 @@ export default function MarketplacePage() {
                 location={ev.location || "Lokasi belum diatur"}
                 date={formatDate(ev.event_date)}
                 distances={ev.is_running_event ? ["Event Lari"] : []}
-                price=""
+                price={ev.min_price > 0 ? formatRupiah(ev.min_price) : "Gratis"}
+                quotaRemaining={ev.quota_remaining}
               />
             ))}
           </div>

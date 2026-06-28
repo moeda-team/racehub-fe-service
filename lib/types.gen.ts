@@ -96,6 +96,7 @@ export interface PublicEvent {
   refund_cutoff_date: string | null;
   donation_enabled: boolean;
   quota_remaining: number;
+  min_price: number;
 }
 
 export interface PublicDistance {
