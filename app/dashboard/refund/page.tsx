@@ -149,7 +149,7 @@ export default function DashboardRefundPage() {
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 700, marginBottom: 8 }}>Refund</h1>
       <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}>
         Nominal refund dihitung server: <code>total − fee Midtrans − donasi</code>. Donasi tidak dikembalikan dan
-        tetap disalurkan (FR-909).
+        tetap disalurkan.
       </p>
 
       {/* Event lookup */}
@@ -310,7 +310,7 @@ export default function DashboardRefundPage() {
             <Row label="Metode / Mode" value={`${refund.method} · ${refund.mode}`} />
             {refund.bank_account && <Row label="No. Rekening" value={refund.bank_account} mono />}
             <Alert variant="info" className="mb-0">
-              Donasi tetap disalurkan ke penyelenggara/penerima manfaat (FR-909/1406).
+              Donasi tetap disalurkan ke penyelenggara/penerima manfaat.
             </Alert>
           </div>
         )}

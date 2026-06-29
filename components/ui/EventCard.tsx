@@ -1,3 +1,4 @@
+import { formatNumber } from "@/lib/format";
 import Pill from "./Pill";
 
 interface EventCardProps {
@@ -41,7 +42,9 @@ export default function EventCard({
           </div>
           {quotaRemaining !== undefined && (
             <div className="evcard-quota">
-              <div className="evcard-quota-text">{quotaRemaining} slot tersisa</div>
+              <div className="evcard-quota-text">
+                {quotaRemaining > 0 ? `${formatNumber(quotaRemaining)} slot tersisa` : "Kuota habis"}
+              </div>
             </div>
           )}
         </div>

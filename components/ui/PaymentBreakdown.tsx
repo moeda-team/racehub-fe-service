@@ -1,6 +1,8 @@
 interface LineItem {
   label: string;
   value: string;
+  /** When set, shown struck-through before value (e.g. original price before waiver). */
+  original?: string;
 }
 
 interface PaymentBreakdownProps {
@@ -49,7 +51,12 @@ export default function PaymentBreakdown({
         {lines.map((line, i) => (
           <div key={i} className="pay-pln">
             <span className="pay-pln-l">{line.label}</span>
-            <span className="pay-pln-v">{line.value}</span>
+            <span className="pay-pln-v" style={{ display: "flex", gap: 6, alignItems: "baseline", justifyContent: "flex-end" }}>
+              {line.original && (
+                <span style={{ textDecoration: "line-through", opacity: 0.45, fontSize: "0.9em" }}>{line.original}</span>
+              )}
+              {line.value}
+            </span>
           </div>
         ))}
       </div>

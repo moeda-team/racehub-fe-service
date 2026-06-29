@@ -6,12 +6,12 @@ interface TicketProps {
   name: string;
   event: string;
   distance: string;
-  /** Set only for running events (FR-404); falsy hides the row. */
+  /** Set only for running events; falsy hides the row. */
   ageClass?: string;
   /** Set only for running events; falsy hides the row. */
   gender?: string;
   date?: string;
-  /** Opaque token encoded into the QR for check-in (FR-604/705). */
+  /** Opaque token encoded into the QR for check-in. */
   qrToken: string;
   className?: string;
 }

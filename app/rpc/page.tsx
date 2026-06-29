@@ -15,7 +15,7 @@ import Alert from "@/components/ui/Alert";
 
 // Field RPC / check-in module (F6, FR-602..605). Built for one-handed phone use
 // at a busy desk: high contrast, large targets, manual search is the PRIMARY
-// method (FR-605); QR camera scan is secondary (FR-604).
+// method; QR camera scan is secondary.
 export default function RpcPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
@@ -325,7 +325,7 @@ function StatusPill({ on, label }: { on: boolean; label: string }) {
   );
 }
 
-// QrScanner: secondary check-in input (FR-604). Uses the native BarcodeDetector
+// QrScanner: secondary check-in input. Uses the native BarcodeDetector
 // API for camera scanning where supported (Chrome/Android), with a manual token
 // paste fallback everywhere else — no extra dependency.
 function QrScanner({ onToken }: { onToken: (token: string) => void }) {

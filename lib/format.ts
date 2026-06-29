@@ -1,4 +1,29 @@
 /**
+ * Format a plain integer with thousand-separator commas (id-ID locale). DISPLAY ONLY.
+ */
+export function formatNumber(n: number): string {
+  return new Intl.NumberFormat("id-ID").format(n);
+}
+
+/**
+ * Format a raw digit-only string for display inside a numeric text input.
+ * "1000000" → "1.000.000" (id-ID). Empty / non-numeric → "".
+ */
+export function formatNumberInput(raw: string): string {
+  const n = parseInt(raw.replace(/\D/g, ""), 10);
+  if (isNaN(n)) return "";
+  return new Intl.NumberFormat("id-ID").format(n);
+}
+
+/**
+ * Strip thousand separators and any non-digit character from a formatted input
+ * value so only raw digits remain for state storage and submission.
+ */
+export function parseNumberInput(formatted: string): string {
+  return formatted.replace(/\D/g, "");
+}
+
+/**
  * Format Rupiah — DISPLAY ONLY.
  * Menggunakan Indonesian locale. TIDAK melakukan perhitungan apapun.
  * Hanya memformat angka yang sudah diterima dari backend.

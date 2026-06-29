@@ -116,7 +116,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
               {refund.status === "completed" && (
                 <div style={{ marginTop: 12 }}>
                   <Alert variant="info" className="mb-0">
-                    Dana telah dikembalikan. Donasi tidak dikembalikan dan tetap disalurkan (FR-909).
+                    Dana telah dikembalikan. Donasi tidak dikembalikan dan tetap disalurkan.
                   </Alert>
                 </div>
               )}

@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { formatRupiah, formatDate } from "@/lib/format";
+import { formatRupiah, formatDate, formatNumber } from "@/lib/format";
 import type { ApiResponse, PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
 import Pill from "@/components/ui/Pill";
@@ -54,7 +54,11 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   const { event, distance_categories, ticket_categories } = detail;
-  const distanceName = (did: string) => distance_categories.find((d) => d.id === did)?.name ?? "—";
+
+  const ticketsByDistance = distance_categories.map((d) => ({
+    distance: d,
+    tickets: ticket_categories.filter((t) => t.distance_category_id === d.id),
+  }));
 
   return (
     <main key="event-detail" className="max-w-3xl mx-auto px-4 py-8 rh-reveal">
@@ -73,7 +77,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         {event.is_running_event && <Badge variant="sprint">Event Lari</Badge>}
         {event.donation_enabled && <Badge variant="flame">Donasi Tersedia</Badge>}
         <Badge variant={event.quota_remaining > 0 ? "ok" : "danger"}>
-          {event.quota_remaining > 0 ? `${event.quota_remaining} slot tersisa` : "Kuota habis"}
+          {event.quota_remaining > 0 ? `${formatNumber(event.quota_remaining)} slot tersisa` : "Kuota habis"}
         </Badge>
       </div>
 
@@ -91,7 +95,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {distance_categories.map((d) => (
               <Pill key={d.id}>
-                {d.name} · {d.quota_remaining}/{d.quota} sisa
+                {d.name} · {formatNumber(d.quota_remaining)}/{formatNumber(d.quota)} sisa
               </Pill>
             ))}
           </div>
@@ -105,27 +109,43 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         {ticket_categories.length === 0 ? (
           <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada tiket.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {ticket_categories.map((t) => (
-              <div
-                key={t.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 16px",
-                  border: "1px solid var(--color-line)",
-                  borderRadius: "var(--radius-md)",
-                  backgroundColor: "var(--color-surface)",
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600 }}>{t.name}</div>
-                  <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-                    {distanceName(t.distance_category_id)} · {t.quota_remaining}/{t.quota} sisa
-                  </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {ticketsByDistance.map(({ distance, tickets }) => tickets.length === 0 ? null : (
+              <div key={distance.id}>
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--color-ink-3)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  marginBottom: 6,
+                }}>
+                  {distance.name}
                 </div>
-                <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatRupiah(t.price)}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {tickets.map((t) => (
+                    <div
+                      key={t.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 16px",
+                        border: "1px solid var(--color-line)",
+                        borderRadius: "var(--radius-md)",
+                        backgroundColor: "var(--color-surface)",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{t.name}</div>
+                        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+                          {formatNumber(t.quota_remaining)}/{formatNumber(t.quota)} sisa
+                        </div>
+                      </div>
+                      <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatRupiah(t.price)}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

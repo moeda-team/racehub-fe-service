@@ -205,7 +205,7 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         type="datetime-local"
         value={regClose}
         onChange={(e) => setRegClose(e.target.value)}
-        hint="Nomor BIB hanya bisa digenerate setelah waktu ini (FR-1301). Kosong → pakai tanggal event."
+        hint="Nomor BIB hanya bisa digenerate setelah waktu ini. Kosong → pakai tanggal event."
       />
 
       <div style={toggleRow}>
