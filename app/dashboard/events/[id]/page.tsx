@@ -13,6 +13,7 @@ import DataTable, { Column } from "@/components/ui/DataTable";
 import type {
   ApiResponse,
   BibResult,
+  ComplimentaryPerson,
   DistanceCategory,
   DonationLedgerEntry,
   DonationReport,
@@ -191,6 +192,13 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <RegistrationStatusCard event={event} eventId={eventId} onChanged={load} />
             <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 8, marginTop: 0 }}>Daftar Peserta Gratis</h2>
+              <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 20 }}>
+                Email yang terdaftar di sini akan mendapat tiket gratis (harga = 0, fee platform = 0) saat mendaftar. Donasi dan fee Midtrans tetap berlaku jika peserta memilih berdonasi.
+              </p>
+              <ComplimentaryManager eventId={eventId} />
+            </div>
+            <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 16, marginTop: 0 }}>Nomor BIB</h2>
               <BibCard eventId={eventId} hasCloseDate={!!event.registration_close_date} />
             </div>
@@ -314,7 +322,7 @@ function RegistrationStatusCard({
   );
 }
 
-// DashboardCard shows the server-computed event summary (FR-1101).
+// DashboardCard shows the server-computed event summary.
 function DashboardCard({ eventId }: { eventId: string }) {
   const [d, setD] = useState<EventDashboard | null>(null);
 
@@ -350,7 +358,7 @@ function DashboardCard({ eventId }: { eventId: string }) {
   );
 }
 
-// RecapTable lists participant counts per distance × gender × age class (FR-1103).
+// RecapTable lists participant counts per distance × gender × age class.
 function RecapTable({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<RecapRow[] | null>(null);
 
@@ -430,7 +438,7 @@ function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boo
   );
 }
 
-// ParticipantsCard renders the participant table (FR-1202) + CSV export (FR-1201).
+// ParticipantsCard renders the participant table + CSV export.
 function ParticipantsCard({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -516,7 +524,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
   );
 }
 
-// DonationReportCard shows the server-computed ticket-revenue vs donation split (FR-804/1405).
+// DonationReportCard shows the server-computed ticket-revenue vs donation split.
 function DonationReportCard({ eventId }: { eventId: string }) {
   const [report, setReport] = useState<DonationReport | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -686,6 +694,134 @@ function RefundsCard({ eventId }: { eventId: string }) {
             })}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+// ComplimentaryManager lets organizers manage the free-ticket whitelist for an event.
+function ComplimentaryManager({ eventId }: { eventId: string }) {
+  const [persons, setPersons] = useState<ComplimentaryPerson[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [addErr, setAddErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [note, setNote] = useState("");
+
+  const load = useCallback(async () => {
+    try {
+      const res = await api.get<ApiResponse<ComplimentaryPerson[]>>(`/api/v1/events/${eventId}/complimentary`);
+      setPersons(res.data ?? []);
+      setErr(null);
+    } catch {
+      setErr("Gagal memuat daftar peserta gratis.");
+    }
+  }, [eventId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    load().then(() => { if (cancelled) return; });
+    return () => { cancelled = true; };
+  }, [load]);
+
+  async function add() {
+    if (!name.trim()) { setAddErr("Nama wajib diisi."); return; }
+    if (!email.trim()) { setAddErr("Email wajib diisi."); return; }
+    setAddErr(null);
+    setBusy(true);
+    try {
+      await api.post(`/api/v1/events/${eventId}/complimentary`, {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        note: note.trim(),
+      });
+      setName(""); setEmail(""); setPhone(""); setNote("");
+      await load();
+    } catch (e) {
+      setAddErr(e instanceof ApiError ? e.message : "Gagal menambah.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(personId: string) {
+    if (!window.confirm("Hapus dari daftar peserta gratis?")) return;
+    try {
+      await api.delete(`/api/v1/events/${eventId}/complimentary/${personId}`);
+      await load();
+    } catch {
+      setErr("Gagal menghapus.");
+    }
+  }
+
+  if (err && !persons) return <Alert variant="danger">{err}</Alert>;
+
+  return (
+    <div>
+      {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+      {persons && persons.length === 0 ? (
+        <p style={{ fontSize: 15, color: "var(--color-ink-3)", marginBottom: 16 }}>
+          Belum ada peserta gratis. Tambahkan email di bawah.
+        </p>
+      ) : persons ? (
+        <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 6 }}>
+          {persons.map((p) => (
+            <li
+              key={p.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-sm)",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</div>
+                <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>{p.email}{p.phone ? ` · ${p.phone}` : ""}</div>
+                {p.note && <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 2 }}>{p.note}</div>}
+              </div>
+              <button
+                type="button"
+                onClick={() => remove(p.id)}
+                style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14, flexShrink: 0 }}
+              >
+                Hapus
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>
+      )}
+
+      {addErr && <Alert variant="danger" className="mb-3">{addErr}</Alert>}
+      <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="field" style={{ flex: 1, minWidth: 100 }}>
+          <label className="field-label">Nama</label>
+          <input className="field-input" placeholder="Nama lengkap" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="field" style={{ flex: 2, minWidth: 160 }}>
+          <label className="field-label">Email</label>
+          <input className="field-input" type="email" placeholder="peserta@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="field" style={{ flex: 1, minWidth: 100 }}>
+          <label className="field-label">No. HP (opsional)</label>
+          <input className="field-input" placeholder="08xx" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <div className="field" style={{ flex: 2, minWidth: 120 }}>
+          <label className="field-label">Catatan (opsional)</label>
+          <input className="field-input" placeholder="Mis. Sponsor VIP" value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+        <Button variant="secondary" size="md" disabled={busy} onClick={add}>
+          {busy ? "Menambah…" : "Tambah"}
+        </Button>
       </div>
     </div>
   );

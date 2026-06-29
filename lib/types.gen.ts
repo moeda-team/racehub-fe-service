@@ -155,6 +155,17 @@ export interface Registration {
   age_class: "" | "Open" | "Master";
   donation: number;
   status: RegistrationStatus;
+  is_complimentary?: boolean;
+}
+
+export interface ComplimentaryPerson {
+  id: string;
+  event_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  note: string;
+  created_at: string;
 }
 
 export interface MarketplaceFilter {
@@ -277,6 +288,8 @@ export interface PaymentQuoteResponse {
   sub_total: number;
   payment_method: string;
   payment_method_label: string;
+  original_price?: number;
+  original_fee_platform?: number;
 }
 
 export type PaymentMethod = "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";

@@ -105,26 +105,43 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
 
   // Success screen.
   if (result) {
+    const isPaid = result.status === "paid";
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Alert variant="info" className="mb-4">Pendaftaran berhasil! Simpan nomor registrasi Anda.</Alert>
+        <Alert variant="info" className="mb-4">
+          {isPaid
+            ? "Tiket gratis berhasil didaftarkan! E-tiket Anda sudah aktif."
+            : "Pendaftaran berhasil! Simpan nomor registrasi Anda."}
+        </Alert>
         <div style={card}>
           <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Nomor Registrasi</div>
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
             {result.registration_number}
           </div>
           <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-            <Badge variant="warn">Menunggu Pembayaran</Badge>
+            {isPaid ? (
+              <Badge variant="ok">E-Tiket Aktif</Badge>
+            ) : (
+              <Badge variant="warn">Menunggu Pembayaran</Badge>
+            )}
+            {result.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
             {result.age_class && <Badge variant="sprint">Kelas {result.age_class}</Badge>}
           </div>
           <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-            Langkah berikutnya: pembayaran. Rincian biaya (Fee Platform, Fee Midtrans, Sub Total)
-            dihitung server setelah Anda memilih metode.
+            {isPaid
+              ? "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
+              : "Langkah berikutnya: pembayaran. Rincian biaya (Fee Platform, Fee Midtrans, Sub Total) dihitung server setelah Anda memilih metode."}
           </p>
         </div>
-        <Link href={`/pay/${result.registration_number}`} style={{ display: "block", marginTop: 16 }}>
-          <Button variant="primary" size="md" style={{ width: "100%" }}>Lanjut ke Pembayaran</Button>
-        </Link>
+        {isPaid ? (
+          <Link href={`/ticket/${result.registration_number}`} style={{ display: "block", marginTop: 16 }}>
+            <Button variant="primary" size="md" style={{ width: "100%" }}>Lihat E-Tiket</Button>
+          </Link>
+        ) : (
+          <Link href={`/pay/${result.registration_number}`} style={{ display: "block", marginTop: 16 }}>
+            <Button variant="primary" size="md" style={{ width: "100%" }}>Lanjut ke Pembayaran</Button>
+          </Link>
+        )}
         <Link href="/" style={{ display: "block", marginTop: 8 }}>
           <Button variant="secondary" size="md" style={{ width: "100%" }}>Kembali ke Marketplace</Button>
         </Link>

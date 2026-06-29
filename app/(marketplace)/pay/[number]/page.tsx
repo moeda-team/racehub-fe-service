@@ -17,7 +17,7 @@ import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
 import PaymentBreakdown from "@/components/ui/PaymentBreakdown";
 
-// Methods offered. Order/label only — fees come from the server (FR-508).
+// Methods offered. Order/label only — fees come from the server.
 const METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
   { value: "va_bca",     label: "VA BCA" },
   { value: "va_bni",     label: "VA BNI" },
@@ -151,10 +151,17 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   if (reg.status === "paid") {
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Alert variant="info" className="mb-4">Pembayaran lunas. E-tiket Anda sudah terbit.</Alert>
+        <Alert variant="info" className="mb-4">
+          {reg.is_complimentary
+            ? "Tiket gratis (Complimentary). E-tiket Anda sudah aktif."
+            : "Pembayaran lunas. E-tiket Anda sudah terbit."}
+        </Alert>
         <div style={card}>
           <Row label="Nomor Registrasi" value={reg.registration_number} mono />
-          <div style={{ marginTop: 8 }}><Badge variant="ok">Lunas</Badge></div>
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Badge variant="ok">Lunas</Badge>
+            {reg.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
+          </div>
         </div>
         <Link href={`/ticket/${reg.registration_number}`} style={{ display: "block", marginTop: 16 }}>
           <Button variant="primary" size="md" style={{ width: "100%" }}>Lihat E-tiket</Button>
@@ -163,12 +170,20 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
     );
   }
 
-  // Build the FR-502-ordered breakdown lines (display only, from /quote).
+  // Build the breakdown lines (display only, from /quote).
   const lines = quote
     ? [
-        { label: "Harga Tiket", value: formatRupiah(quote.price) },
+        {
+          label: "Harga Tiket",
+          value: formatRupiah(quote.price),
+          original: quote.original_price != null ? formatRupiah(quote.original_price) : undefined,
+        },
         { label: "Donasi", value: formatRupiah(quote.donation) },
-        { label: "Fee Platform", value: formatRupiah(quote.fee_platform) },
+        {
+          label: "Fee Platform",
+          value: formatRupiah(quote.fee_platform),
+          original: quote.original_fee_platform != null ? formatRupiah(quote.original_fee_platform) : undefined,
+        },
         { label: `Fee Midtrans · ${quote.payment_method_label}`, value: formatRupiah(quote.fee_midtrans) },
       ]
     : [];
@@ -184,6 +199,15 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         No. Registrasi <span style={{ fontFamily: "var(--font-mono)" }}>{reg.registration_number}</span>
       </p>
 
+      {reg.is_complimentary && (
+        <div style={{ padding: "12px 16px", border: "1px solid var(--color-sprint)", borderRadius: "var(--radius-md)", backgroundColor: "color-mix(in srgb, var(--color-sprint) 8%, transparent)", marginBottom: 16, fontSize: 14 }}>
+          <strong>Anda diundang — Tiket Gratis</strong> — harga tiket dan fee platform dibebaskan.
+          {reg.donation > 0
+            ? " Anda hanya perlu membayar donasi dan fee transaksi."
+            : " Tidak ada biaya yang perlu dibayar."}
+        </div>
+      )}
+
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {!charge ? (
@@ -196,7 +220,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             total={quote ? formatRupiah(quote.sub_total) : "—"}
           />
           <p style={{ fontSize: 12, color: "var(--color-ink-3)", margin: "10px 0 16px" }}>
-            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif (FR-508). Donasi bebas
+            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif. Donasi bebas
             biaya admin &amp; tidak dapat dikembalikan.
           </p>
           <Button
@@ -218,9 +242,9 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           {charge.bill_key && <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />}
           {charge.qr_string && <QrDisplay value={charge.qr_string} deeplinkUrl={charge.deeplink_url} />}
           <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
-          <Row label="Harga Tiket" value={formatRupiah(charge.quote.price)} mono />
+          <Row label="Harga Tiket" value={formatRupiah(charge.quote.price)} original={charge.quote.original_price != null ? formatRupiah(charge.quote.original_price) : undefined} mono />
           <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />
-          <Row label="Fee Platform" value={formatRupiah(charge.quote.fee_platform)} mono />
+          <Row label="Fee Platform" value={formatRupiah(charge.quote.fee_platform)} original={charge.quote.original_fee_platform != null ? formatRupiah(charge.quote.original_fee_platform) : undefined} mono />
           <Row label={`Fee Admin · ${charge.quote.payment_method_label}`} value={formatRupiah(charge.quote.fee_midtrans)} mono />
           <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
           <Row label="Sub Total" value={formatRupiah(charge.quote.sub_total)} mono />
@@ -314,11 +338,14 @@ function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string
   );
 }
 
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Row({ label, value, original, mono }: { label: string; value: string; original?: string; mono?: boolean }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 14, gap: 12 }}>
       <span style={{ color: "var(--color-ink-3)" }}>{label}</span>
-      <span style={{ textAlign: "right", ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}>{value}</span>
+      <span style={{ textAlign: "right", display: "flex", gap: 6, alignItems: "baseline", justifyContent: "flex-end", ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}>
+        {original && <span style={{ textDecoration: "line-through", opacity: 0.45, fontSize: "0.9em" }}>{original}</span>}
+        {value}
+      </span>
     </div>
   );
 }
