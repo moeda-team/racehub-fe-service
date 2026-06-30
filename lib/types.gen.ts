@@ -156,6 +156,7 @@ export interface Registration {
   donation: number;
   status: RegistrationStatus;
   is_complimentary?: boolean;
+  qr_token?: string; // only present when status=paid
 }
 
 export interface ComplimentaryPerson {

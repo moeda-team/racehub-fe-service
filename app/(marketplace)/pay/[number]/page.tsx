@@ -163,7 +163,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             {reg.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
           </div>
         </div>
-        <Link href={`/ticket/${reg.registration_number}`} style={{ display: "block", marginTop: 16 }}>
+        <Link href={`/ticket/${reg.registration_number}${reg.qr_token ? `?token=${reg.qr_token}` : ""}`} style={{ display: "block", marginTop: 16 }}>
           <Button variant="primary" size="md" style={{ width: "100%" }}>Lihat E-tiket</Button>
         </Link>
       </main>
