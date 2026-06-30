@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah, formatDate } from "@/lib/format";
@@ -18,18 +19,21 @@ const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "d
 
 export default function TicketPage({ params }: { params: Promise<{ number: string }> }) {
   const { number } = use(params);
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
 
   const [ticket, setTicket] = useState<ETicket | null>(null);
   const [refund, setRefund] = useState<Refund | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notReady, setNotReady] = useState(false);
+  const [invalidLink, setInvalidLink] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<ETicket>>(`/api/v1/registrations/${number}/ticket`);
+        const res = await api.get<ApiResponse<ETicket>>(`/api/v1/registrations/${number}/ticket?token=${token}`);
         if (cancelled) return;
         const t = res.data;
         setTicket(t);
@@ -42,8 +46,10 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
         }
       } catch (err) {
         if (cancelled) return;
-        if (err instanceof ApiError && err.status === 404) setNotReady(true);
-        else setError("Gagal memuat e-tiket.");
+        if (err instanceof ApiError && err.status === 404) {
+          if (!token) setInvalidLink(true);
+          else setNotReady(true);
+        } else setError("Gagal memuat e-tiket.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -53,6 +59,16 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
 
   if (loading) {
     return <main className="max-w-xl mx-auto px-4 py-12"><p style={{ color: "var(--color-ink-3)" }}>Memuat…</p></main>;
+  }
+
+  if (invalidLink) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-12">
+        <Alert variant="warn" className="mb-4">
+          Link tidak valid. Gunakan link yang dikirimkan ke email kamu.
+        </Alert>
+      </main>
+    );
   }
 
   if (notReady) {
