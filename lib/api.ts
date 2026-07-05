@@ -49,6 +49,9 @@ export interface RequestOptions {
   // token it returns the organizer's own events (unfiltered); anonymous it
   // returns the filtered public catalogue. Public pages must opt out of auth.
   auth?: boolean;
+  // Idempotency-Key untuk operasi uang/registrasi: retry dengan key yang sama
+  // tidak menghasilkan efek kedua di server (lihat OpenAPI).
+  idempotencyKey?: string;
 }
 
 async function request<T>(
@@ -63,6 +66,9 @@ async function request<T>(
 
   if (authToken && opts?.auth !== false) {
     headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  if (opts?.idempotencyKey) {
+    headers["Idempotency-Key"] = opts.idempotencyKey;
   }
 
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -125,7 +131,7 @@ async function requestForm<T>(method: string, path: string, form: FormData): Pro
 export const api = {
   get: <T>(path: string, opts?: RequestOptions) => request<T>("GET", path, undefined, opts),
 
-  post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+  post: <T>(path: string, body?: unknown, opts?: RequestOptions) => request<T>("POST", path, body, opts),
 
   postForm: <T>(path: string, form: FormData) => requestForm<T>("POST", path, form),
 

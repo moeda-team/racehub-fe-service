@@ -3,6 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import type {
   ApiResponse,
@@ -68,6 +69,10 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
     [detail, distanceId],
   );
 
+  // Retry submit (double-click / gagal jaringan) dengan data sama tidak boleh
+  // membuat registrasi kedua; edit data → key baru (lihat lib/idempotency).
+  const regIdem = useIdempotencyKey();
+
   async function handleSubmit() {
     if (!detail || !ticketId || !distanceId) return;
     setServerError(null);
@@ -84,7 +89,8 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
         gender,
         donation: Number(donation) || 0,
       };
-      const res = await api.post<ApiResponse<Registration>>("/api/v1/registrations", body);
+      const res = await api.post<ApiResponse<Registration>>("/api/v1/registrations", body, { idempotencyKey: regIdem.keyFor(body) });
+      regIdem.reset();
       setResult(res.data);
     } catch (err) {
       setServerError(err instanceof ApiError ? err.message : "Pendaftaran gagal. Coba lagi.");

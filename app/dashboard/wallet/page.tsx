@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
+import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatRupiah, formatNumberInput, parseNumberInput } from "@/lib/format";
 import type { ApiResponse, DonationWalletBalance, PlatformRevenue, WalletBalance } from "@/lib/types.gen";
 import StatCard from "@/components/ui/StatCard";
@@ -32,6 +33,11 @@ export default function WalletPage() {
   const [platNotice, setPlatNotice] = useState<string | null>(null);
   const [platBusy, setPlatBusy] = useState(false);
 
+  // Retry penarikan (double-click / gagal jaringan) tidak boleh mendebit dua kali.
+  const orgIdem = useIdempotencyKey();
+  const donIdem = useIdempotencyKey();
+  const platIdem = useIdempotencyKey();
+
   const load = useCallback(async () => {
     const [o, don, plat] = await Promise.all([
       api.get<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet"),
@@ -56,7 +62,8 @@ export default function WalletPage() {
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (orgBank.trim()) body.bank_account = orgBank.trim();
-      const res = await api.post<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet/withdraw", body);
+      const res = await api.post<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet/withdraw", body, { idempotencyKey: orgIdem.keyFor(body) });
+      orgIdem.reset();
       setOrg(res.data);
       setOrgAmount(""); setOrgBank("");
       setOrgNotice(`Penarikan ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`);
@@ -74,7 +81,8 @@ export default function WalletPage() {
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (donBank.trim()) body.bank_account = donBank.trim();
-      const res = await api.post<ApiResponse<DonationWalletBalance>>("/api/v1/organizers/me/wallet/donations/withdraw", body);
+      const res = await api.post<ApiResponse<DonationWalletBalance>>("/api/v1/organizers/me/wallet/donations/withdraw", body, { idempotencyKey: donIdem.keyFor(body) });
+      donIdem.reset();
       setDonation(res.data);
       setDonAmount(""); setDonBank("");
       setDonNotice(`Penarikan donasi ${formatRupiah(n)} berhasil. Saldo donasi kini ${formatRupiah(res.data.balance)}.`);
@@ -92,7 +100,8 @@ export default function WalletPage() {
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (platBank.trim()) body.bank_account = platBank.trim();
-      const res = await api.post<ApiResponse<PlatformRevenue>>("/api/v1/organizers/me/wallet/platform/withdraw", body);
+      const res = await api.post<ApiResponse<PlatformRevenue>>("/api/v1/organizers/me/wallet/platform/withdraw", body, { idempotencyKey: platIdem.keyFor(body) });
+      platIdem.reset();
       setPlatform(res.data);
       setPlatAmount(""); setPlatBank("");
       setPlatNotice(`Penarikan admin ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`);
