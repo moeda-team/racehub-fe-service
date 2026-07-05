@@ -2,6 +2,7 @@
 
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { TableKit } from "@tiptap/extension-table";
 
 interface RichTextEditorProps {
   label: string;
@@ -52,7 +53,12 @@ function ToolbarButton({
 // Output is sanitized at render time (components/ui/RichText.tsx), not here.
 export default function RichTextEditor({ label, value, onChange, hint }: RichTextEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit.configure({ heading: { levels: [2, 3] } })],
+    extensions: [
+      StarterKit.configure({ heading: { levels: [2, 3] } }),
+      // resizable off: column-width drags produce colwidth attrs that the
+      // sanitized public render would drop anyway.
+      TableKit.configure({ table: { resizable: false } }),
+    ],
     content: value,
     // Next.js SSR: initialize client-side only to avoid hydration mismatch.
     immediatelyRender: false,
@@ -76,6 +82,16 @@ export default function RichTextEditor({ label, value, onChange, hint }: RichTex
             <ToolbarButton editor={editor} label="H3" title="Subjudul" active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
             <ToolbarButton editor={editor} label="• —" title="Daftar poin" active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} />
             <ToolbarButton editor={editor} label="1." title="Daftar bernomor" active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
+            <ToolbarButton editor={editor} label="⊞" title="Sisipkan tabel 3×3" active={editor.isActive("table")} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
+            {editor.isActive("table") && (
+              <>
+                <ToolbarButton editor={editor} label="+Baris" title="Tambah baris di bawah" onClick={() => editor.chain().focus().addRowAfter().run()} />
+                <ToolbarButton editor={editor} label="−Baris" title="Hapus baris ini" onClick={() => editor.chain().focus().deleteRow().run()} />
+                <ToolbarButton editor={editor} label="+Kolom" title="Tambah kolom di kanan" onClick={() => editor.chain().focus().addColumnAfter().run()} />
+                <ToolbarButton editor={editor} label="−Kolom" title="Hapus kolom ini" onClick={() => editor.chain().focus().deleteColumn().run()} />
+                <ToolbarButton editor={editor} label="✕ Tabel" title="Hapus tabel" onClick={() => editor.chain().focus().deleteTable().run()} />
+              </>
+            )}
             <ToolbarButton editor={editor} label="↺" title="Urungkan" onClick={() => editor.chain().focus().undo().run()} />
             <ToolbarButton editor={editor} label="↻" title="Ulangi" onClick={() => editor.chain().focus().redo().run()} />
           </div>

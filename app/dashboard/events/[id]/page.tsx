@@ -7,8 +7,8 @@ import { formatRupiah, formatNumber, formatNumberInput, parseNumberInput, format
 import EventCard from "@/components/ui/EventCard";
 import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, { EventFormValues } from "@/components/EventForm";
+import EventDetailView from "@/components/EventDetailView";
 import Badge from "@/components/ui/Badge";
-import RichText from "@/components/ui/RichText";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import DataTable, { Column } from "@/components/ui/DataTable";
@@ -24,6 +24,7 @@ import type {
   EventDetail,
   EventStatus,
   ParticipantRow,
+  PublicEventDetail,
   RecapRow,
   Refund,
   TicketCategory,
@@ -1006,6 +1007,44 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const quotaRemaining = detail.distance_categories.reduce((sum, d) => sum + Math.max(0, d.quota - d.quota_used), 0);
 
+  // Display-only mirror of the public PublicEventDetail shape, fed with live
+  // form values — rendered by the SAME EventDetailView component as
+  // /events/{id}, so the preview is pixel-identical to the real page.
+  const previewDetail: PublicEventDetail = {
+    event: {
+      id: ev.id,
+      name,
+      description,
+      location,
+      event_date: eventDate || null,
+      status: "published",
+      is_running_event: isRunning,
+      master_age_threshold: ev.master_age_threshold,
+      refund_cutoff_date: ev.refund_cutoff_date,
+      donation_enabled: donationEnabled,
+      banner_url: ev.banner_url,
+      color: color ?? "",
+      quota_remaining: quotaRemaining,
+      min_price: minPrice,
+    },
+    distance_categories: detail.distance_categories.map((d) => ({
+      id: d.id,
+      name: d.name,
+      quota: d.quota,
+      quota_remaining: Math.max(0, d.quota - d.quota_used),
+    })),
+    ticket_categories: detail.ticket_categories.map((t) => ({
+      id: t.id,
+      distance_category_id: t.distance_category_id,
+      name: t.name,
+      price: t.price,
+      quota: t.quota,
+      quota_remaining: Math.max(0, t.quota - t.quota_used),
+      sale_start: t.sale_start,
+      sale_end: t.sale_end,
+    })),
+  };
+
   const modeBtn = (active: boolean): React.CSSProperties => ({
     padding: "4px 12px",
     fontSize: 12,
@@ -1018,7 +1057,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
   });
 
   return (
-    <aside style={{ flex: "0 1 340px", minWidth: 280, position: "sticky", top: 24 }}>
+    <aside style={mode === "card" ? { flex: "0 1 340px", minWidth: 280, position: "sticky", top: 24 } : { flex: "1 1 420px", minWidth: 320 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 8 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           Pratinjau
@@ -1030,61 +1069,42 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
       </div>
 
       {mode === "card" ? (
-        <EventCard
-          title={name}
-          location={location}
-          date={formatDate(eventDate)}
-          distances={isRunning && distances.length === 0 ? ["Event Lari"] : distances}
-          price={minPrice > 0 ? formatRupiah(minPrice) : "Gratis"}
-          quotaRemaining={quotaRemaining}
-          bannerUrl={ev.banner_url}
-          color={color}
-        />
+        <>
+          <EventCard
+            title={name}
+            location={location}
+            date={formatDate(eventDate)}
+            distances={isRunning && distances.length === 0 ? ["Event Lari"] : distances}
+            price={minPrice > 0 ? formatRupiah(minPrice) : "Gratis"}
+            quotaRemaining={quotaRemaining}
+            bannerUrl={ev.banner_url}
+            color={color}
+          />
+          <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 10, lineHeight: 1.5 }}>
+            Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah banner. Harga &amp; kuota mengikuti kategori jarak/tiket yang tersimpan.
+          </p>
+        </>
       ) : (
-        <div style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-surface)", overflow: "hidden" }}>
-          {/* Banner / color header — same priority as the public detail page */}
-          {ev.banner_url ? (
-            // eslint-disable-next-line @next/next/no-img-element -- R2 host is dynamic; next/image needs static remotePatterns
-            <img src={ev.banner_url} alt={`Banner ${name}`} style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} />
-          ) : (
-            <div style={{ height: 72, background: color ? `radial-gradient(120% 140% at 80% -20%, rgba(255,255,255,0.25), transparent 55%), linear-gradient(135deg, ${color}, ${color})` : "var(--color-paper)" }} />
-          )}
-          <div style={{ padding: 16 }}>
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{name}</div>
-            <div style={{ fontSize: 13, color: "var(--color-ink-3)", margin: "4px 0 10px" }}>
-              {location} · {formatDate(eventDate)}
-            </div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-              {isRunning && <Badge variant="sprint">Event Lari</Badge>}
-              {donationEnabled && <Badge variant="flame">Donasi Tersedia</Badge>}
-              <Badge variant={quotaRemaining > 0 ? "ok" : "danger"}>
-                {quotaRemaining > 0 ? `${formatNumber(quotaRemaining)} slot tersisa` : "Kuota habis"}
-              </Badge>
-            </div>
-            {description ? (
-              <div style={{ maxHeight: 180, overflowY: "auto", fontSize: 13 }}>
-                <RichText html={description} />
-              </div>
-            ) : (
-              <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: 0 }}>Belum ada deskripsi.</p>
-            )}
-            {distances.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
-                {distances.map((d) => (
-                  <span key={d} style={{ fontSize: 12, padding: "3px 10px", border: "1px solid var(--color-line)", borderRadius: 999, color: "var(--color-ink-2)" }}>{d}</span>
-                ))}
-              </div>
-            )}
+        <div style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-lg)", overflow: "hidden", backgroundColor: "var(--color-paper)" }}>
+          {/* Fake browser bar so it reads as "this is the public page" */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: "1px solid var(--color-line)", backgroundColor: "var(--color-surface)" }}>
+            <span style={{ display: "flex", gap: 4 }} aria-hidden>
+              <span style={dot} /><span style={dot} /><span style={dot} />
+            </span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-ink-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              /events/{ev.id}
+            </span>
+          </div>
+          <div className="max-w-3xl mx-auto px-4 py-8">
+            <EventDetailView detail={previewDetail} interactive={false} />
           </div>
         </div>
       )}
-
-      <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 10, lineHeight: 1.5 }}>
-        Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah banner. Harga &amp; kuota mengikuti kategori jarak/tiket yang tersimpan.
-      </p>
     </aside>
   );
 }
+
+const dot: React.CSSProperties = { width: 9, height: 9, borderRadius: "50%", backgroundColor: "var(--color-line)" };
 
 // --- Banner upload ---
 

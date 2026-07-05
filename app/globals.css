@@ -1181,11 +1181,38 @@ body {
 .richtext p:last-child { margin-bottom: 0; }
 .richtext h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 18px 0 8px; color: var(--color-ink); }
 .richtext h3 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 14px 0 6px; color: var(--color-ink); }
-.richtext ul, .richtext ol { margin: 0 0 10px; padding-left: 24px; }
+/* Preflight Tailwind me-reset list-style ke none — kembalikan untuk konten rich text. */
+.richtext ul { list-style: disc; margin: 0 0 10px; padding-left: 24px; }
+.richtext ol { list-style: decimal; margin: 0 0 10px; padding-left: 24px; }
+.richtext ul ul { list-style: circle; }
+.richtext ol ol { list-style: lower-alpha; }
 .richtext li { margin-bottom: 4px; }
 .richtext blockquote { margin: 0 0 10px; padding-left: 14px; border-left: 3px solid var(--color-line); color: var(--color-ink-3); }
 .richtext a { color: var(--color-sprint, #2456E6); text-decoration: underline; }
 .richtext code { font-family: var(--font-mono); font-size: 0.9em; background: var(--color-paper); padding: 1px 5px; border-radius: 4px; }
+/* Baris kosong (Enter dua kali → <p></p>) harus tetap terlihat di render publik,
+   sama seperti di editor (ProseMirror memberi trailing <br> sendiri). */
+.richtext p:empty { min-height: 1.65em; }
+.richtext table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 10px;
+  table-layout: fixed;
+  overflow-wrap: break-word;
+  font-size: 14px;
+}
+.richtext th, .richtext td {
+  border: 1px solid var(--color-line);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.richtext th { background: var(--color-paper); font-weight: 600; color: var(--color-ink); }
+.richtext th p, .richtext td p { margin: 0; }
+/* Tabel lebar tetap bisa digulir horizontal di layar sempit (editor membungkusnya
+   dengan .tableWrapper; render publik memakai tag table langsung). */
+.richtext .tableWrapper { overflow-x: auto; margin: 0 0 10px; }
+.richtext .tableWrapper table { margin: 0; }
 
 .richtext-editor .ProseMirror {
   min-height: 130px;
@@ -1198,4 +1225,9 @@ body {
   float: left;
   height: 0;
   pointer-events: none;
+}
+/* Seleksi sel tabel di editor (ProseMirror menandai sel terpilih). */
+.richtext-editor .ProseMirror td.selectedCell,
+.richtext-editor .ProseMirror th.selectedCell {
+  background: var(--color-flame-tint, #FFEAE2);
 }
