@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { formatRupiah, formatDate, formatNumber } from "@/lib/format";
 import type { ApiResponse, PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
+import RichText from "@/components/ui/RichText";
 import Pill from "@/components/ui/Pill";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -66,6 +67,24 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
         ← Kembali ke marketplace
       </Link>
 
+      {event.banner_url ? (
+        // eslint-disable-next-line @next/next/no-img-element -- R2 host is dynamic; next/image needs static remotePatterns
+        <img
+          src={event.banner_url}
+          alt={`Banner ${event.name}`}
+          style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: "var(--radius-lg)", marginBottom: 20, border: "1px solid var(--color-line)" }}
+        />
+      ) : event.color ? (
+        <div
+          style={{
+            height: 120,
+            borderRadius: "var(--radius-lg)",
+            marginBottom: 20,
+            background: `radial-gradient(120% 140% at 80% -20%, rgba(255,255,255,0.25), transparent 55%), linear-gradient(135deg, ${event.color}, ${event.color})`,
+          }}
+        />
+      ) : null}
+
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 700, marginBottom: 4 }}>
         {event.name}
       </h1>
@@ -82,7 +101,9 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {event.description && (
-        <p style={{ marginBottom: 24, lineHeight: 1.6 }}>{event.description}</p>
+        <div style={{ marginBottom: 24 }}>
+          <RichText html={event.description} />
+        </div>
       )}
 
       <section style={{ marginBottom: 24 }}>

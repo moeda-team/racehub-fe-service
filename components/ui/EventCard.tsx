@@ -8,6 +8,8 @@ interface EventCardProps {
   distances: string[];
   price: string;
   quotaRemaining?: number;
+  bannerUrl?: string | null;
+  color?: string;
   href?: string;
   className?: string;
 }
@@ -19,12 +21,22 @@ export default function EventCard({
   distances,
   price,
   quotaRemaining,
+  bannerUrl,
+  color,
   href,
   className = "",
 }: EventCardProps) {
+  // Header priority: banner image → organizer color → default flame gradient
+  // (.evcard-top CSS). A dark scrim keeps text readable over images.
+  const topStyle: React.CSSProperties | undefined = bannerUrl
+    ? { background: `linear-gradient(180deg, rgba(0,0,0,0.30), rgba(0,0,0,0.45)), url(${bannerUrl}) center/cover no-repeat` }
+    : color
+      ? { background: `radial-gradient(120% 140% at 80% -20%, rgba(255,255,255,0.25), transparent 55%), linear-gradient(135deg, ${color}, ${color})` }
+      : undefined;
+
   const content = (
     <>
-      <div className="evcard-top">
+      <div className="evcard-top" style={topStyle}>
         <div className="evcard-top-when">{date}</div>
         <div className="evcard-top-ttl">{title}</div>
       </div>

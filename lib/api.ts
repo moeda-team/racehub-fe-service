@@ -95,10 +95,39 @@ async function request<T>(
   return res.json();
 }
 
+// requestForm sends multipart/form-data (file upload). The browser sets the
+// Content-Type header itself (with boundary), so it must NOT be set manually.
+async function requestForm<T>(method: string, path: string, form: FormData): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (authToken) {
+    headers["Authorization"] = `Bearer ${authToken}`;
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: form });
+
+  if (!res.ok) {
+    let errorBody: { error?: string; message?: string } = {};
+    try {
+      errorBody = await res.json();
+    } catch {
+      // Ignore JSON parse errors
+    }
+    throw new ApiError(
+      res.status,
+      errorBody.error ?? "UNKNOWN_ERROR",
+      errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`,
+    );
+  }
+
+  return res.json();
+}
+
 export const api = {
   get: <T>(path: string, opts?: RequestOptions) => request<T>("GET", path, undefined, opts),
 
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+
+  postForm: <T>(path: string, form: FormData) => requestForm<T>("POST", path, form),
 
   put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
 

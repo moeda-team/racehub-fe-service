@@ -1,12 +1,14 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api, ApiError, getAuthToken } from "@/lib/api";
-import { formatRupiah, formatNumber, formatNumberInput, parseNumberInput } from "@/lib/format";
+import { formatRupiah, formatNumber, formatNumberInput, parseNumberInput, formatDate } from "@/lib/format";
+import EventCard from "@/components/ui/EventCard";
 import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, { EventFormValues } from "@/components/EventForm";
 import Badge from "@/components/ui/Badge";
+import RichText from "@/components/ui/RichText";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import DataTable, { Column } from "@/components/ui/DataTable";
@@ -43,6 +45,8 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
   const [detail, setDetail] = useState<EventDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // Live values from the edit form, feeding the marketplace-card preview.
+  const [formPreview, setFormPreview] = useState<EventFormValues | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("detail");
 
@@ -77,6 +81,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
       refund_donation_on_cancel: values.refund_donation_on_cancel,
+      color: values.color,
     });
     setDetail((prev) => (prev ? { ...prev, event: res.data } : prev));
     setNotice("Perubahan event tersimpan.");
@@ -150,23 +155,29 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       {/* Tab panels */}
       <div style={{ paddingTop: 28 }}>
         {activeTab === "detail" && (
-          <div style={{ maxWidth: 720 }}>
-            <EventForm
-              submitLabel="Simpan Perubahan"
-              initial={{
-                name: event.name,
-                description: event.description,
-                location: event.location,
-                event_date: event.event_date,
-                is_running_event: event.is_running_event,
-                master_age_threshold: event.master_age_threshold,
-                refund_cutoff_date: event.refund_cutoff_date ?? "",
-                registration_close_date: event.registration_close_date ?? "",
-                donation_enabled: event.donation_enabled,
-                refund_donation_on_cancel: event.refund_donation_on_cancel ?? false,
-              }}
-              onSubmit={handleUpdate}
-            />
+          <div style={{ display: "flex", gap: 28, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 420px", maxWidth: 720 }}>
+              <BannerUploader event={event} onUploaded={(ev) => setDetail((prev) => (prev ? { ...prev, event: ev } : prev))} />
+              <EventForm
+                submitLabel="Simpan Perubahan"
+                initial={{
+                  name: event.name,
+                  description: event.description,
+                  location: event.location,
+                  event_date: event.event_date,
+                  is_running_event: event.is_running_event,
+                  master_age_threshold: event.master_age_threshold,
+                  refund_cutoff_date: event.refund_cutoff_date ?? "",
+                  registration_close_date: event.registration_close_date ?? "",
+                  donation_enabled: event.donation_enabled,
+                  refund_donation_on_cancel: event.refund_donation_on_cancel ?? false,
+                  color: event.color,
+                }}
+                onSubmit={handleUpdate}
+                onChange={setFormPreview}
+              />
+            </div>
+            <CardPreview detail={detail} live={formPreview} />
           </div>
         )}
 
@@ -968,6 +979,286 @@ function DistanceManager({
         </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
+    </div>
+  );
+}
+
+// --- Live previews (marketplace card & public detail page) ---
+
+// CardPreview mirrors how the event will appear on the marketplace, updating
+// live while the organizer edits the form (name/date/color) or uploads a banner.
+// The "Halaman Detail" mode mirrors the public event-detail page layout.
+function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormValues | null }) {
+  const [mode, setMode] = useState<"card" | "detail">("card");
+  const ev = detail.event;
+  const name = live?.name || ev.name || "Nama Event";
+  const location = (live ? live.location : ev.location) || "Lokasi belum diatur";
+  const eventDate = live ? live.event_date : ev.event_date;
+  const isRunning = live ? live.is_running_event : ev.is_running_event;
+  const donationEnabled = live ? live.donation_enabled : ev.donation_enabled;
+  const description = live ? live.description : ev.description;
+  const color = (live ? live.color : ev.color) || undefined;
+
+  // Display-only mirrors of the marketplace projection (server stays the
+  // source of truth for real listings).
+  const distances = detail.distance_categories.map((d) => d.name);
+  const prices = detail.ticket_categories.map((t) => t.price).filter((p) => p > 0);
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const quotaRemaining = detail.distance_categories.reduce((sum, d) => sum + Math.max(0, d.quota - d.quota_used), 0);
+
+  const modeBtn = (active: boolean): React.CSSProperties => ({
+    padding: "4px 12px",
+    fontSize: 12,
+    fontWeight: 600,
+    border: "1px solid var(--color-line)",
+    borderRadius: 999,
+    cursor: "pointer",
+    backgroundColor: active ? "var(--color-ink)" : "var(--color-surface)",
+    color: active ? "#fff" : "var(--color-ink-2)",
+  });
+
+  return (
+    <aside style={{ flex: "0 1 340px", minWidth: 280, position: "sticky", top: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 8 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          Pratinjau
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button type="button" style={modeBtn(mode === "card")} onClick={() => setMode("card")}>Kartu</button>
+          <button type="button" style={modeBtn(mode === "detail")} onClick={() => setMode("detail")}>Halaman Detail</button>
+        </div>
+      </div>
+
+      {mode === "card" ? (
+        <EventCard
+          title={name}
+          location={location}
+          date={formatDate(eventDate)}
+          distances={isRunning && distances.length === 0 ? ["Event Lari"] : distances}
+          price={minPrice > 0 ? formatRupiah(minPrice) : "Gratis"}
+          quotaRemaining={quotaRemaining}
+          bannerUrl={ev.banner_url}
+          color={color}
+        />
+      ) : (
+        <div style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-lg)", backgroundColor: "var(--color-surface)", overflow: "hidden" }}>
+          {/* Banner / color header — same priority as the public detail page */}
+          {ev.banner_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- R2 host is dynamic; next/image needs static remotePatterns
+            <img src={ev.banner_url} alt={`Banner ${name}`} style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} />
+          ) : (
+            <div style={{ height: 72, background: color ? `radial-gradient(120% 140% at 80% -20%, rgba(255,255,255,0.25), transparent 55%), linear-gradient(135deg, ${color}, ${color})` : "var(--color-paper)" }} />
+          )}
+          <div style={{ padding: 16 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{name}</div>
+            <div style={{ fontSize: 13, color: "var(--color-ink-3)", margin: "4px 0 10px" }}>
+              {location} · {formatDate(eventDate)}
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+              {isRunning && <Badge variant="sprint">Event Lari</Badge>}
+              {donationEnabled && <Badge variant="flame">Donasi Tersedia</Badge>}
+              <Badge variant={quotaRemaining > 0 ? "ok" : "danger"}>
+                {quotaRemaining > 0 ? `${formatNumber(quotaRemaining)} slot tersisa` : "Kuota habis"}
+              </Badge>
+            </div>
+            {description ? (
+              <div style={{ maxHeight: 180, overflowY: "auto", fontSize: 13 }}>
+                <RichText html={description} />
+              </div>
+            ) : (
+              <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: 0 }}>Belum ada deskripsi.</p>
+            )}
+            {distances.length > 0 && (
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
+                {distances.map((d) => (
+                  <span key={d} style={{ fontSize: 12, padding: "3px 10px", border: "1px solid var(--color-line)", borderRadius: 999, color: "var(--color-ink-2)" }}>{d}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 10, lineHeight: 1.5 }}>
+        Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah banner. Harga &amp; kuota mengikuti kategori jarak/tiket yang tersimpan.
+      </p>
+    </aside>
+  );
+}
+
+// --- Banner upload ---
+
+const BANNER_MAX_BYTES = 5 * 1024 * 1024; // keep in sync with backend maxBannerBytes
+const BANNER_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const BANNER_MAX_WIDTH = 1600; // downscale target; banners render at ~1200px wide
+
+// compressBanner downscales to ≤1600px wide and re-encodes as WebP (q0.82)
+// before upload, so R2 stores small files. Falls back to the original when
+// compression doesn't help (e.g. already-optimized WebP) or the browser can't.
+async function compressBanner(f: File): Promise<File> {
+  try {
+    const bitmap = await createImageBitmap(f);
+    const scale = Math.min(1, BANNER_MAX_WIDTH / bitmap.width);
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return f;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.82));
+    if (!blob || blob.size >= f.size) return f;
+    return new File([blob], f.name.replace(/\.\w+$/, "") + ".webp", { type: "image/webp" });
+  } catch {
+    return f;
+  }
+}
+
+function formatMB(bytes: number): string {
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+// BannerUploader lets the organizer upload the event banner (stored on R2).
+// Shown at the top of the Detail tab as a large click/drop zone so it can't be
+// missed. When no banner is set, the marketplace card falls back to the event color.
+function BannerUploader({ event, onUploaded }: { event: Event; onUploaded: (ev: Event) => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Release the local object URL of the previous preview.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  async function pick(f: File | null) {
+    setNotice(null);
+    if (!f) return;
+    if (!BANNER_TYPES.includes(f.type)) {
+      setError("Format tidak didukung. Gunakan JPG, PNG, atau WebP.");
+      return;
+    }
+    const compressed = await compressBanner(f);
+    if (compressed.size > BANNER_MAX_BYTES) {
+      setError(`Ukuran file ${formatMB(compressed.size)} (setelah kompresi) masih melebihi batas 5 MB.`);
+      return;
+    }
+    setError(null);
+    setFile(compressed);
+    setPreviewUrl(URL.createObjectURL(compressed));
+    if (compressed !== f) {
+      setNotice(`Gambar dikompresi otomatis: ${formatMB(f.size)} → ${formatMB(compressed.size)}.`);
+    }
+  }
+
+  function reset() {
+    setFile(null);
+    setPreviewUrl(null);
+    setError(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  async function upload() {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await api.postForm<ApiResponse<Event>>(`/api/v1/events/${event.id}/banner`, form);
+      onUploaded(res.data);
+      reset();
+      setNotice("Banner tersimpan. Kartu marketplace & halaman detail langsung memakainya.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Gagal mengunggah banner.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Zone background: pending local preview → current banner → color placeholder.
+  const shownImage = previewUrl ?? event.banner_url;
+
+  return (
+    <div style={{ marginBottom: 28, padding: 20, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+      <h2 style={{ fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 600, margin: "0 0 4px" }}>Banner Event</h2>
+      <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: "0 0 12px" }}>
+        Gambar utama di kartu marketplace &amp; halaman detail. Tanpa banner, warna header kartu yang dipakai.
+      </p>
+
+      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+      {notice && <Alert variant="info" className="mb-4">{notice}</Alert>}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={BANNER_TYPES.join(",")}
+        onChange={(e) => pick(e.target.files?.[0] ?? null)}
+        style={{ display: "none" }}
+      />
+
+      {/* Click / drop zone */}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Pilih atau seret gambar banner"
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click(); }}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); pick(e.dataTransfer.files?.[0] ?? null); }}
+        style={{
+          position: "relative",
+          height: 180,
+          borderRadius: "var(--radius-sm)",
+          overflow: "hidden",
+          cursor: "pointer",
+          border: dragging ? "2px dashed var(--color-flame)" : shownImage ? "1px solid var(--color-line)" : "2px dashed var(--color-line)",
+          background: shownImage
+            ? `linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35)), url(${shownImage}) center/cover no-repeat`
+            : event.color
+              ? `linear-gradient(135deg, ${event.color}22, ${event.color}44)`
+              : "var(--color-paper)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+          textAlign: "center",
+          padding: 16,
+        }}
+      >
+        <span style={{ fontSize: 28, lineHeight: 1 }} aria-hidden>🖼️</span>
+        <span style={{ fontSize: 15, fontWeight: 600, color: shownImage ? "#fff" : "var(--color-ink-2)", textShadow: shownImage ? "0 1px 3px rgba(0,0,0,0.6)" : undefined }}>
+          {previewUrl
+            ? "Pratinjau — klik “Simpan Banner” untuk menyimpan"
+            : event.banner_url
+              ? "Klik atau seret gambar baru ke sini untuk mengganti banner"
+              : "Klik atau seret gambar ke sini untuk mengunggah banner"}
+        </span>
+        <span style={{ fontSize: 12, color: shownImage ? "rgba(255,255,255,0.9)" : "var(--color-ink-3)", textShadow: shownImage ? "0 1px 3px rgba(0,0,0,0.6)" : undefined }}>
+          JPG / PNG / WebP · maks 5 MB · saran 1200×400 px (rasio 3:1)
+        </span>
+      </div>
+
+      {previewUrl && (
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <Button variant="primary" size="md" disabled={busy} onClick={upload}>
+            {busy ? "Mengunggah…" : "Simpan Banner"}
+          </Button>
+          <Button variant="ghost" size="md" disabled={busy} onClick={reset}>
+            Batal
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

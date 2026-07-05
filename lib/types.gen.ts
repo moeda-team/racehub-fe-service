@@ -69,6 +69,8 @@ export interface Event {
   registration_close_date: string | null;
   donation_enabled: boolean;
   refund_donation_on_cancel: boolean;
+  banner_url: string | null;
+  color: string;
   submitted_for_review: boolean;
   rejection_reason: string;
   reviewed_at: string | null;
@@ -95,6 +97,8 @@ export interface PublicEvent {
   master_age_threshold: number;
   refund_cutoff_date: string | null;
   donation_enabled: boolean;
+  banner_url: string | null;
+  color: string;
   quota_remaining: number;
   min_price: number;
 }
@@ -186,6 +190,7 @@ export interface CreateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
+  color?: string;
 }
 
 export interface UpdateEventRequest {
@@ -198,6 +203,7 @@ export interface UpdateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
+  color?: string;
 }
 
 export interface EventListResponse {

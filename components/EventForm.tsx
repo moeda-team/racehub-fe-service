@@ -1,8 +1,9 @@
 "use client";
 
-import { ChangeEvent, FormEvent, InputHTMLAttributes, useId, useState } from "react";
+import { ChangeEvent, FormEvent, InputHTMLAttributes, useEffect, useId, useState } from "react";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import RichTextEditor from "@/components/RichTextEditor";
 import { normalizeNumberInput } from "@/lib/format";
 
 export interface EventFormValues {
@@ -16,12 +17,15 @@ export interface EventFormValues {
   registration_close_date: string; // RFC3339 or ""
   donation_enabled: boolean;
   refund_donation_on_cancel: boolean;
+  color: string; // "#rrggbb" — card header color when no banner image
 }
 
 interface EventFormProps {
   initial?: Partial<EventFormValues>;
   submitLabel: string;
   onSubmit: (values: EventFormValues) => Promise<void>;
+  // Emits current values on every change — used for the live card preview.
+  onChange?: (values: EventFormValues) => void;
 }
 
 // LabeledInput reuses the design-system .field classes and forwards any input
@@ -85,7 +89,7 @@ const toggleRow: React.CSSProperties = {
   padding: "10px 0",
 };
 
-export default function EventForm({ initial, submitLabel, onSubmit }: EventFormProps) {
+export default function EventForm({ initial, submitLabel, onSubmit, onChange }: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [location, setLocation] = useState(initial?.location ?? "");
@@ -98,10 +102,45 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
   const [regClose, setRegClose] = useState(toLocalInput(initial?.registration_close_date ?? ""));
   const [donationEnabled, setDonationEnabled] = useState(initial?.donation_enabled ?? false);
   const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(initial?.refund_donation_on_cancel ?? false);
+  const [color, setColor] = useState(initial?.color || "#F5471D");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function buildValues(): EventFormValues {
+    return {
+      name: name.trim(),
+      description,
+      location,
+      event_date: toRFC3339(eventDate),
+      is_running_event: isRunningEvent,
+      master_age_threshold: Number(masterAgeThreshold) || 40,
+      refund_cutoff_date: toRFC3339(refundCutoff),
+      registration_close_date: toRFC3339(regClose),
+      donation_enabled: donationEnabled,
+      refund_donation_on_cancel: refundDonationOnCancel,
+      color,
+    };
+  }
+
+  // Notify the parent (live preview) whenever any field changes.
+  const notifyChange = onChange;
+  useEffect(() => {
+    notifyChange?.({
+      name: name.trim(),
+      description,
+      location,
+      event_date: toRFC3339(eventDate),
+      is_running_event: isRunningEvent,
+      master_age_threshold: Number(masterAgeThreshold) || 40,
+      refund_cutoff_date: toRFC3339(refundCutoff),
+      registration_close_date: toRFC3339(regClose),
+      donation_enabled: donationEnabled,
+      refund_donation_on_cancel: refundDonationOnCancel,
+      color,
+    });
+  }, [notifyChange, name, description, location, eventDate, isRunningEvent, masterAgeThreshold, refundCutoff, regClose, donationEnabled, refundDonationOnCancel, color]);
 
   function validate(): boolean {
     const next: Record<string, string> = {};
@@ -119,18 +158,7 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      await onSubmit({
-        name: name.trim(),
-        description,
-        location,
-        event_date: toRFC3339(eventDate),
-        is_running_event: isRunningEvent,
-        master_age_threshold: Number(masterAgeThreshold) || 40,
-        refund_cutoff_date: toRFC3339(refundCutoff),
-        registration_close_date: toRFC3339(regClose),
-        donation_enabled: donationEnabled,
-        refund_donation_on_cancel: refundDonationOnCancel,
-      });
+      await onSubmit(buildValues());
     } catch (err) {
       setServerError(err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.");
     } finally {
@@ -150,11 +178,11 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
         error={errors.name}
         required
       />
-      <LabeledInput
+      <RichTextEditor
         label="Deskripsi"
-        placeholder="Deskripsi singkat event"
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        onChange={setDescription}
+        hint="Gunakan toolbar untuk format teks (tebal, judul, daftar). Tampil di halaman detail event."
       />
       <LabeledInput
         label="Lokasi"
@@ -191,6 +219,23 @@ export default function EventForm({ initial, submitLabel, onSubmit }: EventFormP
           hint="Default 40 — peserta ≥ ambang masuk kelas Master"
         />
       )}
+
+      <div className="field">
+        <label htmlFor="event_color" className="field-label">
+          Warna Header Kartu
+        </label>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input
+            id="event_color"
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            style={{ width: 48, height: 36, padding: 2, border: "1px solid var(--color-line)", borderRadius: "var(--radius-xs)", cursor: "pointer", backgroundColor: "var(--color-surface)" }}
+          />
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-2)" }}>{color.toUpperCase()}</span>
+        </div>
+        <span className="field-hint">Dipakai sebagai warna header kartu event bila banner belum diunggah</span>
+      </div>
 
       <LabeledInput
         label="Batas Akhir Refund"

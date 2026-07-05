@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/format";
 import EventForm, { EventFormValues } from "@/components/EventForm";
+import EventCard from "@/components/ui/EventCard";
 import type { ApiResponse, Event } from "@/lib/types.gen";
 
 export default function NewEventPage() {
   const router = useRouter();
+  const [preview, setPreview] = useState<EventFormValues | null>(null);
 
   async function handleSubmit(values: EventFormValues) {
     const res = await api.post<ApiResponse<Event>>("/api/v1/events", {
@@ -20,6 +24,7 @@ export default function NewEventPage() {
       refund_cutoff_date: values.refund_cutoff_date || undefined,
       registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
+      color: values.color,
     });
     router.push(`/dashboard/events/${res.data.id}`);
   }
@@ -38,7 +43,27 @@ export default function NewEventPage() {
       <p style={{ color: "var(--color-ink-3)", marginBottom: 24 }}>
         Event dibuat sebagai draft. Tambahkan kategori jarak & tiket, lalu ajukan untuk persetujuan admin.
       </p>
-      <EventForm submitLabel="Buat Event" onSubmit={handleSubmit} />
+      <div style={{ display: "flex", gap: 28, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ flex: "1 1 420px", maxWidth: 720 }}>
+          <EventForm submitLabel="Buat Event" onSubmit={handleSubmit} onChange={setPreview} />
+        </div>
+        <aside style={{ flex: "0 1 320px", minWidth: 260, position: "sticky", top: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+            Pratinjau Kartu Marketplace
+          </div>
+          <EventCard
+            title={preview?.name || "Nama Event"}
+            location={preview?.location || "Lokasi belum diatur"}
+            date={formatDate(preview?.event_date)}
+            distances={preview?.is_running_event ? ["Event Lari"] : []}
+            price="—"
+            color={preview?.color || undefined}
+          />
+          <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 10, lineHeight: 1.5 }}>
+            Ikut berubah saat Anda mengetik &amp; memilih warna. Banner, harga, dan kuota bisa diatur setelah event dibuat.
+          </p>
+        </aside>
+      </div>
     </div>
   );
 }
