@@ -49,7 +49,7 @@ export default function Ticket({
         <div className="nm">{name}</div>
         <div className="grid">
           <div>
-            <div className="k">Jarak</div>
+            <div className="k">Kategori</div>
             <div className="v">{distance}</div>
           </div>
           {gender && (

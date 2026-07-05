@@ -19,13 +19,13 @@ export default function EventDetailView({
   detail: PublicEventDetail;
   interactive?: boolean;
 }) {
-  const { event, distance_categories, ticket_categories } = detail;
+  const { event, categories, ticket_categories } = detail;
   // Snapshot waktu saat render pertama — server tetap memvalidasi ulang periode penjualan.
   const [now] = useState(() => Date.now());
 
-  const ticketsByDistance = distance_categories.map((d) => ({
+  const ticketsByDistance = categories.map((d) => ({
     distance: d,
-    tickets: ticket_categories.filter((t) => t.distance_category_id === d.id),
+    tickets: ticket_categories.filter((t) => t.category_id === d.id),
   }));
 
   const cta = (
@@ -77,13 +77,13 @@ export default function EventDetailView({
 
       <section style={{ marginBottom: 24 }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 12 }}>
-          Kategori Jarak
+          {event.is_running_event ? "Kategori Jarak" : "Kategori"}
         </h2>
-        {distance_categories.length === 0 ? (
-          <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada kategori jarak.</p>
+        {categories.length === 0 ? (
+          <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada kategori.</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
-            {distance_categories.map((d) => {
+            {categories.map((d) => {
               const pct = d.quota > 0 ? Math.max(0, Math.min(1, d.quota_remaining / d.quota)) : 0;
               const empty = d.quota_remaining <= 0;
               return (

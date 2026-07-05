@@ -80,7 +80,7 @@ export interface Event {
 
 export interface EventDetail {
   event: Event;
-  distance_categories: DistanceCategory[];
+  categories: Category[];
   ticket_categories: TicketCategory[];
 }
 
@@ -103,7 +103,7 @@ export interface PublicEvent {
   min_price: number;
 }
 
-export interface PublicDistance {
+export interface PublicCategory {
   id: string;
   name: string;
   quota: number;
@@ -112,7 +112,7 @@ export interface PublicDistance {
 
 export interface PublicTicket {
   id: string;
-  distance_category_id: string;
+  category_id: string;
   name: string;
   price: number;
   quota: number;
@@ -123,7 +123,7 @@ export interface PublicTicket {
 
 export interface PublicEventDetail {
   event: PublicEvent;
-  distance_categories: PublicDistance[];
+  categories: PublicCategory[];
   ticket_categories: PublicTicket[];
 }
 
@@ -136,7 +136,7 @@ export interface RejectEventRequest {
 export interface CreateRegistrationRequest {
   event_id: string;
   ticket_category_id: string;
-  distance_category_id: string;
+  category_id: string;
   name: string;
   email: string;
   phone: string;
@@ -150,7 +150,7 @@ export interface Registration {
   registration_number: string;
   event_id: string;
   ticket_category_id: string;
-  distance_category_id: string;
+  category_id: string;
   name: string;
   email: string;
   phone: string;
@@ -214,9 +214,9 @@ export interface StatusTransitionRequest {
   status: EventStatus;
 }
 
-// === Distance Category ===
+// === Category ===
 
-export interface DistanceCategory {
+export interface Category {
   id: string;
   event_id: string;
   name: string;
@@ -225,12 +225,12 @@ export interface DistanceCategory {
   created_at: string;
 }
 
-export interface CreateDistanceRequest {
+export interface CreateCategoryRequest {
   name: string;
   quota: number;
 }
 
-export interface UpdateDistanceRequest {
+export interface UpdateCategoryRequest {
   name: string;
   quota: number;
 }
@@ -240,7 +240,7 @@ export interface UpdateDistanceRequest {
 export interface TicketCategory {
   id: string;
   event_id: string;
-  distance_category_id: string;
+  category_id: string;
   name: string;
   price: number;
   quota: number;
@@ -254,7 +254,7 @@ export interface CreateTicketRequest {
   name: string;
   price: number;
   quota: number;
-  distance_category_id: string;
+  category_id: string;
   sale_start?: string;
   sale_end?: string;
 }
@@ -263,7 +263,7 @@ export interface UpdateTicketRequest {
   name: string;
   price: number;
   quota: number;
-  distance_category_id: string;
+  category_id: string;
   sale_start?: string;
   sale_end?: string;
 }
@@ -342,7 +342,7 @@ export interface ETicket {
   participant_name: string;
   event_id: string;
   event_name: string;
-  distance_name: string;
+  category_name: string;
   gender: string;
   age_class: "" | "Open" | "Master";
   qr_token: string;
@@ -489,7 +489,7 @@ export interface CheckinParticipant {
   name: string;
   gender: string;
   age_class: "" | "Open" | "Master";
-  distance_category_id: string;
+  category_id: string;
   rpc_status: string; // "" | "collected"
   raceday_status: string; // "" | "checked_in"
 }
@@ -515,8 +515,8 @@ export interface EventDashboard {
 }
 
 export interface RecapRow {
-  distance_id: string;
-  distance_name: string;
+  category_id: string;
+  category_name: string;
   gender: string;
   age_class: "" | "Open" | "Master";
   total: number;
@@ -532,7 +532,7 @@ export interface ParticipantRow {
   status: RegistrationStatus;
   rpc_status: string;
   raceday_status: string;
-  distance_name: string;
+  category_name: string;
   ticket_name: string;
 }
 

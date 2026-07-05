@@ -104,7 +104,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
       </h1>
       <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
         {isRefunded
-          ? `${ticket.event_name} · ${ticket.distance_name}`
+          ? `${ticket.event_name} · ${ticket.category_name}`
           : "Tunjukkan QR ini saat check-in di lokasi acara."}
       </p>
 
@@ -153,7 +153,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
           registrationNumber={ticket.registration_number}
           name={ticket.participant_name}
           event={ticket.event_name}
-          distance={ticket.distance_name}
+          distance={ticket.category_name}
           ageClass={ticket.age_class || undefined}
           gender={ticket.gender || undefined}
           date={ticket.issued_at ? formatDate(ticket.issued_at) : undefined}

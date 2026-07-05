@@ -16,7 +16,7 @@ import type {
   ApiResponse,
   BibResult,
   ComplimentaryPerson,
-  DistanceCategory,
+  Category,
   DonationLedgerEntry,
   DonationReport,
   Event,
@@ -185,14 +185,14 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
         {activeTab === "kategori" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Kategori Jarak</h2>
-              <DistanceManager eventId={eventId} distances={detail.distance_categories} onChanged={load} />
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>{detail.event.is_running_event ? "Kategori Jarak" : "Kategori"}</h2>
+              <DistanceManager eventId={eventId} distances={detail.categories} onChanged={load} />
             </div>
             <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
               <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>Kategori Tiket</h2>
               <TicketManager
                 eventId={eventId}
-                distances={detail.distance_categories}
+                distances={detail.categories}
                 tickets={detail.ticket_categories}
                 onChanged={load}
               />
@@ -392,12 +392,12 @@ function RecapTable({ eventId }: { eventId: string }) {
     return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada peserta berbayar untuk direkap.</p>;
 
   const cols: Column<RecapRow>[] = [
-    { key: "distance", header: "Jarak", render: (r) => r.distance_name },
+    { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
     { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
     { key: "total", header: "Jumlah", render: (r) => r.total, mono: true },
   ];
-  return <DataTable columns={cols} data={rows} keyFn={(r) => `${r.distance_id}-${r.gender}-${r.age_class}`} />;
+  return <DataTable columns={cols} data={rows} keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}`} />;
 }
 
 // BibCard generates the BIB batch (FR-1301..1305) with regeneration confirmation.
@@ -437,7 +437,7 @@ function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boo
   return (
     <div>
       <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 16 }}>
-        Nomor polos satu deret menerus (0001, 0002, …) untuk semua jarak, urut waktu pendaftaran. Hanya bisa dibuat{" "}
+        Nomor polos satu deret menerus (0001, 0002, …) untuk semua kategori, urut waktu pendaftaran. Hanya bisa dibuat{" "}
         <b>setelah pendaftaran ditutup</b>.
         {!hasCloseDate && ' Atur "Penutupan Pendaftaran" di tab Detail, atau ini memakai tanggal event.'}
       </p>
@@ -499,7 +499,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
     { key: "bib", header: "BIB", render: (r) => r.bib_number || "—", bibcol: true },
     { key: "reg", header: "No. Reg", render: (r) => r.registration_number, mono: true },
     { key: "name", header: "Nama", render: (r) => r.name },
-    { key: "distance", header: "Jarak", render: (r) => r.distance_name },
+    { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
     { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
     { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
@@ -914,7 +914,7 @@ function DistanceManager({
   onChanged,
 }: {
   eventId: string;
-  distances: DistanceCategory[];
+  distances: Category[];
   onChanged: () => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -923,29 +923,29 @@ function DistanceManager({
   const [busy, setBusy] = useState(false);
 
   async function add() {
-    if (!name.trim()) { setError("Nama jarak wajib diisi."); return; }
+    if (!name.trim()) { setError("Nama kategori wajib diisi."); return; }
     setError(null);
     setBusy(true);
     try {
-      await api.post(`/api/v1/events/${eventId}/distances`, { name: name.trim(), quota: Number(quota) || 0 });
+      await api.post(`/api/v1/events/${eventId}/categories`, { name: name.trim(), quota: Number(quota) || 0 });
       setName("");
       setQuota("0");
       await onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menambah jarak.");
+      setError(err instanceof ApiError ? err.message : "Gagal menambah kategori.");
     } finally {
       setBusy(false);
     }
   }
 
   async function remove(did: string) {
-    if (!window.confirm("Hapus kategori jarak ini?")) return;
+    if (!window.confirm("Hapus kategori ini?")) return;
     setError(null);
     try {
-      await api.delete(`/api/v1/events/${eventId}/distances/${did}`);
+      await api.delete(`/api/v1/events/${eventId}/categories/${did}`);
       await onChanged();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal menghapus jarak.");
+      setError(err instanceof ApiError ? err.message : "Gagal menghapus kategori.");
     }
   }
 
@@ -954,7 +954,7 @@ function DistanceManager({
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
 
       {distances.length === 0 ? (
-        <p style={{ color: "var(--color-ink-3)", fontSize: 15, marginBottom: 16 }}>Belum ada kategori jarak.</p>
+        <p style={{ color: "var(--color-ink-3)", fontSize: 15, marginBottom: 16 }}>Belum ada kategori.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
           {distances.map((d) => (
@@ -971,7 +971,7 @@ function DistanceManager({
 
       <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
         <div className="field" style={{ flex: 1, minWidth: 100 }}>
-          <label className="field-label">Nama Jarak</label>
+          <label className="field-label">Nama Kategori</label>
           <input className="field-input" placeholder="Mis. 5K" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="field" style={{ width: 90 }}>
@@ -1002,10 +1002,10 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
 
   // Display-only mirrors of the marketplace projection (server stays the
   // source of truth for real listings).
-  const distances = detail.distance_categories.map((d) => d.name);
+  const distances = detail.categories.map((d) => d.name);
   const prices = detail.ticket_categories.map((t) => t.price).filter((p) => p > 0);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const quotaRemaining = detail.distance_categories.reduce((sum, d) => sum + Math.max(0, d.quota - d.quota_used), 0);
+  const quotaRemaining = detail.categories.reduce((sum, d) => sum + Math.max(0, d.quota - d.quota_used), 0);
 
   // Display-only mirror of the public PublicEventDetail shape, fed with live
   // form values — rendered by the SAME EventDetailView component as
@@ -1027,7 +1027,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
       quota_remaining: quotaRemaining,
       min_price: minPrice,
     },
-    distance_categories: detail.distance_categories.map((d) => ({
+    categories: detail.categories.map((d) => ({
       id: d.id,
       name: d.name,
       quota: d.quota,
@@ -1035,7 +1035,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
     })),
     ticket_categories: detail.ticket_categories.map((t) => ({
       id: t.id,
-      distance_category_id: t.distance_category_id,
+      category_id: t.category_id,
       name: t.name,
       price: t.price,
       quota: t.quota,
@@ -1081,7 +1081,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
             color={color}
           />
           <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 10, lineHeight: 1.5 }}>
-            Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah banner. Harga &amp; kuota mengikuti kategori jarak/tiket yang tersimpan.
+            Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah banner. Harga &amp; kuota mengikuti kategori/tiket yang tersimpan.
           </p>
         </>
       ) : (
@@ -1319,7 +1319,7 @@ function TicketManager({
   onChanged,
 }: {
   eventId: string;
-  distances: DistanceCategory[];
+  distances: Category[];
   tickets: TicketCategory[];
   onChanged: () => Promise<void>;
 }) {
@@ -1337,7 +1337,7 @@ function TicketManager({
 
   async function add() {
     if (!name.trim()) { setError("Nama tiket wajib diisi."); return; }
-    if (!distanceId) { setError("Pilih kategori jarak untuk tiket ini."); return; }
+    if (!distanceId) { setError("Pilih kategori untuk tiket ini."); return; }
     setError(null);
     setBusy(true);
     try {
@@ -1345,7 +1345,7 @@ function TicketManager({
         name: name.trim(),
         price: Number(price) || 0,
         quota: Number(quota) || 0,
-        distance_category_id: distanceId,
+        category_id: distanceId,
         sale_end: toRFC3339(saleEnd),
       });
       setName(""); setPrice("0"); setQuota("0"); setDistanceId(""); setSaleEnd("");
@@ -1365,7 +1365,7 @@ function TicketManager({
         name: t.name,
         price: t.price,
         quota: t.quota,
-        distance_category_id: t.distance_category_id,
+        category_id: t.category_id,
         sale_start: t.sale_start ?? "",
         sale_end: toRFC3339(editSaleEnd),
       });
@@ -1390,7 +1390,7 @@ function TicketManager({
   }
 
   if (distances.length === 0) {
-    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Tambahkan kategori jarak terlebih dahulu.</p>;
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Tambahkan kategori terlebih dahulu.</p>;
   }
 
   return (
@@ -1406,7 +1406,7 @@ function TicketManager({
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 15 }}>
                   {t.name}
-                  <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}> · {distanceName(t.distance_category_id)}</span>
+                  <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}> · {distanceName(t.category_id)}</span>
                   {isExpired(t.sale_end) && <Badge variant="warn" className="ml-2">Berakhir</Badge>}
                 </span>
                 <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1456,9 +1456,9 @@ function TicketManager({
           <input className="field-input" placeholder="Mis. Early Bird" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="field" style={{ width: 130 }}>
-          <label className="field-label">Jarak</label>
+          <label className="field-label">Kategori</label>
           <select className="field-input" value={distanceId} onChange={(e) => setDistanceId(e.target.value)}>
-            <option value="">Pilih jarak</option>
+            <option value="">Pilih kategori</option>
             {distances.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
         </div>
@@ -1477,7 +1477,7 @@ function TicketManager({
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
       <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 10 }}>
-        Kuota tiket tidak boleh melebihi kuota jarak yang dipilih (divalidasi server). Setelah tanggal berakhir, tiket tidak bisa dipilih peserta.
+        Kuota tiket tidak boleh melebihi kuota kategori yang dipilih (divalidasi server). Setelah tanggal berakhir, tiket tidak bisa dipilih peserta.
       </p>
     </div>
   );

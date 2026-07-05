@@ -25,9 +25,9 @@ const spline = Spline_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LowkeyThings — Platform Event Lari Indonesia",
+  title: "LowkeyThings — Platform Event Indonesia",
   description:
-    "Telusuri, daftar, dan kelola event lari di seluruh Indonesia. Transparan, cepat, dan aman.",
+    "Telusuri, daftar, dan kelola event di seluruh Indonesia. Transparan, cepat, dan aman.",
 };
 
 export default function RootLayout({

@@ -82,7 +82,7 @@ export default function MarketplacePage() {
   return (
     <main className="max-w-5xl mx-auto px-4 py-8 rh-reveal">
       <h1 style={{ fontFamily: "var(--font-display)", fontSize: 32, fontWeight: 700, marginBottom: 4 }}>
-        Temukan Event Lari
+        Temukan Event
       </h1>
       <p style={{ color: "var(--color-ink-3)", marginBottom: 24 }}>
         Daftar langsung tanpa ribet. Semua event telah disetujui penyelenggara &amp; admin.

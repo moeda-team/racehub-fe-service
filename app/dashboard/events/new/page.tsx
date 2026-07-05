@@ -41,7 +41,7 @@ export default function NewEventPage() {
         Buat Event Baru
       </h1>
       <p style={{ color: "var(--color-ink-3)", marginBottom: 24 }}>
-        Event dibuat sebagai draft. Tambahkan kategori jarak & tiket, lalu ajukan untuk persetujuan admin.
+        Event dibuat sebagai draft. Tambahkan kategori & tiket, lalu ajukan untuk persetujuan admin.
       </p>
       <div style={{ display: "flex", gap: 28, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 420px", maxWidth: 720 }}>

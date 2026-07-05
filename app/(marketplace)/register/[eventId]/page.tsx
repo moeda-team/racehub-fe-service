@@ -56,7 +56,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   }, [eventId]);
 
   const ticketsForDistance = useMemo(
-    () => (detail && distanceId ? detail.ticket_categories.filter((t) => t.distance_category_id === distanceId) : []),
+    () => (detail && distanceId ? detail.ticket_categories.filter((t) => t.category_id === distanceId) : []),
     [detail, distanceId],
   );
   const selectedTicket = useMemo(
@@ -64,7 +64,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
     [detail, ticketId],
   );
   const selectedDistance = useMemo(
-    () => detail?.distance_categories.find((d) => d.id === distanceId) ?? null,
+    () => detail?.categories.find((d) => d.id === distanceId) ?? null,
     [detail, distanceId],
   );
 
@@ -76,7 +76,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       const body: CreateRegistrationRequest = {
         event_id: detail.event.id,
         ticket_category_id: ticketId,
-        distance_category_id: distanceId,
+        category_id: distanceId,
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -165,7 +165,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       {step === 1 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="field">
-            <label className="field-label">Kategori Jarak</label>
+            <label className="field-label">{detail.event.is_running_event ? "Kategori Jarak" : "Kategori"}</label>
             <select
               className="field-input"
               value={distanceId ?? ""}
@@ -174,8 +174,8 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                 setTicketId(null);
               }}
             >
-              <option value="">Pilih jarak</option>
-              {detail.distance_categories.map((d) => (
+              <option value="">{detail.event.is_running_event ? "Pilih jarak" : "Pilih kategori"}</option>
+              {detail.categories.map((d) => (
                 <option key={d.id} value={d.id} disabled={d.quota_remaining <= 0}>
                   {d.name} {d.quota_remaining <= 0 ? "(habis)" : `(${d.quota_remaining} sisa)`}
                 </option>
@@ -264,7 +264,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           <div style={card}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>
             <Row label="Event" value={detail.event.name} />
-            <Row label="Jarak" value={selectedDistance?.name ?? "-"} />
+            <Row label={detail.event.is_running_event ? "Jarak" : "Kategori"} value={selectedDistance?.name ?? "-"} />
             <Row label="Tiket" value={selectedTicket?.name ?? "-"} />
             <Row label="Harga tiket" value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"} mono />
             <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />
