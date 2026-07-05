@@ -123,28 +123,34 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
                   {distance.name}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {tickets.map((t) => (
-                    <div
-                      key={t.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "12px 16px",
-                        border: "1px solid var(--color-line)",
-                        borderRadius: "var(--radius-md)",
-                        backgroundColor: "var(--color-surface)",
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontWeight: 600 }}>{t.name}</div>
-                        <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-                          {formatNumber(t.quota_remaining)}/{formatNumber(t.quota)} sisa
+                  {tickets.map((t) => {
+                    const expired = !!t.sale_end && new Date(t.sale_end).getTime() < Date.now();
+                    return (
+                      <div
+                        key={t.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "12px 16px",
+                          border: "1px solid var(--color-line)",
+                          borderRadius: "var(--radius-md)",
+                          backgroundColor: "var(--color-surface)",
+                          opacity: expired ? 0.55 : 1,
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{t.name}</div>
+                          <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
+                            {expired
+                              ? `Penjualan berakhir ${formatDate(t.sale_end)}`
+                              : `${formatNumber(t.quota_remaining)}/${formatNumber(t.quota)} sisa`}
+                          </div>
                         </div>
+                        <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatRupiah(t.price)}</div>
                       </div>
-                      <div style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{formatRupiah(t.price)}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

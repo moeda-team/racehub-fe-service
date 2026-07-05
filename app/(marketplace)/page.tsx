@@ -25,25 +25,25 @@ export default function MarketplacePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [location, setLocation] = useState("");
+  const [search, setSearch] = useState("");
   const [runningOnly, setRunningOnly] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
-  const [debouncedLocation, setDebouncedLocation] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const isFirstLoad = useRef(true);
 
-  // Debounce location input 300ms.
+  // Debounce search input 300ms.
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedLocation(location), 300);
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(t);
-  }, [location]);
+  }, [search]);
 
   // Reset to page 1 when filters change (not on page itself).
   useEffect(() => {
     if (isFirstLoad.current) return;
     setPage(1);
-  }, [debouncedLocation, runningOnly, dateFrom, pageSize]);
+  }, [debouncedSearch, runningOnly, dateFrom, pageSize]);
 
   // Fetch whenever page or any filter changes.
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function MarketplacePage() {
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("page_size", String(pageSize));
-    if (debouncedLocation.trim()) params.set("location", debouncedLocation.trim());
+    if (debouncedSearch.trim()) params.set("q", debouncedSearch.trim());
     if (runningOnly) params.set("is_running_event", "true");
     if (dateFrom) params.set("date_from", new Date(dateFrom).toISOString());
 
@@ -74,7 +74,7 @@ export default function MarketplacePage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [page, pageSize, debouncedLocation, runningOnly, dateFrom]);
+  }, [page, pageSize, debouncedSearch, runningOnly, dateFrom]);
 
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(page * pageSize, total);
@@ -104,15 +104,15 @@ export default function MarketplacePage() {
         }}
       >
         <div className="field" style={{ flex: 1, minWidth: 220 }}>
-          <label className="field-label">Lokasi</label>
+          <label className="field-label">Cari</label>
           <div style={{ position: "relative" }}>
             <span style={inputIcon}><PinIcon /></span>
             <input
               className="field-input"
               style={inputWithIcon}
-              placeholder="Cari kota / lokasi"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Cari nama event / lokasi"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function MarketplacePage() {
         </button>
         <button
           type="button"
-          onClick={() => { setLocation(""); setDateFrom(""); setRunningOnly(false); }}
+          onClick={() => { setSearch(""); setDateFrom(""); setRunningOnly(false); }}
           style={pillButton(false)}
         >
           <ResetIcon />

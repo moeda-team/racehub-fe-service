@@ -974,6 +974,33 @@ function DistanceManager({
 
 // --- Ticket category management ---
 
+// Convert an RFC3339 string to a value usable by <input type="datetime-local">.
+function toLocalInput(rfc3339: string | null): string {
+  if (!rfc3339) return "";
+  const d = new Date(rfc3339);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Convert a datetime-local value to an RFC3339 string (UTC). Empty in → empty out (server treats as NULL).
+function toRFC3339(local: string): string {
+  if (!local) return "";
+  const d = new Date(local);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString();
+}
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleString("id-ID", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function isExpired(saleEnd: string | null): boolean {
+  return !!saleEnd && new Date(saleEnd).getTime() < Date.now();
+}
+
 function TicketManager({
   eventId,
   distances,
@@ -989,8 +1016,11 @@ function TicketManager({
   const [price, setPrice] = useState("0");
   const [quota, setQuota] = useState("0");
   const [distanceId, setDistanceId] = useState("");
+  const [saleEnd, setSaleEnd] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSaleEnd, setEditSaleEnd] = useState("");
 
   const distanceName = (id: string) => distances.find((d) => d.id === id)?.name ?? "—";
 
@@ -1005,11 +1035,33 @@ function TicketManager({
         price: Number(price) || 0,
         quota: Number(quota) || 0,
         distance_category_id: distanceId,
+        sale_end: toRFC3339(saleEnd),
       });
-      setName(""); setPrice("0"); setQuota("0"); setDistanceId("");
+      setName(""); setPrice("0"); setQuota("0"); setDistanceId(""); setSaleEnd("");
       await onChanged();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Gagal menambah tiket.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveSaleEnd(t: TicketCategory) {
+    setError(null);
+    setBusy(true);
+    try {
+      await api.put(`/api/v1/events/${eventId}/tickets/${t.id}`, {
+        name: t.name,
+        price: t.price,
+        quota: t.quota,
+        distance_category_id: t.distance_category_id,
+        sale_start: t.sale_start ?? "",
+        sale_end: toRFC3339(editSaleEnd),
+      });
+      setEditingId(null);
+      await onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Gagal mengubah tanggal berakhir tiket.");
     } finally {
       setBusy(false);
     }
@@ -1039,16 +1091,49 @@ function TicketManager({
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: "0 0 16px", display: "flex", flexDirection: "column", gap: 8 }}>
           {tickets.map((t) => (
-            <li key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
-              <span style={{ fontSize: 15 }}>
-                {t.name}
-                <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}> · {distanceName(t.distance_category_id)}</span>
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(t.price)}</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{formatNumber(t.quota_used)}/{formatNumber(t.quota)}</span>
-                <button type="button" onClick={() => remove(t.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14 }}>Hapus</button>
-              </span>
+            <li key={t.id} style={{ padding: "12px 16px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 15 }}>
+                  {t.name}
+                  <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}> · {distanceName(t.distance_category_id)}</span>
+                  {isExpired(t.sale_end) && <Badge variant="warn" className="ml-2">Berakhir</Badge>}
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(t.price)}</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-3)" }}>{formatNumber(t.quota_used)}/{formatNumber(t.quota)}</span>
+                  <button type="button" onClick={() => remove(t.id)} style={{ background: "none", border: "none", color: "var(--color-danger)", cursor: "pointer", fontSize: 14 }}>Hapus</button>
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, fontSize: 13, color: "var(--color-ink-3)" }}>
+                {editingId === t.id ? (
+                  <>
+                    <input
+                      className="field-input"
+                      type="datetime-local"
+                      value={editSaleEnd}
+                      onChange={(e) => setEditSaleEnd(e.target.value)}
+                      style={{ maxWidth: 220 }}
+                    />
+                    <Button variant="secondary" size="sm" disabled={busy} onClick={() => saveSaleEnd(t)}>Simpan</Button>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingId(null)}>Batal</Button>
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      {t.sale_end
+                        ? `Berlaku s.d. ${formatDateTime(t.sale_end)}`
+                        : "Tanpa batas waktu penjualan"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setEditingId(t.id); setEditSaleEnd(toLocalInput(t.sale_end)); }}
+                      style={{ background: "none", border: "none", color: "var(--color-ink-2)", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}
+                    >
+                      Ubah
+                    </button>
+                  </>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -1074,10 +1159,14 @@ function TicketManager({
           <label className="field-label">Kuota</label>
           <input className="field-input" type="text" inputMode="numeric" value={formatNumberInput(quota)} onChange={(e) => setQuota(parseNumberInput(e.target.value))} />
         </div>
+        <div className="field" style={{ width: 210 }}>
+          <label className="field-label">Berakhir (opsional)</label>
+          <input className="field-input" type="datetime-local" value={saleEnd} onChange={(e) => setSaleEnd(e.target.value)} />
+        </div>
         <Button variant="secondary" size="md" disabled={busy} onClick={add}>Tambah</Button>
       </div>
       <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 10 }}>
-        Kuota tiket tidak boleh melebihi kuota jarak yang dipilih (divalidasi server).
+        Kuota tiket tidak boleh melebihi kuota jarak yang dipilih (divalidasi server). Setelah tanggal berakhir, tiket tidak bisa dipilih peserta.
       </p>
     </div>
   );

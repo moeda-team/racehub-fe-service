@@ -20,6 +20,8 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const [detail, setDetail] = useState<PublicEventDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Snapshot waktu saat halaman dibuka — server tetap memvalidasi ulang periode penjualan saat submit.
+  const [now] = useState(() => Date.now());
 
   // Wizard state.
   const [step, setStep] = useState(1);
@@ -186,11 +188,17 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
               <label className="field-label">Tiket</label>
               <select className="field-input" value={ticketId ?? ""} onChange={(e) => setTicketId(e.target.value || null)}>
                 <option value="">Pilih tiket</option>
-                {ticketsForDistance.map((t) => (
-                  <option key={t.id} value={t.id} disabled={t.quota_remaining <= 0}>
-                    {t.name} — {formatRupiah(t.price)} {t.quota_remaining <= 0 ? "(habis)" : ""}
-                  </option>
-                ))}
+                {ticketsForDistance.map((t) => {
+                  const expired = !!t.sale_end && new Date(t.sale_end).getTime() < now;
+                  const notStarted = !!t.sale_start && new Date(t.sale_start).getTime() > now;
+                  const soldOut = t.quota_remaining <= 0;
+                  const note = expired ? "(berakhir)" : notStarted ? "(belum dibuka)" : soldOut ? "(habis)" : "";
+                  return (
+                    <option key={t.id} value={t.id} disabled={soldOut || expired || notStarted}>
+                      {t.name} — {formatRupiah(t.price)} {note}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
