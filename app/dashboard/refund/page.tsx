@@ -41,6 +41,7 @@ export default function DashboardRefundPage() {
   const [bankAccount, setBankAccount] = useState("");
   const [refund, setRefund] = useState<Refund | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [completeErr, setCompleteErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const [massEventId, setMassEventId] = useState("");
@@ -55,6 +56,7 @@ export default function DashboardRefundPage() {
     setPendingRefunds(null);
     setSelectedReg(null);
     setRefund(null);
+    setCompleteErr(null);
     const id = lookupEventId.trim();
     if (!id) {
       setLookupErr("Masukkan ID event yang valid.");
@@ -107,13 +109,13 @@ export default function DashboardRefundPage() {
 
   async function completeManual(refundId: string) {
     setBusy(true);
-    setErr(null);
+    setCompleteErr(null);
     try {
       const res = await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refundId}/complete`);
       setRefund(res.data);
       await loadEventData();
     } catch (e) {
-      setErr(e instanceof ApiError ? e.message : "Gagal menandai selesai.");
+      setCompleteErr(e instanceof ApiError ? e.message : "Gagal menandai selesai.");
     } finally {
       setBusy(false);
     }
@@ -134,6 +136,9 @@ export default function DashboardRefundPage() {
         reason: massReason,
       });
       setMass(res.data);
+      if (id === lookupEventId.trim()) {
+        await loadEventData();
+      }
     } catch (e) {
       setMassErr(e instanceof ApiError ? e.message : "Refund massal gagal.");
     } finally {
@@ -223,7 +228,7 @@ export default function DashboardRefundPage() {
           <div style={{ fontWeight: 600, marginBottom: 8 }}>
             Refund Manual Menunggu Konfirmasi ({processingRefunds.length})
           </div>
-          {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+          {completeErr && <Alert variant="danger" className="mb-4">{completeErr}</Alert>}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {processingRefunds.map((r) => (
               <div
@@ -259,7 +264,7 @@ export default function DashboardRefundPage() {
       {/* Single refund form */}
       <section style={{ ...card, marginTop: 16 }}>
         <div style={{ fontWeight: 600, marginBottom: 12 }}>Proses Refund Satu Pendaftar</div>
-        {err && processingRefunds.length === 0 && <Alert variant="danger" className="mb-4">{err}</Alert>}
+        {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
 
         {selectedReg ? (
           <div

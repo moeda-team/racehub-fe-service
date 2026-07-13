@@ -33,7 +33,7 @@ export default function RpcPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<Event[]>>("/api/v1/events");
+        const res = await api.get<ApiResponse<Event[]>>("/api/v1/events?page_size=200");
         if (cancelled) return;
         const list = res.data ?? [];
         setEvents(list);
@@ -131,6 +131,7 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
+  const [markingId, setMarkingId] = useState<string | null>(null);
 
   const search = useCallback(async () => {
     if (!q.trim()) return;
@@ -162,7 +163,9 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
   }, [stage]);
 
   async function mark(p: CheckinParticipant) {
+    if (markingId) return; // ignore a rapid double-tap while a mark is in flight
     setErr(null);
+    setMarkingId(p.id);
     try {
       const res = await api.post<ApiResponse<CheckinParticipant>>(`/api/v1/events/${eventId}/checkin`, {
         registration_id: p.id,
@@ -171,6 +174,8 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
       applyMarked(res.data);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Gagal menandai check-in.");
+    } finally {
+      setMarkingId(null);
     }
   }
 
@@ -234,7 +239,13 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
         {results.map((p) => (
-          <ParticipantCard key={p.id} p={p} stage={stage} onMark={() => mark(p)} />
+          <ParticipantCard
+            key={p.id}
+            p={p}
+            stage={stage}
+            marking={markingId === p.id}
+            onMark={() => mark(p)}
+          />
         ))}
       </div>
     </div>
@@ -244,13 +255,16 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
 function ParticipantCard({
   p,
   stage,
+  marking,
   onMark,
 }: {
   p: CheckinParticipant;
   stage: CheckinStage;
+  marking: boolean;
   onMark: () => void;
 }) {
   const done = stage === "rpc" ? p.rpc_status !== "" : p.raceday_status !== "";
+  const disabled = done || marking;
   return (
     <div
       style={{
@@ -286,21 +300,21 @@ function ParticipantCard({
       <button
         type="button"
         onClick={onMark}
-        disabled={done}
+        disabled={disabled}
         style={{
           minHeight: 56,
           minWidth: 96,
           flexShrink: 0,
           borderRadius: "var(--radius-md)",
           border: "none",
-          background: done ? "var(--color-line)" : "var(--color-flame)",
-          color: done ? "var(--color-ink-3)" : "white",
+          background: disabled ? "var(--color-line)" : "var(--color-flame)",
+          color: disabled ? "var(--color-ink-3)" : "white",
           fontSize: 15,
           fontWeight: 800,
-          cursor: done ? "default" : "pointer",
+          cursor: disabled ? "default" : "pointer",
         }}
       >
-        {done ? "✓ OK" : `Tandai ${stageLabel(stage)}`}
+        {done ? "✓ OK" : marking ? "…" : `Tandai ${stageLabel(stage)}`}
       </button>
     </div>
   );

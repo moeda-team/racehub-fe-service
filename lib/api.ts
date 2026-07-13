@@ -5,6 +5,8 @@
  * Semua angka uang diterima dari backend apa adanya.
  */
 
+import { translateApiError } from "./error-messages";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -90,7 +92,7 @@ async function request<T>(
     throw new ApiError(
       res.status,
       errorBody.error ?? "UNKNOWN_ERROR",
-      errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`,
+      translateApiError(errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`),
     );
   }
 
@@ -121,7 +123,7 @@ async function requestForm<T>(method: string, path: string, form: FormData): Pro
     throw new ApiError(
       res.status,
       errorBody.error ?? "UNKNOWN_ERROR",
-      errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`,
+      translateApiError(errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`),
     );
   }
 

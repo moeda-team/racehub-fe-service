@@ -3,6 +3,7 @@
  * roles never clash. Mirrors lib/api but with the admin Bearer token.
  */
 import { ApiError } from "./api";
+import { translateApiError } from "./error-messages";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 const ADMIN_TOKEN_KEY = "racehub_admin_token";
@@ -36,7 +37,7 @@ async function adminRequest<T>(method: string, path: string, body?: unknown): Pr
     } catch {
       // ignore
     }
-    throw new ApiError(res.status, errBody.error ?? "UNKNOWN_ERROR", errBody.error ?? `HTTP ${res.status}`);
+    throw new ApiError(res.status, errBody.error ?? "UNKNOWN_ERROR", translateApiError(errBody.error ?? `HTTP ${res.status}`));
   }
   if (res.status === 204) return undefined as T;
   return res.json();
