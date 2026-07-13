@@ -5,7 +5,6 @@ import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import type {
   ApiResponse,
-  AdminRegistrationPage,
   MassRefundResult,
   Refund,
   RegistrationSummary,
@@ -64,10 +63,10 @@ export default function DashboardRefundPage() {
     setLookupBusy(true);
     try {
       const [regRes, refRes] = await Promise.all([
-        api.get<ApiResponse<AdminRegistrationPage>>(`/api/v1/events/${id}/registrations`),
+        api.get<ApiResponse<RegistrationSummary[]>>(`/api/v1/events/${id}/registrations`),
         api.get<ApiResponse<Refund[]>>(`/api/v1/events/${id}/refunds`),
       ]);
-      setRegistrations(regRes.data.registrations ?? []);
+      setRegistrations(regRes.data ?? []);
       setPendingRefunds(refRes.data ?? []);
     } catch (e) {
       setLookupErr(e instanceof ApiError ? e.message : "Gagal memuat data event.");

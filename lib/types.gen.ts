@@ -466,14 +466,6 @@ export interface AdminEventPage {
   total_pages: number;
 }
 
-export interface AdminRegistrationPage {
-  registrations: RegistrationSummary[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
-}
-
 // === BIB / Check-in / Reporting (F6/F11/F12/F13) ===
 
 export interface BibResult {
