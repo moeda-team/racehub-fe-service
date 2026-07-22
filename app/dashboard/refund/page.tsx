@@ -14,7 +14,10 @@ import Alert from "@/components/ui/Alert";
 import { confirm } from "@/components/ui/ConfirmDialog";
 import Badge from "@/components/ui/Badge";
 
-const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
+const REFUND_STATUS: Record<
+  string,
+  { label: string; variant: "ok" | "warn" | "danger" }
+> = {
   completed: { label: "Selesai", variant: "ok" },
   processing: { label: "Diproses", variant: "warn" },
   rejected: { label: "Ditolak", variant: "danger" },
@@ -32,12 +35,16 @@ const REG_STATUS_LABEL: Record<string, string> = {
 
 export default function DashboardRefundPage() {
   const [lookupEventId, setLookupEventId] = useState("");
-  const [registrations, setRegistrations] = useState<RegistrationSummary[] | null>(null);
+  const [registrations, setRegistrations] = useState<
+    RegistrationSummary[] | null
+  >(null);
   const [pendingRefunds, setPendingRefunds] = useState<Refund[] | null>(null);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [lookupErr, setLookupErr] = useState<string | null>(null);
 
-  const [selectedReg, setSelectedReg] = useState<RegistrationSummary | null>(null);
+  const [selectedReg, setSelectedReg] = useState<RegistrationSummary | null>(
+    null,
+  );
   const [reason, setReason] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [refund, setRefund] = useState<Refund | null>(null);
@@ -66,13 +73,17 @@ export default function DashboardRefundPage() {
     setLookupBusy(true);
     try {
       const [regRes, refRes] = await Promise.all([
-        api.get<ApiResponse<RegistrationSummary[]>>(`/api/v1/events/${id}/registrations`),
+        api.get<ApiResponse<RegistrationSummary[]>>(
+          `/api/v1/events/${id}/registrations`,
+        ),
         api.get<ApiResponse<Refund[]>>(`/api/v1/events/${id}/refunds`),
       ]);
       setRegistrations(regRes.data ?? []);
       setPendingRefunds(refRes.data ?? []);
     } catch (e) {
-      setLookupErr(e instanceof ApiError ? e.message : "Gagal memuat data event.");
+      setLookupErr(
+        e instanceof ApiError ? e.message : "Gagal memuat data event.",
+      );
     } finally {
       setLookupBusy(false);
     }
@@ -112,11 +123,15 @@ export default function DashboardRefundPage() {
     setBusy(true);
     setCompleteErr(null);
     try {
-      const res = await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refundId}/complete`);
+      const res = await api.post<ApiResponse<Refund>>(
+        `/api/v1/organizer/refunds/${refundId}/complete`,
+      );
       setRefund(res.data);
       await loadEventData();
     } catch (e) {
-      setCompleteErr(e instanceof ApiError ? e.message : "Gagal menandai selesai.");
+      setCompleteErr(
+        e instanceof ApiError ? e.message : "Gagal menandai selesai.",
+      );
     } finally {
       setBusy(false);
     }
@@ -130,12 +145,22 @@ export default function DashboardRefundPage() {
       setMassErr("Masukkan ID event yang valid.");
       return;
     }
-    if (!(await confirm({ message: "Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.", variant: "danger" }))) return;
+    if (
+      !(await confirm({
+        message:
+          "Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.",
+        variant: "danger",
+      }))
+    )
+      return;
     setMassBusy(true);
     try {
-      const res = await api.post<ApiResponse<MassRefundResult>>(`/api/v1/events/${id}/refund-all`, {
-        reason: massReason,
-      });
+      const res = await api.post<ApiResponse<MassRefundResult>>(
+        `/api/v1/events/${id}/refund-all`,
+        {
+          reason: massReason,
+        },
+      );
       setMass(res.data);
       if (id === lookupEventId.trim()) {
         await loadEventData();
@@ -147,21 +172,47 @@ export default function DashboardRefundPage() {
     }
   }
 
-  const processingRefunds = pendingRefunds?.filter((r) => r.status === "processing") ?? [];
+  const processingRefunds =
+    pendingRefunds?.filter((r) => r.status === "processing") ?? [];
 
   return (
     <div className="rh-reveal" style={{ maxWidth: 760 }}>
-      <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 700, marginBottom: 8 }}>Refund</h1>
-      <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}>
-        Nominal refund dihitung server: <code>total − fee Midtrans − donasi</code>. Donasi tidak dikembalikan dan
-        tetap disalurkan.
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 26,
+          fontWeight: 700,
+          marginBottom: 8,
+        }}
+      >
+        Refund
+      </h1>
+      <p
+        style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}
+      >
+        Nominal refund dihitung server:{" "}
+        <code>total − fee Midtrans − donasi</code>. Donasi tidak dikembalikan
+        dan tetap disalurkan.
       </p>
 
       {/* Event lookup */}
       <section style={card}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>Cari Pendaftar per Event</div>
-        {lookupErr && <Alert variant="danger" className="mb-4">{lookupErr}</Alert>}
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div style={{ fontWeight: 600, marginBottom: 12 }}>
+          Cari Pendaftar per Event
+        </div>
+        {lookupErr && (
+          <Alert variant="danger" className="mb-4">
+            {lookupErr}
+          </Alert>
+        )}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "flex-end",
+            flexWrap: "wrap",
+          }}
+        >
           <div className="field" style={{ flex: 1, minWidth: 240 }}>
             <label className="field-label">ID Event</label>
             <input
@@ -173,7 +224,12 @@ export default function DashboardRefundPage() {
               placeholder="UUID event"
             />
           </div>
-          <Button variant="primary" size="md" disabled={lookupBusy} onClick={loadEventData}>
+          <Button
+            variant="primary"
+            size="md"
+            disabled={lookupBusy}
+            onClick={loadEventData}
+          >
             {lookupBusy ? "Memuat…" : "Muat"}
           </Button>
         </div>
@@ -181,16 +237,35 @@ export default function DashboardRefundPage() {
         {registrations !== null && (
           <div style={{ marginTop: 16 }}>
             {registrations.length === 0 ? (
-              <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Tidak ada pendaftar untuk event ini.</p>
+              <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
+                Tidak ada pendaftar untuk event ini.
+              </p>
             ) : (
               <>
-                <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "var(--color-ink-3)",
+                    marginBottom: 8,
+                  }}
+                >
                   {registrations.length} pendaftar — klik baris untuk memilih
                 </div>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontSize: 13,
+                    }}
+                  >
                     <thead>
-                      <tr style={{ borderBottom: "1px solid var(--color-line)", textAlign: "left" }}>
+                      <tr
+                        style={{
+                          borderBottom: "1px solid var(--color-line)",
+                          textAlign: "left",
+                        }}
+                      >
                         <th style={th}>No. Reg</th>
                         <th style={th}>Nama</th>
                         <th style={th}>Status</th>
@@ -204,14 +279,23 @@ export default function DashboardRefundPage() {
                           onClick={() => selectReg(reg)}
                           style={{
                             cursor: "pointer",
-                            backgroundColor: selectedReg?.id === reg.id ? "color-mix(in srgb, var(--color-primary, #2456E6) 10%, transparent)" : undefined,
+                            backgroundColor:
+                              selectedReg?.id === reg.id
+                                ? "color-mix(in srgb, var(--color-primary, #2456E6) 10%, transparent)"
+                                : undefined,
                             borderBottom: "1px solid var(--color-line)",
                           }}
                         >
-                          <td style={td}><code>{reg.registration_number}</code></td>
+                          <td style={td}>
+                            <code>{reg.registration_number}</code>
+                          </td>
                           <td style={td}>{reg.name}</td>
-                          <td style={td}>{REG_STATUS_LABEL[reg.status] ?? reg.status}</td>
-                          <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{formatRupiah(reg.donation)}</td>
+                          <td style={td}>
+                            {REG_STATUS_LABEL[reg.status] ?? reg.status}
+                          </td>
+                          <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
+                            {formatRupiah(reg.donation)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -225,11 +309,17 @@ export default function DashboardRefundPage() {
 
       {/* Pending manual refunds */}
       {processingRefunds.length > 0 && (
-        <section style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}>
+        <section
+          style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}
+        >
           <div style={{ fontWeight: 600, marginBottom: 8 }}>
             Refund Manual Menunggu Konfirmasi ({processingRefunds.length})
           </div>
-          {completeErr && <Alert variant="danger" className="mb-4">{completeErr}</Alert>}
+          {completeErr && (
+            <Alert variant="danger" className="mb-4">
+              {completeErr}
+            </Alert>
+          )}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {processingRefunds.map((r) => (
               <div
@@ -246,14 +336,24 @@ export default function DashboardRefundPage() {
               >
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 500 }}>
-                    Refund <code style={{ fontSize: 12 }}>{r.id.slice(0, 8)}…</code>
+                    Refund{" "}
+                    <code style={{ fontSize: 12 }}>{r.id.slice(0, 8)}…</code>
                   </div>
                   {r.bank_account && (
-                    <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Rekening: {r.bank_account}</div>
+                    <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+                      Rekening: {r.bank_account}
+                    </div>
                   )}
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(r.amount)}</div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>
+                    {formatRupiah(r.amount)}
+                  </div>
                 </div>
-                <Button variant="primary" size="sm" disabled={busy} onClick={() => completeManual(r.id)}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => completeManual(r.id)}
+                >
                   Tandai Selesai
                 </Button>
               </div>
@@ -264,8 +364,14 @@ export default function DashboardRefundPage() {
 
       {/* Single refund form */}
       <section style={{ ...card, marginTop: 16 }}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>Proses Refund Satu Pendaftar</div>
-        {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+        <div style={{ fontWeight: 600, marginBottom: 12 }}>
+          Proses Refund Satu Pendaftar
+        </div>
+        {err && (
+          <Alert variant="danger" className="mb-4">
+            {err}
+          </Alert>
+        )}
 
         {selectedReg ? (
           <div
@@ -285,7 +391,13 @@ export default function DashboardRefundPage() {
             {REG_STATUS_LABEL[selectedReg.status] ?? selectedReg.status}
           </div>
         ) : (
-          <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--color-ink-3)",
+              marginBottom: 12,
+            }}
+          >
             Pilih pendaftar dari tabel di atas.
           </p>
         )}
@@ -297,23 +409,56 @@ export default function DashboardRefundPage() {
             value={bankAccount}
             onChange={setBankAccount}
           />
-          <Button variant="danger" size="md" disabled={busy || !selectedReg} onClick={submitRefund}>
+          <Button
+            variant="danger"
+            size="md"
+            disabled={busy || !selectedReg}
+            onClick={submitRefund}
+          >
             {busy ? "Memproses…" : "Proses Refund"}
           </Button>
         </div>
 
         {refund && (
-          <div style={{ ...card, marginTop: 16, backgroundColor: "var(--color-paper)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontWeight: 600 }}>Refund #{refund.id.slice(0, 8)}…</span>
+          <div
+            style={{
+              ...card,
+              marginTop: 16,
+              backgroundColor: "var(--color-paper)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ fontWeight: 600 }}>
+                Refund #{refund.id.slice(0, 8)}…
+              </span>
               <Badge variant={REFUND_STATUS[refund.status]?.variant ?? "warn"}>
                 {REFUND_STATUS[refund.status]?.label ?? refund.status}
               </Badge>
             </div>
-            <Row label="Nominal Refund" value={formatRupiah(refund.amount)} mono />
-            <Row label="Donasi (tidak dikembalikan)" value={formatRupiah(refund.donation)} mono />
-            <Row label="Metode / Mode" value={`${refund.method} · ${refund.mode}`} />
-            {refund.bank_account && <Row label="No. Rekening" value={refund.bank_account} mono />}
+            <Row
+              label="Nominal Refund"
+              value={formatRupiah(refund.amount)}
+              mono
+            />
+            <Row
+              label="Donasi (tidak dikembalikan)"
+              value={formatRupiah(refund.donation)}
+              mono
+            />
+            <Row
+              label="Metode / Mode"
+              value={`${refund.method} · ${refund.mode}`}
+            />
+            {refund.bank_account && (
+              <Row label="No. Rekening" value={refund.bank_account} mono />
+            )}
             <Alert variant="info" className="mb-0">
               Donasi tetap disalurkan ke penyelenggara/penerima manfaat.
             </Alert>
@@ -322,26 +467,65 @@ export default function DashboardRefundPage() {
       </section>
 
       {/* Mass refund */}
-      <section style={{ ...card, marginTop: 24, borderColor: "var(--color-danger)" }}>
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>Refund Massal (Event Dibatalkan)</div>
-        <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
-          Hanya untuk event berstatus <b>cancelled</b>. Merefund seluruh pendaftar berbayar.
+      <section
+        style={{ ...card, marginTop: 24, borderColor: "var(--color-danger)" }}
+      >
+        <div style={{ fontWeight: 600, marginBottom: 4 }}>
+          Refund Massal (Event Dibatalkan)
+        </div>
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--color-ink-3)",
+            marginBottom: 12,
+          }}
+        >
+          Hanya untuk event berstatus <b>cancelled</b>. Merefund seluruh
+          pendaftar berbayar.
         </p>
-        {massErr && <Alert variant="danger" className="mb-4">{massErr}</Alert>}
+        {massErr && (
+          <Alert variant="danger" className="mb-4">
+            {massErr}
+          </Alert>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Labeled label="ID Event" value={massEventId} onChange={setMassEventId} />
+          <Labeled
+            label="ID Event"
+            value={massEventId}
+            onChange={setMassEventId}
+          />
           <Labeled label="Alasan" value={massReason} onChange={setMassReason} />
-          <Button variant="danger" size="md" disabled={massBusy} onClick={submitMass}>
+          <Button
+            variant="danger"
+            size="md"
+            disabled={massBusy}
+            onClick={submitMass}
+          >
             {massBusy ? "Memproses…" : "Refund Semua Pendaftar"}
           </Button>
         </div>
         {mass && (
-          <div style={{ ...card, marginTop: 16, backgroundColor: "var(--color-paper)" }}>
+          <div
+            style={{
+              ...card,
+              marginTop: 16,
+              backgroundColor: "var(--color-paper)",
+            }}
+          >
             <Row label="Berhasil di-refund" value={String(mass.refunded)} />
             <Row label="Gagal" value={String(mass.failed)} />
             {mass.errors && mass.errors.length > 0 && (
-              <ul style={{ fontSize: 12, color: "var(--color-danger)", marginTop: 8, paddingLeft: 18 }}>
-                {mass.errors.map((e, i) => <li key={i}>{e}</li>)}
+              <ul
+                style={{
+                  fontSize: 12,
+                  color: "var(--color-danger)",
+                  marginTop: 8,
+                  paddingLeft: 18,
+                }}
+              >
+                {mass.errors.map((e, i) => (
+                  <li key={i}>{e}</li>
+                ))}
               </ul>
             )}
           </div>
@@ -369,20 +553,51 @@ const td: React.CSSProperties = {
   padding: "8px 8px",
 };
 
-function Labeled({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Labeled({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div className="field">
       <label className="field-label">{label}</label>
-      <input className="field-input" type="text" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input
+        className="field-input"
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
 
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Row({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 14, gap: 12 }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "4px 0",
+        fontSize: 14,
+        gap: 12,
+      }}
+    >
       <span style={{ color: "var(--color-ink-3)" }}>{label}</span>
-      <span style={mono ? { fontFamily: "var(--font-mono)" } : undefined}>{value}</span>
+      <span style={mono ? { fontFamily: "var(--font-mono)" } : undefined}>
+        {value}
+      </span>
     </div>
   );
 }

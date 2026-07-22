@@ -29,7 +29,11 @@ interface AdminAuthState {
 }
 
 interface AdminAuthContextValue extends AdminAuthState {
-  login: (email: string, password: string, keepSignedIn?: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    keepSignedIn?: boolean,
+  ) => Promise<void>;
   logout: () => void;
 }
 
@@ -60,7 +64,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         // Admin has no /me endpoint — verify by hitting a lightweight admin endpoint.
-        await adminApi.get<ApiResponse<unknown[]>>("/api/v1/admin/events?page_size=1");
+        await adminApi.get<ApiResponse<unknown[]>>(
+          "/api/v1/admin/events?page_size=1",
+        );
         if (!cancelled) {
           const id = requestAnimationFrame(() => {
             setProfile({ id: "", email: "" });
@@ -80,21 +86,27 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         }
       }
     })();
-    return () => { cancelled = true; cancelAnimationFrame(raf); };
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
   }, [token]);
 
   const isAuthenticated = !!token;
 
-  const login = useCallback(async (email: string, password: string, keepSignedIn = false) => {
-    const res = await adminApi.post<ApiResponse<AdminLoginResponse>>(
-      "/api/v1/admin/login",
-      { email, password, keep_signed_in: keepSignedIn }
-    );
-    const newToken = res.data.token;
-    setAdminToken(newToken);
-    setToken(newToken);
-    setProfile({ id: "", email });
-  }, []);
+  const login = useCallback(
+    async (email: string, password: string, keepSignedIn = false) => {
+      const res = await adminApi.post<ApiResponse<AdminLoginResponse>>(
+        "/api/v1/admin/login",
+        { email, password, keep_signed_in: keepSignedIn },
+      );
+      const newToken = res.data.token;
+      setAdminToken(newToken);
+      setToken(newToken);
+      setProfile({ id: "", email });
+    },
+    [],
+  );
 
   const logout = useCallback(() => {
     setAdminToken(null);

@@ -34,14 +34,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   // Show loading spinner for protected pages only; let login page render freely.
   if (!isLoginPage && (isLoading || !isAuthenticated)) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--color-ink-3)",
-        fontFamily: "var(--font-body)",
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--color-ink-3)",
+          fontFamily: "var(--font-body)",
+        }}
+      >
         Memuat…
       </div>
     );
@@ -88,7 +90,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const onLogout = () => { logout(); router.replace("/admin/login"); };
+  const onLogout = () => {
+    logout();
+    router.replace("/admin/login");
+  };
 
   return (
     <div className="dash-shell">
@@ -165,7 +170,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
 function HamburgerIcon({ open }: { open: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       {open ? (
         <>
           <line x1="4" y1="4" x2="16" y2="16" />
@@ -184,7 +197,16 @@ function HamburgerIcon({ open }: { open: boolean }) {
 
 function LogoutIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <path d="m16 17 5-5-5-5" />
       <path d="M21 12H9" />

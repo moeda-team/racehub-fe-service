@@ -10,7 +10,10 @@ import { confirm } from "@/components/ui/ConfirmDialog";
 import type { ApiResponse, Refund } from "@/lib/types.gen";
 import type { Event, AdminEventPage } from "@/lib/types.gen";
 
-const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
+const REFUND_STATUS: Record<
+  string,
+  { label: string; variant: "ok" | "warn" | "danger" }
+> = {
   completed: { label: "Selesai", variant: "ok" },
   processing: { label: "Diproses", variant: "warn" },
   rejected: { label: "Ditolak", variant: "danger" },
@@ -42,7 +45,9 @@ export default function AdminRefundsPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await adminApi.get<AdminEventPage>("/api/v1/admin/events?page_size=200");
+        const res = await adminApi.get<AdminEventPage>(
+          "/api/v1/admin/events?page_size=200",
+        );
         if (!cancelled) {
           setEvents(res.data ?? []);
         }
@@ -52,7 +57,9 @@ export default function AdminRefundsPage() {
         if (!cancelled) setLoadingEvents(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function loadRefunds() {
@@ -61,7 +68,7 @@ export default function AdminRefundsPage() {
     setLoadingRefunds(true);
     try {
       const res = await adminApi.get<ApiResponse<Refund[]>>(
-        `/api/v1/admin/events/${selectedEventId}/refunds`
+        `/api/v1/admin/events/${selectedEventId}/refunds`,
       );
       setRefunds(res.data ?? []);
     } catch (e) {
@@ -81,17 +88,20 @@ export default function AdminRefundsPage() {
 
   async function completeRefund(id: string) {
     const target = refunds.find((r) => r.id === id);
-    if (!(await confirm({
-      message: `Tandai refund ${target ? formatRupiah(target.amount) : id} sebagai SELESAI?\n\nTindakan ini akan menandakan dana sudah dikembalikan ke peserta dan tidak dapat dibatalkan.`,
-      variant: "danger",
-    }))) return;
+    if (
+      !(await confirm({
+        message: `Tandai refund ${target ? formatRupiah(target.amount) : id} sebagai SELESAI?\n\nTindakan ini akan menandakan dana sudah dikembalikan ke peserta dan tidak dapat dibatalkan.`,
+        variant: "danger",
+      }))
+    )
+      return;
 
     setBusyId(id);
     setErr(null);
     try {
       await adminApi.post(`/api/v1/admin/refunds/${id}/complete`);
       setRefunds((prev) =>
-        prev.map((r) => r.id === id ? { ...r, status: "completed" } : r)
+        prev.map((r) => (r.id === id ? { ...r, status: "completed" } : r)),
       );
       setNotice("Refund ditandai selesai.");
     } catch (e) {
@@ -107,26 +117,32 @@ export default function AdminRefundsPage() {
 
   return (
     <div className="rh-reveal">
-      <h1 style={{
-        fontFamily: "var(--font-display)",
-        fontSize: 28,
-        fontWeight: 700,
-        marginBottom: 4,
-      }}>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 28,
+          fontWeight: 700,
+          marginBottom: 4,
+        }}
+      >
         Refund
       </h1>
-      <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 28 }}>
+      <p
+        style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 28 }}
+      >
         Kelola refund peserta per event
       </p>
 
       {/* Event selector */}
-      <div style={{
-        backgroundColor: "var(--color-surface)",
-        border: "1px solid var(--color-line)",
-        borderRadius: "var(--radius-md)",
-        padding: 20,
-        marginBottom: 24,
-      }}>
+      <div
+        style={{
+          backgroundColor: "var(--color-surface)",
+          border: "1px solid var(--color-line)",
+          borderRadius: "var(--radius-md)",
+          padding: 20,
+          marginBottom: 24,
+        }}
+      >
         <div className="field" style={{ maxWidth: 400 }}>
           <label className="field-label">Pilih Event</label>
           <select
@@ -160,29 +176,54 @@ export default function AdminRefundsPage() {
 
       {/* Summary counts */}
       {refunds.length > 0 && (
-        <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            marginBottom: 20,
+            flexWrap: "wrap",
+          }}
+        >
           <div className="stat">
             <div className="stat-lab">Total Refund</div>
             <div className="stat-val">{refunds.length}</div>
           </div>
           <div className="stat">
             <div className="stat-lab">Selesai</div>
-            <div className="stat-val" style={{ color: "var(--color-ok)" }}>{completed}</div>
+            <div className="stat-val" style={{ color: "var(--color-ok)" }}>
+              {completed}
+            </div>
           </div>
           <div className="stat">
             <div className="stat-lab">Diproses</div>
-            <div className="stat-val" style={{ color: "var(--color-warn)" }}>{processing}</div>
+            <div className="stat-val" style={{ color: "var(--color-warn)" }}>
+              {processing}
+            </div>
           </div>
           <div className="stat">
             <div className="stat-lab">Ditolak</div>
-            <div className="stat-val" style={{ color: "var(--color-danger)" }}>{rejected}</div>
+            <div className="stat-val" style={{ color: "var(--color-danger)" }}>
+              {rejected}
+            </div>
           </div>
         </div>
       )}
 
-      {loadErr && <Alert variant="danger" className="mb-4">{loadErr}</Alert>}
-      {notice && <Alert variant="info" className="mb-4">{notice}</Alert>}
-      {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+      {loadErr && (
+        <Alert variant="danger" className="mb-4">
+          {loadErr}
+        </Alert>
+      )}
+      {notice && (
+        <Alert variant="info" className="mb-4">
+          {notice}
+        </Alert>
+      )}
+      {err && (
+        <Alert variant="danger" className="mb-4">
+          {err}
+        </Alert>
+      )}
 
       {!selectedEventId && (
         <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
@@ -191,24 +232,28 @@ export default function AdminRefundsPage() {
       )}
 
       {selectedEventId && !loadingRefunds && refunds.length === 0 && (
-        <div style={{
-          padding: "48px 24px",
-          textAlign: "center",
-          border: "1px dashed var(--color-line)",
-          borderRadius: "var(--radius-md)",
-          color: "var(--color-ink-3)",
-        }}>
+        <div
+          style={{
+            padding: "48px 24px",
+            textAlign: "center",
+            border: "1px dashed var(--color-line)",
+            borderRadius: "var(--radius-md)",
+            color: "var(--color-ink-3)",
+          }}
+        >
           Tidak ada data refund untuk event ini.
         </div>
       )}
 
       {refunds.length > 0 && (
-        <div style={{
-          backgroundColor: "var(--color-surface)",
-          border: "1px solid var(--color-line)",
-          borderRadius: "var(--radius-md)",
-          overflow: "hidden",
-        }}>
+        <div
+          style={{
+            backgroundColor: "var(--color-surface)",
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-md)",
+            overflow: "hidden",
+          }}
+        >
           <div style={{ overflowX: "auto" }}>
             <table className="dtable">
               <thead>
@@ -225,26 +270,53 @@ export default function AdminRefundsPage() {
               </thead>
               <tbody>
                 {refunds.map((r) => {
-                  const s = REFUND_STATUS[r.status] ?? { label: r.status, variant: "warn" as const };
+                  const s = REFUND_STATUS[r.status] ?? {
+                    label: r.status,
+                    variant: "warn" as const,
+                  };
                   return (
                     <tr key={r.id}>
                       <td>
-                        <code style={{ fontSize: 11, fontFamily: "var(--font-mono)" }}>
+                        <code
+                          style={{
+                            fontSize: 11,
+                            fontFamily: "var(--font-mono)",
+                          }}
+                        >
                           {r.registration_id.slice(0, 8)}…
                         </code>
                       </td>
-                      <td style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                      <td
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
                         {formatRupiah(r.amount)}
                       </td>
-                      <td style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", color: "var(--color-danger)" }}>
+                      <td
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontVariantNumeric: "tabular-nums",
+                          color: "var(--color-danger)",
+                        }}
+                      >
                         -{formatRupiah(r.fee_midtrans)}
                       </td>
-                      <td style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", color: "var(--color-warn)" }}>
+                      <td
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontVariantNumeric: "tabular-nums",
+                          color: "var(--color-warn)",
+                        }}
+                      >
                         {formatRupiah(r.donation)}
                       </td>
                       <td>{METHOD_LABEL[r.method] ?? r.method}</td>
                       <td>
-                        <span style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+                        <span
+                          style={{ fontSize: 12, color: "var(--color-ink-3)" }}
+                        >
                           {r.mode === "auto" ? "Otomatis" : "Manual"}
                         </span>
                       </td>

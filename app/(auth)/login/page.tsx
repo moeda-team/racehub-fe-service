@@ -76,7 +76,10 @@ export default function LoginPage() {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+      >
         <Field
           label="Email"
           type="email"
@@ -107,15 +110,25 @@ export default function LoginPage() {
             type="checkbox"
             checked={keepSignedIn}
             onChange={(e) => setKeepSignedIn(e.target.checked)}
-            style={{ width: 16, height: 16, accentColor: "var(--color-flame)", cursor: "pointer" }}
+            style={{
+              width: 16,
+              height: 16,
+              accentColor: "var(--color-flame)",
+              cursor: "pointer",
+            }}
           />
           Tetap masuk
         </label>
-        <Button type="submit" variant="primary" size="md" disabled={isSubmitting} style={{ width: "100%" }}>
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          disabled={isSubmitting}
+          style={{ width: "100%" }}
+        >
           {isSubmitting ? "Memproses..." : "Masuk"}
         </Button>
       </form>
-
     </div>
   );
 }

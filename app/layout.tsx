@@ -41,11 +41,16 @@ export default function RootLayout({
       lang="id"
       className={`${saira.variable} ${hanken.variable} ${spline.variable}`}
     >
-      <body className="min-h-screen antialiased" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-paper)", color: "var(--color-ink)" }}>
+      <body
+        className="min-h-screen antialiased"
+        style={{
+          fontFamily: "var(--font-body)",
+          backgroundColor: "var(--color-paper)",
+          color: "var(--color-ink)",
+        }}
+      >
         <AuthProvider>
-          <AdminAuthProvider>
-            {children}
-          </AdminAuthProvider>
+          <AdminAuthProvider>{children}</AdminAuthProvider>
         </AuthProvider>
       </body>
     </html>

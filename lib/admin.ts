@@ -19,8 +19,14 @@ export function setAdminToken(token: string | null): void {
   else window.localStorage.removeItem(ADMIN_TOKEN_KEY);
 }
 
-async function adminRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+async function adminRequest<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
   const token = getAdminToken();
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -37,7 +43,11 @@ async function adminRequest<T>(method: string, path: string, body?: unknown): Pr
     } catch {
       // ignore
     }
-    throw new ApiError(res.status, errBody.error ?? "UNKNOWN_ERROR", translateApiError(errBody.error ?? `HTTP ${res.status}`));
+    throw new ApiError(
+      res.status,
+      errBody.error ?? "UNKNOWN_ERROR",
+      translateApiError(errBody.error ?? `HTTP ${res.status}`),
+    );
   }
   if (res.status === 204) return undefined as T;
   return res.json();
@@ -45,7 +55,8 @@ async function adminRequest<T>(method: string, path: string, body?: unknown): Pr
 
 export const adminApi = {
   get: <T>(path: string) => adminRequest<T>("GET", path),
-  post: <T>(path: string, body?: unknown) => adminRequest<T>("POST", path, body),
+  post: <T>(path: string, body?: unknown) =>
+    adminRequest<T>("POST", path, body),
 };
 
 export { ApiError } from "./api";

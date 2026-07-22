@@ -20,7 +20,9 @@ export default function AdminWalletPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await adminApi.get<ApiResponse<PlatformRevenue>>("/api/v1/admin/platform");
+        const res = await adminApi.get<ApiResponse<PlatformRevenue>>(
+          "/api/v1/admin/platform",
+        );
         if (!cancelled) setWallet(res.data);
       } catch {
         // non-fatal
@@ -28,10 +30,14 @@ export default function AdminWalletPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function withdraw() {
     const amount = parseInt(withdrawAmount.replace(/\D/g, ""), 10);
@@ -64,59 +70,88 @@ export default function AdminWalletPage() {
 
   return (
     <div className="rh-reveal">
-      <h1 style={{
-        fontFamily: "var(--font-display)",
-        fontSize: 28,
-        fontWeight: 700,
-        marginBottom: 4,
-      }}>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 28,
+          fontWeight: 700,
+          marginBottom: 4,
+        }}
+      >
         Platform Wallet
       </h1>
-      <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 28 }}>
+      <p
+        style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 28 }}
+      >
         Kelola saldo fee platform dari semua transaksi
       </p>
 
-      {notice && <Alert variant="info" className="mb-4">{notice}</Alert>}
-      {err && <Alert variant="danger" className="mb-4">{err}</Alert>}
+      {notice && (
+        <Alert variant="info" className="mb-4">
+          {notice}
+        </Alert>
+      )}
+      {err && (
+        <Alert variant="danger" className="mb-4">
+          {err}
+        </Alert>
+      )}
 
       {loading ? (
         <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>
       ) : wallet ? (
         <>
           {/* Balance cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 16,
+              marginBottom: 32,
+            }}
+          >
             <div className="stat stat-accent">
               <div className="stat-lab">Balance</div>
               <div className="stat-val">{formatRupiah(wallet.balance)}</div>
             </div>
             <div className="stat">
               <div className="stat-lab">Total Collected</div>
-              <div className="stat-val" style={{ fontSize: 24, color: "var(--color-ok)" }}>
+              <div
+                className="stat-val"
+                style={{ fontSize: 24, color: "var(--color-ok)" }}
+              >
                 {formatRupiah(wallet.total_collected)}
               </div>
             </div>
             <div className="stat">
               <div className="stat-lab">Total Withdrawn</div>
-              <div className="stat-val" style={{ fontSize: 24, color: "var(--color-ink-3)" }}>
+              <div
+                className="stat-val"
+                style={{ fontSize: 24, color: "var(--color-ink-3)" }}
+              >
                 {formatRupiah(wallet.total_withdrawn)}
               </div>
             </div>
           </div>
 
           {/* Withdraw form */}
-          <div style={{
-            backgroundColor: "var(--color-surface)",
-            border: "1px solid var(--color-line)",
-            borderRadius: "var(--radius-md)",
-            padding: 24,
-            maxWidth: 520,
-          }}>
-            <h2 style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 17,
-              fontWeight: 700,
-              marginBottom: 20,
-            }}>
+          <div
+            style={{
+              backgroundColor: "var(--color-surface)",
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-md)",
+              padding: 24,
+              maxWidth: 520,
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 17,
+                fontWeight: 700,
+                marginBottom: 20,
+              }}
+            >
               Tarik Saldo
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

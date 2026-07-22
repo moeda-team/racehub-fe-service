@@ -25,7 +25,11 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string, keepSignedIn?: boolean) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    keepSignedIn?: boolean,
+  ) => Promise<void>;
   register: (data: {
     email: string;
     password: string;
@@ -61,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const res = await api.get<ApiResponse<OrganizerProfile>>(
-          "/api/v1/organizers/me"
+          "/api/v1/organizers/me",
         );
         if (!cancelled) setProfile(res.data);
       } catch {
@@ -83,21 +87,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!token;
 
-  const login = useCallback(async (email: string, password: string, keepSignedIn = false) => {
-    const res = await api.post<ApiResponse<OrganizerLoginResponse>>(
-      "/api/v1/organizers/login",
-      { email, password, keep_signed_in: keepSignedIn }
-    );
-    const newToken = res.data.token;
-    setAuthToken(newToken);
-    setToken(newToken);
+  const login = useCallback(
+    async (email: string, password: string, keepSignedIn = false) => {
+      const res = await api.post<ApiResponse<OrganizerLoginResponse>>(
+        "/api/v1/organizers/login",
+        { email, password, keep_signed_in: keepSignedIn },
+      );
+      const newToken = res.data.token;
+      setAuthToken(newToken);
+      setToken(newToken);
 
-    // Fetch profile after login
-    const profileRes = await api.get<ApiResponse<OrganizerProfile>>(
-      "/api/v1/organizers/me"
-    );
-    setProfile(profileRes.data);
-  }, []);
+      // Fetch profile after login
+      const profileRes = await api.get<ApiResponse<OrganizerProfile>>(
+        "/api/v1/organizers/me",
+      );
+      setProfile(profileRes.data);
+    },
+    [],
+  );
 
   const register = useCallback(
     async (data: {
@@ -108,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }) => {
       await api.post("/api/v1/organizers/register", data);
     },
-    []
+    [],
   );
 
   const logout = useCallback(() => {
@@ -121,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getProfile = useCallback(async () => {
     try {
       const res = await api.get<ApiResponse<OrganizerProfile>>(
-        "/api/v1/organizers/me"
+        "/api/v1/organizers/me",
       );
       setProfile(res.data);
     } catch {
@@ -135,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const getWallet = useCallback(async () => {
     try {
       const res = await api.get<ApiResponse<WalletResponse>>(
-        "/api/v1/organizers/me/wallet"
+        "/api/v1/organizers/me/wallet",
       );
       setWallet(res.data);
     } catch {

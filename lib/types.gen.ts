@@ -55,7 +55,8 @@ export interface WalletResponse {
 
 export type EventStatus = "draft" | "published" | "cancelled" | "finished";
 
-export type EventType = "running" | "concert" | "seminar" | "workshop" | "cycling" | "custom";
+export type EventType =
+  "running" | "concert" | "seminar" | "workshop" | "cycling" | "custom";
 
 export interface Event {
   id: string;
@@ -326,7 +327,15 @@ export interface PaymentQuoteResponse {
   original_fee_platform?: number;
 }
 
-export type PaymentMethod = "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
+export type PaymentMethod =
+  | "va_bca"
+  | "va_bni"
+  | "va_bri"
+  | "va_mandiri"
+  | "va_permata"
+  | "gopay"
+  | "card"
+  | "qris";
 
 export interface PaymentChargeRequest {
   registration_id: string;

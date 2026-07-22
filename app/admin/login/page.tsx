@@ -36,9 +36,10 @@ export default function AdminLoginPage() {
       await login(email, password, keepSignedIn);
       router.push("/admin/overview");
     } catch (err) {
-      const msg = err instanceof ApiError
-        ? translateApiError(err.message)
-        : "Terjadi kesalahan. Silakan coba lagi.";
+      const msg =
+        err instanceof ApiError
+          ? translateApiError(err.message)
+          : "Terjadi kesalahan. Silakan coba lagi.";
       setError(msg);
     } finally {
       setIsSubmitting(false);
@@ -75,7 +76,10 @@ export default function AdminLoginPage() {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+      >
         <Field
           label="Email"
           type="email"
@@ -106,11 +110,22 @@ export default function AdminLoginPage() {
             type="checkbox"
             checked={keepSignedIn}
             onChange={(e) => setKeepSignedIn(e.target.checked)}
-            style={{ width: 16, height: 16, accentColor: "var(--color-flame)", cursor: "pointer" }}
+            style={{
+              width: 16,
+              height: 16,
+              accentColor: "var(--color-flame)",
+              cursor: "pointer",
+            }}
           />
           Tetap masuk
         </label>
-        <Button type="submit" variant="primary" size="md" disabled={isSubmitting} style={{ width: "100%" }}>
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          disabled={isSubmitting}
+          style={{ width: "100%" }}
+        >
           {isSubmitting ? "Memproses..." : "Masuk"}
         </Button>
       </form>
@@ -123,7 +138,10 @@ export default function AdminLoginPage() {
           color: "var(--color-ink-3)",
         }}
       >
-        <a href="/login" style={{ color: "var(--color-sprint)", textDecoration: "none" }}>
+        <a
+          href="/login"
+          style={{ color: "var(--color-sprint)", textDecoration: "none" }}
+        >
           Masuk sebagai Penyelenggara
         </a>
       </p>

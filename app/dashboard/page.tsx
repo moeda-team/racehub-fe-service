@@ -48,7 +48,15 @@ export default function DashboardPage() {
           marginBottom: 24,
         }}
       >
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700 }}>Dashboard</h1>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 28,
+            fontWeight: 700,
+          }}
+        >
+          Dashboard
+        </h1>
         <Link href="/dashboard/events/new">
           <Button variant="primary" size="md">
             + Buat Event
@@ -72,10 +80,21 @@ export default function DashboardPage() {
       >
         <StatCard label="Total Event" value={String(events.length)} />
         <StatCard label="Event Terbit" value={String(publishedCount)} />
-        <StatCard label="Saldo Wallet" value={wallet ? formatRupiah(wallet.balance) : "—"} accent />
+        <StatCard
+          label="Saldo Wallet"
+          value={wallet ? formatRupiah(wallet.balance) : "—"}
+          accent
+        />
       </div>
 
-      <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 12 }}>
+      <h2
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 18,
+          fontWeight: 600,
+          marginBottom: 12,
+        }}
+      >
         Event Terbaru
       </h2>
 
@@ -84,7 +103,10 @@ export default function DashboardPage() {
       ) : events.length === 0 ? (
         <p style={{ color: "var(--color-ink-3)" }}>
           Belum ada event.{" "}
-          <Link href="/dashboard/events/new" style={{ color: "var(--color-flame)", fontWeight: 500 }}>
+          <Link
+            href="/dashboard/events/new"
+            style={{ color: "var(--color-flame)", fontWeight: 500 }}
+          >
             Buat event pertama Anda
           </Link>
           .
@@ -108,7 +130,9 @@ export default function DashboardPage() {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, color: "var(--color-ink)" }}>{ev.name}</div>
+                  <div style={{ fontWeight: 600, color: "var(--color-ink)" }}>
+                    {ev.name}
+                  </div>
                   <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
                     {ev.location || "Lokasi belum diatur"}
                   </div>

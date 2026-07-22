@@ -29,9 +29,13 @@ export default function EventCard({
   // Header priority: banner image → organizer color → default flame gradient
   // (.evcard-top CSS). A dark scrim keeps text readable over images.
   const topStyle: React.CSSProperties | undefined = bannerUrl
-    ? { background: `linear-gradient(180deg, rgba(0,0,0,0.30), rgba(0,0,0,0.45)), url(${bannerUrl}) center/cover no-repeat` }
+    ? {
+        background: `linear-gradient(180deg, rgba(0,0,0,0.30), rgba(0,0,0,0.45)), url(${bannerUrl}) center/cover no-repeat`,
+      }
     : color
-      ? { background: `radial-gradient(120% 140% at 80% -20%, rgba(255,255,255,0.25), transparent 55%), linear-gradient(135deg, ${color}, ${color})` }
+      ? {
+          background: `radial-gradient(120% 140% at 80% -20%, rgba(255,255,255,0.25), transparent 55%), linear-gradient(135deg, ${color}, ${color})`,
+        }
       : undefined;
 
   const content = (
@@ -55,7 +59,9 @@ export default function EventCard({
           {quotaRemaining !== undefined && (
             <div className="evcard-quota">
               <div className="evcard-quota-text">
-                {quotaRemaining > 0 ? `${formatNumber(quotaRemaining)} slot tersisa` : "Kuota habis"}
+                {quotaRemaining > 0
+                  ? `${formatNumber(quotaRemaining)} slot tersisa`
+                  : "Kuota habis"}
               </div>
             </div>
           )}

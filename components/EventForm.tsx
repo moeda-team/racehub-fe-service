@@ -1,12 +1,22 @@
 "use client";
 
-import { ChangeEvent, FormEvent, InputHTMLAttributes, useEffect, useId, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  InputHTMLAttributes,
+  useEffect,
+  useId,
+  useState,
+} from "react";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import RichTextEditor from "@/components/RichTextEditor";
 import { normalizeNumberInput } from "@/lib/format";
 import { api } from "@/lib/api";
-import type { RegistrationField, UpsertRegistrationFieldRequest } from "@/lib/types.gen";
+import type {
+  RegistrationField,
+  UpsertRegistrationFieldRequest,
+} from "@/lib/types.gen";
 
 export interface EventFormValues {
   name: string;
@@ -75,7 +85,13 @@ function LabeledInput({ label, hint, error, ...rest }: LabeledInputProps) {
       <label htmlFor={id} className="field-label">
         {label}
       </label>
-      <input id={id} className="field-input" aria-invalid={!!error || undefined} {...rest} onChange={onChange} />
+      <input
+        id={id}
+        className="field-input"
+        aria-invalid={!!error || undefined}
+        {...rest}
+        onChange={onChange}
+      />
       {error ? (
         <span className="field-error" role="alert">
           {error}
@@ -124,7 +140,15 @@ interface FieldDraft {
 }
 
 function emptyDraft(sortOrder: number): FieldDraft {
-  return { name: "", label: "", field_type: "text", options: "", placeholder: "", required: false, sort_order: sortOrder };
+  return {
+    name: "",
+    label: "",
+    field_type: "text",
+    options: "",
+    placeholder: "",
+    required: false,
+    sort_order: sortOrder,
+  };
 }
 
 // --- Registration Field Builder sub-component ---
@@ -135,11 +159,18 @@ interface FieldBuilderProps {
   saving: boolean;
 }
 
-function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) {
+function FieldBuilder({
+  eventId,
+  fields,
+  onChange,
+  saving,
+}: FieldBuilderProps) {
   const [expanded, setExpanded] = useState(false);
 
   function updateField(index: number, patch: Partial<FieldDraft>) {
-    const updated = fields.map((f, i) => (i === index ? { ...f, ...patch } : f));
+    const updated = fields.map((f, i) =>
+      i === index ? { ...f, ...patch } : f,
+    );
     onChange(updated);
   }
 
@@ -169,7 +200,11 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
       payload,
     );
     // Update with server-assigned id
-    onChange(fields.map((prev, i) => (i === index ? { ...prev, id: res.data.id } : prev)));
+    onChange(
+      fields.map((prev, i) =>
+        i === index ? { ...prev, id: res.data.id } : prev,
+      ),
+    );
   }
 
   async function deleteField(index: number) {
@@ -183,7 +218,13 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
   }
 
   return (
-    <div style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
+    <div
+      style={{
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-md)",
+        overflow: "hidden",
+      }}
+    >
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -202,15 +243,30 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
         }}
       >
         <span>Form Pendaftaran ({fields.length} kolom)</span>
-        <span style={{ transform: expanded ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }}>
+        <span
+          style={{
+            transform: expanded ? "rotate(180deg)" : "rotate(0)",
+            transition: "transform 0.2s",
+          }}
+        >
           ▾
         </span>
       </button>
 
       {expanded && (
-        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div
+          style={{
+            padding: 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
           {fields.length === 0 && (
-            <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di bawah.</p>
+            <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
+              Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di
+              bawah.
+            </p>
           )}
           {fields.map((f, i) => (
             <div
@@ -225,7 +281,13 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
                 background: "var(--color-surface)",
               }}
             >
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 8,
+                }}
+              >
                 <div className="field">
                   <label className="field-label">Nama kolom (slug)</label>
                   <input
@@ -234,7 +296,9 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
                     onChange={(e) => updateField(i, { name: e.target.value })}
                     placeholder="Contoh: jersey_size"
                   />
-                  <span className="field-hint">Huruf kecil, strip sebagai pemisah</span>
+                  <span className="field-hint">
+                    Huruf kecil, strip sebagai pemisah
+                  </span>
                 </div>
                 <div className="field">
                   <label className="field-label">Label tampilan</label>
@@ -246,16 +310,26 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
                   />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 8,
+                }}
+              >
                 <div className="field">
                   <label className="field-label">Tipe input</label>
                   <select
                     className="field-input"
                     value={f.field_type}
-                    onChange={(e) => updateField(i, { field_type: e.target.value })}
+                    onChange={(e) =>
+                      updateField(i, { field_type: e.target.value })
+                    }
                   >
                     {FIELD_TYPE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -264,33 +338,51 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
                   <input
                     className="field-input"
                     value={f.placeholder}
-                    onChange={(e) => updateField(i, { placeholder: e.target.value })}
+                    onChange={(e) =>
+                      updateField(i, { placeholder: e.target.value })
+                    }
                     placeholder="Contoh: Pilih ukuran"
                   />
                 </div>
               </div>
               {(f.field_type === "select" || f.field_type === "radio") && (
                 <div className="field">
-                  <label className="field-label">Opsi (pisah dengan koma)</label>
+                  <label className="field-label">
+                    Opsi (pisah dengan koma)
+                  </label>
                   <input
                     className="field-input"
                     value={f.options}
-                    onChange={(e) => updateField(i, { options: e.target.value })}
+                    onChange={(e) =>
+                      updateField(i, { options: e.target.value })
+                    }
                     placeholder="Contoh: S, M, L, XL"
                   />
                 </div>
               )}
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={f.required}
-                    onChange={(e) => updateField(i, { required: e.target.checked })}
+                    onChange={(e) =>
+                      updateField(i, { required: e.target.checked })
+                    }
                   />
                   Wajib diisi
                 </label>
               </div>
-              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <div
+                style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
+              >
                 <Button
                   type="button"
                   variant="danger"
@@ -312,7 +404,12 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
               </div>
             </div>
           ))}
-          <Button type="button" variant="secondary" size="sm" onClick={addField}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={addField}
+          >
             + Tambah Kolom
           </Button>
         </div>
@@ -322,19 +419,35 @@ function FieldBuilder({ eventId, fields, onChange, saving }: FieldBuilderProps) 
 }
 
 // --- Main EventForm ---
-export default function EventForm({ eventId, initial, submitLabel, onSubmit, onChange }: EventFormProps) {
+export default function EventForm({
+  eventId,
+  initial,
+  submitLabel,
+  onSubmit,
+  onChange,
+}: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [location, setLocation] = useState(initial?.location ?? "");
-  const [eventDate, setEventDate] = useState(toLocalInput(initial?.event_date ?? ""));
+  const [eventDate, setEventDate] = useState(
+    toLocalInput(initial?.event_date ?? ""),
+  );
   const [eventType, setEventType] = useState(initial?.event_type ?? "running");
   const [masterAgeThreshold, setMasterAgeThreshold] = useState(
     String(initial?.master_age_threshold ?? 40),
   );
-  const [refundCutoff, setRefundCutoff] = useState(toLocalInput(initial?.refund_cutoff_date ?? ""));
-  const [regClose, setRegClose] = useState(toLocalInput(initial?.registration_close_date ?? ""));
-  const [donationEnabled, setDonationEnabled] = useState(initial?.donation_enabled ?? false);
-  const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(initial?.refund_donation_on_cancel ?? false);
+  const [refundCutoff, setRefundCutoff] = useState(
+    toLocalInput(initial?.refund_cutoff_date ?? ""),
+  );
+  const [regClose, setRegClose] = useState(
+    toLocalInput(initial?.registration_close_date ?? ""),
+  );
+  const [donationEnabled, setDonationEnabled] = useState(
+    initial?.donation_enabled ?? false,
+  );
+  const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(
+    initial?.refund_donation_on_cancel ?? false,
+  );
   const [color, setColor] = useState(initial?.color || "#F5471D");
 
   // Registration field builder state
@@ -350,7 +463,9 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
   useEffect(() => {
     if (!eventId) return;
     api
-      .get<{ data: RegistrationField[] }>(`/api/v1/events/${eventId}/registration-fields`)
+      .get<{ data: RegistrationField[] }>(
+        `/api/v1/events/${eventId}/registration-fields`,
+      )
       .then((res) => {
         setRegFields(
           res.data.map((f) => ({
@@ -389,7 +504,20 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
   const notifyChange = onChange;
   useEffect(() => {
     notifyChange?.(buildValues());
-  }, [notifyChange, name, description, location, eventDate, eventType, masterAgeThreshold, refundCutoff, regClose, donationEnabled, refundDonationOnCancel, color]);
+  }, [
+    notifyChange,
+    name,
+    description,
+    location,
+    eventDate,
+    eventType,
+    masterAgeThreshold,
+    refundCutoff,
+    regClose,
+    donationEnabled,
+    refundDonationOnCancel,
+    color,
+  ]);
 
   function validate(): boolean {
     const next: Record<string, string> = {};
@@ -409,14 +537,24 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
     try {
       await onSubmit(buildValues());
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.");
+      setServerError(
+        err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 560 }}>
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+        maxWidth: 560,
+      }}
+    >
       {serverError && <Alert variant="danger">{serverError}</Alert>}
 
       <LabeledInput
@@ -457,7 +595,9 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
           onChange={(e) => setEventType(e.target.value)}
         >
           {EVENT_TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
         <span className="field-hint">
@@ -487,11 +627,29 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
             type="color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            style={{ width: 48, height: 36, padding: 2, border: "1px solid var(--color-line)", borderRadius: "var(--radius-xs)", cursor: "pointer", backgroundColor: "var(--color-surface)" }}
+            style={{
+              width: 48,
+              height: 36,
+              padding: 2,
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-xs)",
+              cursor: "pointer",
+              backgroundColor: "var(--color-surface)",
+            }}
           />
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--color-ink-2)" }}>{color.toUpperCase()}</span>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              color: "var(--color-ink-2)",
+            }}
+          >
+            {color.toUpperCase()}
+          </span>
         </div>
-        <span className="field-hint">Dipakai sebagai warna header kartu event bila banner belum diunggah</span>
+        <span className="field-hint">
+          Dipakai sebagai warna header kartu event bila banner belum diunggah
+        </span>
       </div>
 
       <LabeledInput
@@ -541,7 +699,9 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <label className="field-label">Form Pendaftaran</label>
           {fieldsLoading ? (
-            <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>Memuat kolom…</p>
+            <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
+              Memuat kolom…
+            </p>
           ) : (
             <FieldBuilder
               eventId={eventId}
@@ -550,10 +710,19 @@ export default function EventForm({ eventId, initial, submitLabel, onSubmit, onC
               saving={fieldsSaving}
             />
           )}
-          <span className="field-hint">Konfigurasi kolom formulir yang muncul saat pendaftar mengisi data diri</span>
+          <span className="field-hint">
+            Konfigurasi kolom formulir yang muncul saat pendaftar mengisi data
+            diri
+          </span>
         </div>
       ) : (
-        <div style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", padding: "12px 16px" }}>
+        <div
+          style={{
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-md)",
+            padding: "12px 16px",
+          }}
+        >
           <p style={{ fontSize: 13, color: "var(--color-ink-2)", margin: 0 }}>
             Form pendaftaran bisa dikonfigurasi setelah event disimpan.
           </p>
