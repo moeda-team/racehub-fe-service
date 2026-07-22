@@ -7,8 +7,7 @@
 
 import { translateApiError } from "./error-messages";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 const TOKEN_KEY = "racehub_token";
 
@@ -92,7 +91,9 @@ async function request<T>(
     throw new ApiError(
       res.status,
       errorBody.error ?? "UNKNOWN_ERROR",
-      translateApiError(errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`),
+      translateApiError(
+        errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`,
+      ),
     );
   }
 
@@ -105,13 +106,21 @@ async function request<T>(
 
 // requestForm sends multipart/form-data (file upload). The browser sets the
 // Content-Type header itself (with boundary), so it must NOT be set manually.
-async function requestForm<T>(method: string, path: string, form: FormData): Promise<T> {
+async function requestForm<T>(
+  method: string,
+  path: string,
+  form: FormData,
+): Promise<T> {
   const headers: Record<string, string> = {};
   if (authToken) {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, { method, headers, body: form });
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers,
+    body: form,
+  });
 
   if (!res.ok) {
     let errorBody: { error?: string; message?: string } = {};
@@ -123,7 +132,9 @@ async function requestForm<T>(method: string, path: string, form: FormData): Pro
     throw new ApiError(
       res.status,
       errorBody.error ?? "UNKNOWN_ERROR",
-      translateApiError(errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`),
+      translateApiError(
+        errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`,
+      ),
     );
   }
 
@@ -131,11 +142,14 @@ async function requestForm<T>(method: string, path: string, form: FormData): Pro
 }
 
 export const api = {
-  get: <T>(path: string, opts?: RequestOptions) => request<T>("GET", path, undefined, opts),
+  get: <T>(path: string, opts?: RequestOptions) =>
+    request<T>("GET", path, undefined, opts),
 
-  post: <T>(path: string, body?: unknown, opts?: RequestOptions) => request<T>("POST", path, body, opts),
+  post: <T>(path: string, body?: unknown, opts?: RequestOptions) =>
+    request<T>("POST", path, body, opts),
 
-  postForm: <T>(path: string, form: FormData) => requestForm<T>("POST", path, form),
+  postForm: <T>(path: string, form: FormData) =>
+    requestForm<T>("POST", path, form),
 
   put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
 

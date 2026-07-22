@@ -1,4 +1,11 @@
-import { ChangeEvent, ChangeEventHandler, InputHTMLAttributes, SelectHTMLAttributes, ReactNode, useId } from "react";
+import {
+  ChangeEvent,
+  ChangeEventHandler,
+  InputHTMLAttributes,
+  SelectHTMLAttributes,
+  ReactNode,
+  useId,
+} from "react";
 import { normalizeNumberInput } from "@/lib/format";
 
 interface FieldBaseProps {
@@ -22,13 +29,15 @@ type FieldInputType =
   | "datetime-local";
 
 interface FieldInputProps
-  extends FieldBaseProps,
+  extends
+    FieldBaseProps,
     Omit<InputHTMLAttributes<HTMLInputElement>, "className" | "type"> {
   type?: FieldInputType;
 }
 
 interface FieldSelectProps
-  extends FieldBaseProps,
+  extends
+    FieldBaseProps,
     Omit<SelectHTMLAttributes<HTMLSelectElement>, "className"> {
   type: "select";
   children: ReactNode;
@@ -63,7 +72,9 @@ export default function Field(props: FieldProps) {
           id={inputId}
           className="field-input"
           aria-invalid={hasError || undefined}
-          aria-describedby={hasError ? `${inputId}-err` : hint ? `${inputId}-hint` : undefined}
+          aria-describedby={
+            hasError ? `${inputId}-err` : hint ? `${inputId}-hint` : undefined
+          }
           disabled={props.disabled}
           name={props.name}
           value={props.value}
@@ -78,7 +89,9 @@ export default function Field(props: FieldProps) {
           className="field-input"
           type={props.type ?? "text"}
           aria-invalid={hasError || undefined}
-          aria-describedby={hasError ? `${inputId}-err` : hint ? `${inputId}-hint` : undefined}
+          aria-describedby={
+            hasError ? `${inputId}-err` : hint ? `${inputId}-hint` : undefined
+          }
           disabled={props.disabled}
           name={props.name}
           placeholder={props.placeholder}

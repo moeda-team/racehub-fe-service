@@ -31,21 +31,21 @@ pnpm build
 
 ## Struktur halaman
 
-| Route | Area | Deskripsi |
-|---|---|---|
-| `/` | Marketplace publik | Daftar event + pencarian + filter |
-| `/events/[id]` | Marketplace publik | Detail event + kuota tersisa |
-| `/register/[eventId]` | Marketplace publik | Wizard pendaftaran 3 langkah (tanpa login) |
-| `/pay/[number]` | Marketplace publik | Pilih metode bayar → rincian → charge |
-| `/ticket/[number]` | Marketplace publik | E-tiket + QR + invoice |
-| `/refund/[number]` | Marketplace publik | Status refund peserta |
-| `/login`, `/register` | Auth | Login & daftar organizer |
-| `/dashboard` | Organizer | Overview + CRUD event + kategori + tiket |
-| `/dashboard/events/[id]` | Organizer | Detail event: dashboard, BIB, check-in, export, donasi |
-| `/dashboard/wallet` | Organizer | 3 wallet (organizer/donasi/admin) + penarikan |
-| `/dashboard/profile` | Organizer | Profil organizer |
-| `/rpc` | Lapangan | Modul check-in (cari manual + scan QR, 2 tahap) |
-| `/admin/*` | Admin | Approval, refund, platform wallet (**belum dibangun**) |
+| Route                    | Area               | Deskripsi                                              |
+| ------------------------ | ------------------ | ------------------------------------------------------ |
+| `/`                      | Marketplace publik | Daftar event + pencarian + filter                      |
+| `/events/[id]`           | Marketplace publik | Detail event + kuota tersisa                           |
+| `/register/[eventId]`    | Marketplace publik | Wizard pendaftaran 3 langkah (tanpa login)             |
+| `/pay/[number]`          | Marketplace publik | Pilih metode bayar → rincian → charge                  |
+| `/ticket/[number]`       | Marketplace publik | E-tiket + QR + invoice                                 |
+| `/refund/[number]`       | Marketplace publik | Status refund peserta                                  |
+| `/login`, `/register`    | Auth               | Login & daftar organizer                               |
+| `/dashboard`             | Organizer          | Overview + CRUD event + kategori + tiket               |
+| `/dashboard/events/[id]` | Organizer          | Detail event: dashboard, BIB, check-in, export, donasi |
+| `/dashboard/wallet`      | Organizer          | 3 wallet (organizer/donasi/admin) + penarikan          |
+| `/dashboard/profile`     | Organizer          | Profil organizer                                       |
+| `/rpc`                   | Lapangan           | Modul check-in (cari manual + scan QR, 2 tahap)        |
+| `/admin/*`               | Admin              | Approval, refund, platform wallet (**belum dibangun**) |
 
 ## Aturan emas
 

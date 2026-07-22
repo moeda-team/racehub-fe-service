@@ -58,7 +58,7 @@ export default function EventListPage() {
   useEffect(() => {
     isFirstLoad.current = false;
     let cancelled = false;
-    setIsLoading(true);
+    const raf = requestAnimationFrame(() => setIsLoading(true));
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("page_size", String(pageSize));
@@ -82,6 +82,7 @@ export default function EventListPage() {
     })();
     return () => {
       cancelled = true;
+      cancelAnimationFrame(raf);
     };
   }, [page, pageSize, debouncedSearch, statusFilter]);
 
@@ -98,7 +99,13 @@ export default function EventListPage() {
           marginBottom: 24,
         }}
       >
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700 }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 28,
+            fontWeight: 700,
+          }}
+        >
           Event Saya
         </h1>
         <Link href="/dashboard/events/new">
@@ -115,7 +122,14 @@ export default function EventListPage() {
       )}
 
       {/* Search & Filter bar */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          marginBottom: 20,
+        }}
+      >
         <input
           type="search"
           className="field-input"
@@ -138,11 +152,17 @@ export default function EventListPage() {
                 cursor: "pointer",
                 border: "1px solid",
                 borderColor:
-                  statusFilter === f.value ? "var(--color-flame)" : "var(--color-line)",
+                  statusFilter === f.value
+                    ? "var(--color-flame)"
+                    : "var(--color-line)",
                 backgroundColor:
-                  statusFilter === f.value ? "var(--color-flame-tint)" : "var(--color-surface)",
+                  statusFilter === f.value
+                    ? "var(--color-flame-tint)"
+                    : "var(--color-surface)",
                 color:
-                  statusFilter === f.value ? "var(--color-flame)" : "var(--color-ink-2)",
+                  statusFilter === f.value
+                    ? "var(--color-flame)"
+                    : "var(--color-ink-2)",
                 transition: "all 150ms ease",
               }}
             >
@@ -191,13 +211,17 @@ export default function EventListPage() {
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600, color: "var(--color-ink)" }}>{ev.name}</div>
+                    <div style={{ fontWeight: 600, color: "var(--color-ink)" }}>
+                      {ev.name}
+                    </div>
                     <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
                       {ev.location || "Lokasi belum diatur"}
-                      {ev.is_running_event ? " · Event lari" : ""}
+                      {ev.event_type === "running" ? " · Event lari" : ""}
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 16 }}
+                  >
                     <span
                       style={{
                         fontFamily: "var(--font-mono)",
@@ -205,7 +229,7 @@ export default function EventListPage() {
                         color: "var(--color-ink-3)",
                       }}
                     >
-                      {ev.is_running_event ? "Lari" : "Umum"}
+                      {ev.event_type === "running" ? "Lari" : "Umum"}
                     </span>
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </div>
@@ -227,7 +251,8 @@ export default function EventListPage() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-                {formatNumber(rangeStart)}–{formatNumber(rangeEnd)} dari {formatNumber(total)} event
+                {formatNumber(rangeStart)}–{formatNumber(rangeEnd)} dari{" "}
+                {formatNumber(total)} event
               </span>
               <select
                 value={pageSize}
@@ -261,13 +286,16 @@ export default function EventListPage() {
                   cursor: page === 1 ? "not-allowed" : "pointer",
                   border: "1px solid var(--color-line)",
                   backgroundColor: "var(--color-surface)",
-                  color: page === 1 ? "var(--color-ink-4)" : "var(--color-ink-2)",
+                  color:
+                    page === 1 ? "var(--color-ink-4)" : "var(--color-ink-2)",
                 }}
               >
                 ← Sebelumnya
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                .filter(
+                  (p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1,
+                )
                 .reduce<(number | "…")[]>((acc, p, i, arr) => {
                   if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
                   acc.push(p);
@@ -277,7 +305,11 @@ export default function EventListPage() {
                   item === "…" ? (
                     <span
                       key={`ellipsis-${i}`}
-                      style={{ padding: "6px 10px", fontSize: 13, color: "var(--color-ink-4)" }}
+                      style={{
+                        padding: "6px 10px",
+                        fontSize: 13,
+                        color: "var(--color-ink-4)",
+                      }}
                     >
                       …
                     </span>
@@ -291,15 +323,21 @@ export default function EventListPage() {
                         fontSize: 13,
                         cursor: "pointer",
                         border: "1px solid",
-                        borderColor: page === item ? "var(--color-flame)" : "var(--color-line)",
-                        backgroundColor: page === item ? "var(--color-flame)" : "var(--color-surface)",
+                        borderColor:
+                          page === item
+                            ? "var(--color-flame)"
+                            : "var(--color-line)",
+                        backgroundColor:
+                          page === item
+                            ? "var(--color-flame)"
+                            : "var(--color-surface)",
                         color: page === item ? "#fff" : "var(--color-ink-2)",
                         fontWeight: page === item ? 600 : 400,
                       }}
                     >
                       {item}
                     </button>
-                  )
+                  ),
                 )}
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
@@ -311,7 +349,10 @@ export default function EventListPage() {
                   cursor: page === totalPages ? "not-allowed" : "pointer",
                   border: "1px solid var(--color-line)",
                   backgroundColor: "var(--color-surface)",
-                  color: page === totalPages ? "var(--color-ink-4)" : "var(--color-ink-2)",
+                  color:
+                    page === totalPages
+                      ? "var(--color-ink-4)"
+                      : "var(--color-ink-2)",
                 }}
               >
                 Berikutnya →

@@ -44,7 +44,9 @@ function ProfileForm({ profile }: { profile: OrganizerProfile }) {
       await getProfile();
       setSuccess("Profil berhasil diperbarui.");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memperbarui profil.");
+      setError(
+        err instanceof ApiError ? err.message : "Gagal memperbarui profil.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -52,7 +54,14 @@ function ProfileForm({ profile }: { profile: OrganizerProfile }) {
 
   return (
     <div className="rh-reveal" style={{ maxWidth: 480 }}>
-      <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, marginBottom: 24 }}>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 28,
+          fontWeight: 700,
+          marginBottom: 24,
+        }}
+      >
         Profil Organizer
       </h1>
 
@@ -67,8 +76,17 @@ function ProfileForm({ profile }: { profile: OrganizerProfile }) {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <Field label="Email" value={profile.email} disabled hint="Email tidak dapat diubah" readOnly />
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+      >
+        <Field
+          label="Email"
+          value={profile.email}
+          disabled
+          hint="Email tidak dapat diubah"
+          readOnly
+        />
         <Field
           label="Nama"
           value={name}
@@ -82,7 +100,12 @@ function ProfileForm({ profile }: { profile: OrganizerProfile }) {
           onChange={(e) => setPhone(e.target.value)}
           placeholder="08xxxxxxxxxx"
         />
-        <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Menyimpan…" : "Simpan Profil"}
         </Button>
       </form>

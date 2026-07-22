@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Saira, Hanken_Grotesk, Spline_Sans_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
+import { AdminAuthProvider } from "@/lib/adminAuth";
 
 const saira = Saira({
   subsets: ["latin"],
@@ -40,8 +41,17 @@ export default function RootLayout({
       lang="id"
       className={`${saira.variable} ${hanken.variable} ${spline.variable}`}
     >
-      <body className="min-h-screen antialiased" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-paper)", color: "var(--color-ink)" }}>
-        <AuthProvider>{children}</AuthProvider>
+      <body
+        className="min-h-screen antialiased"
+        style={{
+          fontFamily: "var(--font-body)",
+          backgroundColor: "var(--color-paper)",
+          color: "var(--color-ink)",
+        }}
+      >
+        <AuthProvider>
+          <AdminAuthProvider>{children}</AdminAuthProvider>
+        </AuthProvider>
       </body>
     </html>
   );

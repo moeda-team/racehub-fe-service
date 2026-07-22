@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
-import type { ApiResponse, LedgerEntry, WalletEntryType } from "@/lib/types.gen";
+import type {
+  ApiResponse,
+  LedgerEntry,
+  WalletEntryType,
+} from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
 
 const TYPE_LABEL: Record<string, string> = {
@@ -21,8 +25,11 @@ const TYPE_COLOR: Record<string, string> = {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("id-ID", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -40,7 +47,9 @@ export default function LedgerPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<LedgerEntry[]>>("/api/v1/organizers/me/wallet/ledger?limit=500");
+        const res = await api.get<ApiResponse<LedgerEntry[]>>(
+          "/api/v1/organizers/me/wallet/ledger?limit=500",
+        );
         if (!cancelled) setEntries(res.data ?? []);
       } catch {
         if (!cancelled) setError("Gagal memuat riwayat transaksi.");
@@ -48,7 +57,9 @@ export default function LedgerPage() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filtered = useMemo(() => {
@@ -58,7 +69,12 @@ export default function LedgerPage() {
 
     return entries.filter((e) => {
       if (typeFilter && e.type !== typeFilter) return false;
-      if (q && !e.description.toLowerCase().includes(q) && !e.reference_id.toLowerCase().includes(q)) return false;
+      if (
+        q &&
+        !e.description.toLowerCase().includes(q) &&
+        !e.reference_id.toLowerCase().includes(q)
+      )
+        return false;
       if (from && new Date(e.created_at).getTime() < from) return false;
       if (to && new Date(e.created_at).getTime() > to) return false;
       return true;
@@ -67,19 +83,39 @@ export default function LedgerPage() {
 
   const totalShown = useMemo(
     () => filtered.reduce((sum, e) => sum + e.amount, 0),
-    [filtered]
+    [filtered],
   );
 
   return (
     <div className="rh-reveal">
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 20,
+          flexWrap: "wrap",
+        }}
+      >
         <Link
           href="/dashboard/wallet"
-          style={{ fontSize: 13, color: "var(--color-ink-3)", textDecoration: "none", fontWeight: 500 }}
+          style={{
+            fontSize: 13,
+            color: "var(--color-ink-3)",
+            textDecoration: "none",
+            fontWeight: 500,
+          }}
         >
           ← Wallet
         </Link>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 700, margin: 0 }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 24,
+            fontWeight: 700,
+            margin: 0,
+          }}
+        >
           Riwayat Transaksi
         </h1>
       </div>
@@ -102,7 +138,9 @@ export default function LedgerPage() {
           <select
             className="field-input"
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as WalletEntryType | "")}
+            onChange={(e) =>
+              setTypeFilter(e.target.value as WalletEntryType | "")
+            }
           >
             <option value="">Semua</option>
             <option value="credit">Pemasukan Tiket</option>
@@ -134,15 +172,34 @@ export default function LedgerPage() {
         {(search || typeFilter || dateFrom || dateTo) && (
           <button
             type="button"
-            onClick={() => { setSearch(""); setTypeFilter(""); setDateFrom(""); setDateTo(""); }}
-            style={{ alignSelf: "flex-end", padding: "8px 14px", fontSize: 13, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "none", cursor: "pointer", color: "var(--color-ink-3)", whiteSpace: "nowrap" }}
+            onClick={() => {
+              setSearch("");
+              setTypeFilter("");
+              setDateFrom("");
+              setDateTo("");
+            }}
+            style={{
+              alignSelf: "flex-end",
+              padding: "8px 14px",
+              fontSize: 13,
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-sm)",
+              background: "none",
+              cursor: "pointer",
+              color: "var(--color-ink-3)",
+              whiteSpace: "nowrap",
+            }}
           >
             Reset filter
           </button>
         )}
       </div>
 
-      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
 
       {/* Summary bar */}
       {!loading && (
@@ -150,8 +207,17 @@ export default function LedgerPage() {
           <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
             {filtered.length} transaksi ditampilkan
           </span>
-          <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 14, color: totalShown >= 0 ? "var(--color-ok)" : "var(--color-danger)" }}>
-            Net: {totalShown >= 0 ? "+" : "−"}{formatRupiah(Math.abs(totalShown))}
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontWeight: 600,
+              fontSize: 14,
+              color:
+                totalShown >= 0 ? "var(--color-ok)" : "var(--color-danger)",
+            }}
+          >
+            Net: {totalShown >= 0 ? "+" : "−"}
+            {formatRupiah(Math.abs(totalShown))}
           </span>
         </div>
       )}
@@ -160,41 +226,72 @@ export default function LedgerPage() {
       {loading ? (
         <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>
       ) : filtered.length === 0 ? (
-        <p style={{ color: "var(--color-ink-3)" }}>Tidak ada transaksi yang sesuai filter.</p>
+        <p style={{ color: "var(--color-ink-3)" }}>
+          Tidak ada transaksi yang sesuai filter.
+        </p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={table}>
             <thead>
               <tr>
                 {["Tanggal", "Jenis", "Keterangan", "Nominal"].map((h) => (
-                  <th key={h} style={th}>{h}</th>
+                  <th key={h} style={th}>
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((e) => (
-                <tr key={e.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
-                  <td style={{ ...td, color: "var(--color-ink-3)", whiteSpace: "nowrap", fontSize: 12 }}>
+                <tr
+                  key={e.id}
+                  style={{ borderBottom: "1px solid var(--color-line)" }}
+                >
+                  <td
+                    style={{
+                      ...td,
+                      color: "var(--color-ink-3)",
+                      whiteSpace: "nowrap",
+                      fontSize: 12,
+                    }}
+                  >
                     {e.created_at ? formatDate(e.created_at) : "—"}
                   </td>
                   <td style={td}>
-                    <span style={{
-                      display: "inline-block",
-                      padding: "2px 8px",
-                      borderRadius: "var(--radius-xs)",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: TYPE_COLOR[e.type] ?? "var(--color-ink-3)",
-                      backgroundColor: `color-mix(in srgb, ${TYPE_COLOR[e.type] ?? "var(--color-ink-3)"} 12%, transparent)`,
-                    }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "2px 8px",
+                        borderRadius: "var(--radius-xs)",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: TYPE_COLOR[e.type] ?? "var(--color-ink-3)",
+                        backgroundColor: `color-mix(in srgb, ${TYPE_COLOR[e.type] ?? "var(--color-ink-3)"} 12%, transparent)`,
+                      }}
+                    >
                       {TYPE_LABEL[e.type] ?? e.type}
                     </span>
                   </td>
-                  <td style={{ ...td, color: "var(--color-ink-2)", fontSize: 13 }}>
+                  <td
+                    style={{ ...td, color: "var(--color-ink-2)", fontSize: 13 }}
+                  >
                     {e.description || e.reference_id}
                   </td>
-                  <td style={{ ...td, textAlign: "right", fontFamily: "var(--font-mono)", fontWeight: 600, whiteSpace: "nowrap", color: e.amount < 0 ? "var(--color-danger)" : "var(--color-ok)" }}>
-                    {e.amount < 0 ? "−" : "+"}{formatRupiah(Math.abs(e.amount))}
+                  <td
+                    style={{
+                      ...td,
+                      textAlign: "right",
+                      fontFamily: "var(--font-mono)",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      color:
+                        e.amount < 0
+                          ? "var(--color-danger)"
+                          : "var(--color-ok)",
+                    }}
+                  >
+                    {e.amount < 0 ? "−" : "+"}
+                    {formatRupiah(Math.abs(e.amount))}
                   </td>
                 </tr>
               ))}

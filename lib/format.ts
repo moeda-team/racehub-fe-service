@@ -54,5 +54,9 @@ export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "Tanggal belum diatur";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "Tanggal belum diatur";
-  return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }

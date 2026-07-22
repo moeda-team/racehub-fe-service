@@ -2,15 +2,16 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
-import { ApiError } from "@/lib/api";
-import Button from "@/components/ui/Button";
+import { useAdminAuth } from "@/lib/adminAuth";
+import { ApiError } from "@/lib/admin";
+import { translateApiError } from "@/lib/error-messages";
 import Field from "@/components/ui/Field";
+import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAdminAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
@@ -19,7 +20,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace("/admin/overview");
     }
   }, [isLoading, isAuthenticated, router]);
 
@@ -31,16 +32,15 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
-
     try {
       await login(email, password, keepSignedIn);
-      router.push("/dashboard");
+      router.push("/admin/overview");
     } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError("Terjadi kesalahan. Silakan coba lagi.");
-      }
+      const msg =
+        err instanceof ApiError
+          ? translateApiError(err.message)
+          : "Terjadi kesalahan. Silakan coba lagi.";
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -67,7 +67,7 @@ export default function LoginPage() {
           textAlign: "center",
         }}
       >
-        Masuk ke akun organizer LowkeyThings Anda
+        Masuk ke akun admin LowkeyThings — RaceHub
       </p>
 
       {error && (
@@ -83,7 +83,7 @@ export default function LoginPage() {
         <Field
           label="Email"
           type="email"
-          placeholder="nama@email.com"
+          placeholder="admin@racehub.id"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -129,6 +129,22 @@ export default function LoginPage() {
           {isSubmitting ? "Memproses..." : "Masuk"}
         </Button>
       </form>
+
+      <p
+        style={{
+          marginTop: 20,
+          textAlign: "center",
+          fontSize: 13,
+          color: "var(--color-ink-3)",
+        }}
+      >
+        <a
+          href="/login"
+          style={{ color: "var(--color-sprint)", textDecoration: "none" }}
+        >
+          Masuk sebagai Penyelenggara
+        </a>
+      </p>
     </div>
   );
 }

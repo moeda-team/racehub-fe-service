@@ -19,19 +19,22 @@ import PaymentBreakdown from "@/components/ui/PaymentBreakdown";
 
 // Methods offered. Order/label only — fees come from the server.
 const METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
-  { value: "va_bca",     label: "VA BCA" },
-  { value: "va_bni",     label: "VA BNI" },
-  { value: "va_bri",     label: "VA BRI" },
+  { value: "va_bca", label: "VA BCA" },
+  { value: "va_bni", label: "VA BNI" },
+  { value: "va_bri", label: "VA BRI" },
   { value: "va_mandiri", label: "VA Mandiri" },
   { value: "va_permata", label: "VA Permata" },
-  { value: "gopay",      label: "GoPay" },
-  { value: "qris",       label: "QRIS" },
-  { value: "card",       label: "Kartu Kredit/Debit" },
+  { value: "gopay", label: "GoPay" },
+  { value: "qris", label: "QRIS" },
+  { value: "card", label: "Kartu Kredit/Debit" },
 ];
 
 type StatusVariant = "warn" | "ok" | "danger" | "neutral";
 
-function statusBadge(status: string): { label: string; variant: StatusVariant } {
+function statusBadge(status: string): {
+  label: string;
+  variant: StatusVariant;
+} {
   switch (status) {
     case "paid":
       return { label: "Lunas", variant: "ok" };
@@ -46,7 +49,11 @@ function statusBadge(status: string): { label: string; variant: StatusVariant } 
   }
 }
 
-export default function PayPage({ params }: { params: Promise<{ number: string }> }) {
+export default function PayPage({
+  params,
+}: {
+  params: Promise<{ number: string }>;
+}) {
   const { number } = use(params);
 
   const [reg, setReg] = useState<Registration | null>(null);
@@ -61,7 +68,9 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   const [error, setError] = useState<string | null>(null);
 
   const loadRegistration = useCallback(async () => {
-    const res = await api.get<ApiResponse<Registration>>(`/api/v1/registrations/${number}`);
+    const res = await api.get<ApiResponse<Registration>>(
+      `/api/v1/registrations/${number}`,
+    );
     return res.data;
   }, [number]);
 
@@ -104,13 +113,20 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
     if (!m || !reg) return;
     setQuoting(true);
     try {
-      const res = await api.post<ApiResponse<PaymentQuoteResponse>>("/api/v1/payments/quote", {
-        registration_id: reg.id,
-        payment_method: m,
-      });
+      const res = await api.post<ApiResponse<PaymentQuoteResponse>>(
+        "/api/v1/payments/quote",
+        {
+          registration_id: reg.id,
+          payment_method: m,
+        },
+      );
       setQuote(res.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal mengambil rincian biaya.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Gagal mengambil rincian biaya.",
+      );
     } finally {
       setQuoting(false);
     }
@@ -121,26 +137,39 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
     setCharging(true);
     setError(null);
     try {
-      const res = await api.post<ApiResponse<PaymentChargeResponse>>("/api/v1/payments/charge", {
-        registration_id: reg.id,
-        payment_method: method,
-      });
+      const res = await api.post<ApiResponse<PaymentChargeResponse>>(
+        "/api/v1/payments/charge",
+        {
+          registration_id: reg.id,
+          payment_method: method,
+        },
+      );
       setCharge(res.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memulai pembayaran.");
+      setError(
+        err instanceof ApiError ? err.message : "Gagal memulai pembayaran.",
+      );
     } finally {
       setCharging(false);
     }
   }
 
   if (loading) {
-    return <main className="max-w-xl mx-auto px-4 py-12"><p style={{ color: "var(--color-ink-3)" }}>Memuat…</p></main>;
+    return (
+      <main className="max-w-xl mx-auto px-4 py-12">
+        <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>
+      </main>
+    );
   }
   if (loadError || !reg) {
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Link href="/" style={back}>← Kembali ke marketplace</Link>
-        <Alert variant="danger">{loadError ?? "Pendaftaran tidak ditemukan."}</Alert>
+        <Link href="/" style={back}>
+          ← Kembali ke marketplace
+        </Link>
+        <Alert variant="danger">
+          {loadError ?? "Pendaftaran tidak ditemukan."}
+        </Alert>
       </main>
     );
   }
@@ -158,13 +187,22 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         </Alert>
         <div style={card}>
           <Row label="Nomor Registrasi" value={reg.registration_number} mono />
-          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div
+            style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}
+          >
             <Badge variant="ok">Lunas</Badge>
-            {reg.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
+            {reg.is_complimentary && (
+              <Badge variant="sprint">Complimentary</Badge>
+            )}
           </div>
         </div>
-        <Link href={`/ticket/${reg.registration_number}${reg.qr_token ? `?token=${reg.qr_token}` : ""}`} style={{ display: "block", marginTop: 16 }}>
-          <Button variant="primary" size="md" style={{ width: "100%" }}>Lihat E-tiket</Button>
+        <Link
+          href={`/ticket/${reg.registration_number}${reg.qr_token ? `?token=${reg.qr_token}` : ""}`}
+          style={{ display: "block", marginTop: 16 }}
+        >
+          <Button variant="primary" size="md" style={{ width: "100%" }}>
+            Lihat E-tiket
+          </Button>
         </Link>
       </main>
     );
@@ -176,39 +214,85 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         {
           label: "Harga Tiket",
           value: formatRupiah(quote.price),
-          original: quote.original_price != null ? formatRupiah(quote.original_price) : undefined,
+          original:
+            quote.original_price != null
+              ? formatRupiah(quote.original_price)
+              : undefined,
         },
         { label: "Donasi", value: formatRupiah(quote.donation) },
         {
           label: "Fee Platform",
           value: formatRupiah(quote.fee_platform),
-          original: quote.original_fee_platform != null ? formatRupiah(quote.original_fee_platform) : undefined,
+          original:
+            quote.original_fee_platform != null
+              ? formatRupiah(quote.original_fee_platform)
+              : undefined,
         },
-        { label: `Fee Midtrans · ${quote.payment_method_label}`, value: formatRupiah(quote.fee_midtrans) },
+        {
+          label: `Fee Midtrans · ${quote.payment_method_label}`,
+          value: formatRupiah(quote.fee_midtrans),
+        },
       ]
     : [];
 
   return (
     <main className="max-w-xl mx-auto px-4 py-8">
-      <Link href={`/`} style={back}>← Marketplace</Link>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 700 }}>Pembayaran</h1>
+      <Link href={`/`} style={back}>
+        ← Marketplace
+      </Link>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 4,
+        }}
+      >
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 26,
+            fontWeight: 700,
+          }}
+        >
+          Pembayaran
+        </h1>
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
-      <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
-        No. Registrasi <span style={{ fontFamily: "var(--font-mono)" }}>{reg.registration_number}</span>
+      <p
+        style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}
+      >
+        No. Registrasi{" "}
+        <span style={{ fontFamily: "var(--font-mono)" }}>
+          {reg.registration_number}
+        </span>
       </p>
 
       {reg.is_complimentary && (
-        <div style={{ padding: "12px 16px", border: "1px solid var(--color-sprint)", borderRadius: "var(--radius-md)", backgroundColor: "color-mix(in srgb, var(--color-sprint) 8%, transparent)", marginBottom: 16, fontSize: 14 }}>
-          <strong>Anda diundang — Tiket Gratis</strong> — harga tiket dan fee platform dibebaskan.
+        <div
+          style={{
+            padding: "12px 16px",
+            border: "1px solid var(--color-sprint)",
+            borderRadius: "var(--radius-md)",
+            backgroundColor:
+              "color-mix(in srgb, var(--color-sprint) 8%, transparent)",
+            marginBottom: 16,
+            fontSize: 14,
+          }}
+        >
+          <strong>Anda diundang — Tiket Gratis</strong> — harga tiket dan fee
+          platform dibebaskan.
           {reg.donation > 0
             ? " Anda hanya perlu membayar donasi dan fee transaksi."
             : " Tidak ada biaya yang perlu dibayar."}
         </div>
       )}
 
-      {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
 
       {!charge ? (
         <>
@@ -219,9 +303,15 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             lines={lines}
             total={quote ? formatRupiah(quote.sub_total) : "—"}
           />
-          <p style={{ fontSize: 12, color: "var(--color-ink-3)", margin: "10px 0 16px" }}>
-            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif. Donasi bebas
-            biaya admin &amp; tidak dapat dikembalikan.
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--color-ink-3)",
+              margin: "10px 0 16px",
+            }}
+          >
+            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif.
+            Donasi bebas biaya admin &amp; tidak dapat dikembalikan.
           </p>
           <Button
             variant="primary"
@@ -230,25 +320,94 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             disabled={!quote || quoting || charging}
             onClick={handleCharge}
           >
-            {quoting ? "Menghitung…" : charging ? "Memproses…" : "Bayar Sekarang"}
+            {quoting
+              ? "Menghitung…"
+              : charging
+                ? "Memproses…"
+                : "Bayar Sekarang"}
           </Button>
         </>
       ) : (
         <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Instruksi Pembayaran</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>
+            Instruksi Pembayaran
+          </div>
           <Row label="Metode" value={charge.quote.payment_method_label} />
-          {charge.va_number && <Row label="Nomor Virtual Account" value={charge.va_number} mono />}
-          {charge.biller_code && <Row label="Kode Biller (Mandiri)" value={charge.biller_code} mono />}
-          {charge.bill_key && <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />}
-          {charge.qr_string && <QrDisplay value={charge.qr_string} deeplinkUrl={charge.deeplink_url} />}
-          <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
-          <Row label="Harga Tiket" value={formatRupiah(charge.quote.price)} original={charge.quote.original_price != null ? formatRupiah(charge.quote.original_price) : undefined} mono />
-          <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />
-          <Row label="Fee Platform" value={formatRupiah(charge.quote.fee_platform)} original={charge.quote.original_fee_platform != null ? formatRupiah(charge.quote.original_fee_platform) : undefined} mono />
-          <Row label={`Fee Admin · ${charge.quote.payment_method_label}`} value={formatRupiah(charge.quote.fee_midtrans)} mono />
-          <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
-          <Row label="Sub Total" value={formatRupiah(charge.quote.sub_total)} mono />
-          <hr style={{ border: 0, borderTop: "1px solid var(--color-line)", margin: "12px 0" }} />
+          {charge.va_number && (
+            <Row label="Nomor Virtual Account" value={charge.va_number} mono />
+          )}
+          {charge.biller_code && (
+            <Row
+              label="Kode Biller (Mandiri)"
+              value={charge.biller_code}
+              mono
+            />
+          )}
+          {charge.bill_key && (
+            <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />
+          )}
+          {charge.qr_string && (
+            <QrDisplay
+              value={charge.qr_string}
+              deeplinkUrl={charge.deeplink_url}
+            />
+          )}
+          <hr
+            style={{
+              border: 0,
+              borderTop: "1px solid var(--color-line)",
+              margin: "12px 0",
+            }}
+          />
+          <Row
+            label="Harga Tiket"
+            value={formatRupiah(charge.quote.price)}
+            original={
+              charge.quote.original_price != null
+                ? formatRupiah(charge.quote.original_price)
+                : undefined
+            }
+            mono
+          />
+          <Row
+            label="Donasi"
+            value={formatRupiah(charge.quote.donation)}
+            mono
+          />
+          <Row
+            label="Fee Platform"
+            value={formatRupiah(charge.quote.fee_platform)}
+            original={
+              charge.quote.original_fee_platform != null
+                ? formatRupiah(charge.quote.original_fee_platform)
+                : undefined
+            }
+            mono
+          />
+          <Row
+            label={`Fee Admin · ${charge.quote.payment_method_label}`}
+            value={formatRupiah(charge.quote.fee_midtrans)}
+            mono
+          />
+          <hr
+            style={{
+              border: 0,
+              borderTop: "1px solid var(--color-line)",
+              margin: "12px 0",
+            }}
+          />
+          <Row
+            label="Sub Total"
+            value={formatRupiah(charge.quote.sub_total)}
+            mono
+          />
+          <hr
+            style={{
+              border: 0,
+              borderTop: "1px solid var(--color-line)",
+              margin: "12px 0",
+            }}
+          />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Badge variant="warn">Menunggu Pembayaran</Badge>
             <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
@@ -261,7 +420,12 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   );
 }
 
-const back: React.CSSProperties = { fontSize: 13, color: "var(--color-ink-3)", display: "inline-block", marginBottom: 12 };
+const back: React.CSSProperties = {
+  fontSize: 13,
+  color: "var(--color-ink-3)",
+  display: "inline-block",
+  marginBottom: 12,
+};
 const card: React.CSSProperties = {
   padding: 16,
   border: "1px solid var(--color-line)",
@@ -273,23 +437,73 @@ const card: React.CSSProperties = {
 // (encode it client-side) or a ready-made QR image URL (e.g. GoPay
 // generate-qr-code). A URL must be shown as <img>, never re-encoded — its
 // pixels already are the payment QR.
-function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string }) {
+function QrDisplay({
+  value,
+  deeplinkUrl,
+}: {
+  value: string;
+  deeplinkUrl?: string;
+}) {
   const isUrl = /^https?:\/\//i.test(value);
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "12px 0" }}>
-      <span style={{ alignSelf: "flex-start", color: "var(--color-ink-3)", fontSize: 14 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 8,
+        padding: "12px 0",
+      }}
+    >
+      <span
+        style={{
+          alignSelf: "flex-start",
+          color: "var(--color-ink-3)",
+          fontSize: 14,
+        }}
+      >
         Kode QR — pindai untuk membayar
       </span>
-      <div style={{ background: "#fff", padding: 12, borderRadius: "var(--radius-md)" }}>
+      <div
+        style={{
+          background: "#fff",
+          padding: 12,
+          borderRadius: "var(--radius-md)",
+        }}
+      >
         {isUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="Kode QR pembayaran" width={280} height={280} style={{ display: "block", width: "100%", maxWidth: 280, height: "auto" }} />
+          <img
+            src={value}
+            alt="Kode QR pembayaran"
+            width={280}
+            height={280}
+            style={{
+              display: "block",
+              width: "100%",
+              maxWidth: 280,
+              height: "auto",
+            }}
+          />
         ) : (
-          <QRCodeSVG value={value} size={280} level="M" style={{ width: "100%", maxWidth: 280, height: "auto" }} />
+          <QRCodeSVG
+            value={value}
+            size={280}
+            level="M"
+            style={{ width: "100%", maxWidth: 280, height: "auto" }}
+          />
         )}
       </div>
       {(isUrl || deeplinkUrl) && (
-        <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 4,
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
           {isUrl && (
             <a
               href={value}
@@ -338,12 +552,49 @@ function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string
   );
 }
 
-function Row({ label, value, original, mono }: { label: string; value: string; original?: string; mono?: boolean }) {
+function Row({
+  label,
+  value,
+  original,
+  mono,
+}: {
+  label: string;
+  value: string;
+  original?: string;
+  mono?: boolean;
+}) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontSize: 14, gap: 12 }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "4px 0",
+        fontSize: 14,
+        gap: 12,
+      }}
+    >
       <span style={{ color: "var(--color-ink-3)" }}>{label}</span>
-      <span style={{ textAlign: "right", display: "flex", gap: 6, alignItems: "baseline", justifyContent: "flex-end", ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}>
-        {original && <span style={{ textDecoration: "line-through", opacity: 0.45, fontSize: "0.9em" }}>{original}</span>}
+      <span
+        style={{
+          textAlign: "right",
+          display: "flex",
+          gap: 6,
+          alignItems: "baseline",
+          justifyContent: "flex-end",
+          ...(mono ? { fontFamily: "var(--font-mono)" } : {}),
+        }}
+      >
+        {original && (
+          <span
+            style={{
+              textDecoration: "line-through",
+              opacity: 0.45,
+              fontSize: "0.9em",
+            }}
+          >
+            {original}
+          </span>
+        )}
         {value}
       </span>
     </div>

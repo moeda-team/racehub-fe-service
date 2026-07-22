@@ -55,6 +55,9 @@ export interface WalletResponse {
 
 export type EventStatus = "draft" | "published" | "cancelled" | "finished";
 
+export type EventType =
+  "running" | "concert" | "seminar" | "workshop" | "cycling" | "custom";
+
 export interface Event {
   id: string;
   organizer_id: string;
@@ -63,7 +66,7 @@ export interface Event {
   location: string;
   event_date: string;
   status: EventStatus;
-  is_running_event: boolean;
+  event_type: string;
   master_age_threshold: number;
   refund_cutoff_date: string | null;
   registration_close_date: string | null;
@@ -93,7 +96,7 @@ export interface PublicEvent {
   location: string;
   event_date: string | null;
   status: "published";
-  is_running_event: boolean;
+  event_type: string;
   master_age_threshold: number;
   refund_cutoff_date: string | null;
   donation_enabled: boolean;
@@ -125,6 +128,30 @@ export interface PublicEventDetail {
   event: PublicEvent;
   categories: PublicCategory[];
   ticket_categories: PublicTicket[];
+  registration_fields: RegistrationField[];
+}
+
+export interface RegistrationField {
+  id: string;
+  event_id: string;
+  name: string;
+  label: string;
+  field_type: string;
+  options: string;
+  placeholder: string;
+  required: boolean;
+  sort_order: number;
+}
+
+export interface UpsertRegistrationFieldRequest {
+  id?: string;
+  name: string;
+  label: string;
+  field_type: string;
+  options?: string;
+  placeholder?: string;
+  required?: boolean;
+  sort_order?: number;
 }
 
 export interface RejectEventRequest {
@@ -143,6 +170,7 @@ export interface CreateRegistrationRequest {
   birth_date: string; // YYYY-MM-DD (required)
   gender: string;
   donation?: number;
+  extra_data?: Record<string, string>;
 }
 
 export interface Registration {
@@ -177,7 +205,7 @@ export interface MarketplaceFilter {
   date_from?: string;
   date_to?: string;
   location?: string;
-  is_running_event?: boolean;
+  event_type?: string;
 }
 
 export interface CreateEventRequest {
@@ -185,7 +213,7 @@ export interface CreateEventRequest {
   description?: string;
   location?: string;
   event_date?: string;
-  is_running_event?: boolean;
+  event_type?: string;
   master_age_threshold?: number;
   refund_cutoff_date?: string;
   registration_close_date?: string;
@@ -198,7 +226,7 @@ export interface UpdateEventRequest {
   description?: string;
   location?: string;
   event_date?: string;
-  is_running_event?: boolean;
+  event_type?: string;
   master_age_threshold?: number;
   refund_cutoff_date?: string;
   registration_close_date?: string;
@@ -299,7 +327,15 @@ export interface PaymentQuoteResponse {
   original_fee_platform?: number;
 }
 
-export type PaymentMethod = "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
+export type PaymentMethod =
+  | "va_bca"
+  | "va_bni"
+  | "va_bri"
+  | "va_mandiri"
+  | "va_permata"
+  | "gopay"
+  | "card"
+  | "qris";
 
 export interface PaymentChargeRequest {
   registration_id: string;
@@ -459,7 +495,7 @@ export interface RegistrationSummary {
 }
 
 export interface AdminEventPage {
-  events: Event[];
+  data: Event[];
   total: number;
   page: number;
   page_size: number;

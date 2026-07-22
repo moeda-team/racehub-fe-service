@@ -4,8 +4,17 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
-import { formatRupiah, formatNumberInput, parseNumberInput } from "@/lib/format";
-import type { ApiResponse, DonationWalletBalance, PlatformRevenue, WalletBalance } from "@/lib/types.gen";
+import {
+  formatRupiah,
+  formatNumberInput,
+  parseNumberInput,
+} from "@/lib/format";
+import type {
+  ApiResponse,
+  DonationWalletBalance,
+  PlatformRevenue,
+  WalletBalance,
+} from "@/lib/types.gen";
 import StatCard from "@/components/ui/StatCard";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -41,8 +50,12 @@ export default function WalletPage() {
   const load = useCallback(async () => {
     const [o, don, plat] = await Promise.all([
       api.get<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet"),
-      api.get<ApiResponse<DonationWalletBalance>>("/api/v1/organizers/me/wallet/donations"),
-      api.get<ApiResponse<PlatformRevenue>>("/api/v1/organizers/me/wallet/platform"),
+      api.get<ApiResponse<DonationWalletBalance>>(
+        "/api/v1/organizers/me/wallet/donations",
+      ),
+      api.get<ApiResponse<PlatformRevenue>>(
+        "/api/v1/organizers/me/wallet/platform",
+      ),
     ]);
     setOrg(o.data);
     setDonation(don.data);
@@ -50,130 +63,286 @@ export default function WalletPage() {
   }, []);
 
   useEffect(() => {
-    load().catch(() => {});
+    const id = requestAnimationFrame(() => {
+      load();
+    });
+    return () => cancelAnimationFrame(id);
   }, [load]);
 
   async function handleOrgWithdraw() {
-    setOrgError(null); setOrgNotice(null);
+    setOrgError(null);
+    setOrgNotice(null);
     const n = Number(orgAmount);
-    if (!n || n <= 0) { setOrgError("Masukkan nominal yang valid."); return; }
-    if (org && n > org.balance) { setOrgError(`Nominal melebihi saldo tersedia (${formatRupiah(org.balance)}).`); return; }
+    if (!n || n <= 0) {
+      setOrgError("Masukkan nominal yang valid.");
+      return;
+    }
+    if (org && n > org.balance) {
+      setOrgError(
+        `Nominal melebihi saldo tersedia (${formatRupiah(org.balance)}).`,
+      );
+      return;
+    }
     setOrgBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (orgBank.trim()) body.bank_account = orgBank.trim();
-      const res = await api.post<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet/withdraw", body, { idempotencyKey: orgIdem.keyFor(body) });
+      const res = await api.post<ApiResponse<WalletBalance>>(
+        "/api/v1/organizers/me/wallet/withdraw",
+        body,
+        { idempotencyKey: orgIdem.keyFor(body) },
+      );
       orgIdem.reset();
       setOrg(res.data);
-      setOrgAmount(""); setOrgBank("");
-      setOrgNotice(`Penarikan ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`);
+      setOrgAmount("");
+      setOrgBank("");
+      setOrgNotice(
+        `Penarikan ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`,
+      );
     } catch (err) {
       setOrgError(err instanceof ApiError ? err.message : "Penarikan gagal.");
-    } finally { setOrgBusy(false); }
+    } finally {
+      setOrgBusy(false);
+    }
   }
 
   async function handleDonWithdraw() {
-    setDonError(null); setDonNotice(null);
+    setDonError(null);
+    setDonNotice(null);
     const n = Number(donAmount);
-    if (!n || n <= 0) { setDonError("Masukkan nominal yang valid."); return; }
-    if (donation && n > donation.balance) { setDonError(`Nominal melebihi saldo donasi (${formatRupiah(donation.balance)}).`); return; }
+    if (!n || n <= 0) {
+      setDonError("Masukkan nominal yang valid.");
+      return;
+    }
+    if (donation && n > donation.balance) {
+      setDonError(
+        `Nominal melebihi saldo donasi (${formatRupiah(donation.balance)}).`,
+      );
+      return;
+    }
     setDonBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (donBank.trim()) body.bank_account = donBank.trim();
-      const res = await api.post<ApiResponse<DonationWalletBalance>>("/api/v1/organizers/me/wallet/donations/withdraw", body, { idempotencyKey: donIdem.keyFor(body) });
+      const res = await api.post<ApiResponse<DonationWalletBalance>>(
+        "/api/v1/organizers/me/wallet/donations/withdraw",
+        body,
+        { idempotencyKey: donIdem.keyFor(body) },
+      );
       donIdem.reset();
       setDonation(res.data);
-      setDonAmount(""); setDonBank("");
-      setDonNotice(`Penarikan donasi ${formatRupiah(n)} berhasil. Saldo donasi kini ${formatRupiah(res.data.balance)}.`);
+      setDonAmount("");
+      setDonBank("");
+      setDonNotice(
+        `Penarikan donasi ${formatRupiah(n)} berhasil. Saldo donasi kini ${formatRupiah(res.data.balance)}.`,
+      );
     } catch (err) {
-      setDonError(err instanceof ApiError ? err.message : "Penarikan donasi gagal.");
-    } finally { setDonBusy(false); }
+      setDonError(
+        err instanceof ApiError ? err.message : "Penarikan donasi gagal.",
+      );
+    } finally {
+      setDonBusy(false);
+    }
   }
 
   async function handlePlatWithdraw() {
-    setPlatError(null); setPlatNotice(null);
+    setPlatError(null);
+    setPlatNotice(null);
     const n = Number(platAmount);
-    if (!n || n <= 0) { setPlatError("Masukkan nominal yang valid."); return; }
-    if (platform && n > platform.balance) { setPlatError(`Nominal melebihi saldo admin (${formatRupiah(platform.balance)}).`); return; }
+    if (!n || n <= 0) {
+      setPlatError("Masukkan nominal yang valid.");
+      return;
+    }
+    if (platform && n > platform.balance) {
+      setPlatError(
+        `Nominal melebihi saldo admin (${formatRupiah(platform.balance)}).`,
+      );
+      return;
+    }
     setPlatBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (platBank.trim()) body.bank_account = platBank.trim();
-      const res = await api.post<ApiResponse<PlatformRevenue>>("/api/v1/organizers/me/wallet/platform/withdraw", body, { idempotencyKey: platIdem.keyFor(body) });
+      const res = await api.post<ApiResponse<PlatformRevenue>>(
+        "/api/v1/organizers/me/wallet/platform/withdraw",
+        body,
+        { idempotencyKey: platIdem.keyFor(body) },
+      );
       platIdem.reset();
       setPlatform(res.data);
-      setPlatAmount(""); setPlatBank("");
-      setPlatNotice(`Penarikan admin ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`);
+      setPlatAmount("");
+      setPlatBank("");
+      setPlatNotice(
+        `Penarikan admin ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`,
+      );
     } catch (err) {
       setPlatError(err instanceof ApiError ? err.message : "Penarikan gagal.");
-    } finally { setPlatBusy(false); }
+    } finally {
+      setPlatBusy(false);
+    }
   }
 
   return (
     <div className="rh-reveal">
-      <h1 style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Wallet</h1>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 28,
+          fontWeight: 700,
+          marginBottom: 24,
+        }}
+      >
+        Wallet
+      </h1>
 
       {/* ── Wallet Organizer ── */}
       <section style={section}>
-        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 8,
+            marginBottom: 6,
+          }}
+        >
           <h2 style={sectionTitle}>Wallet Organizer</h2>
-          <Link href="/dashboard/wallet/ledger" style={ledgerLink}>Lihat riwayat transaksi →</Link>
+          <Link href="/dashboard/wallet/ledger" style={ledgerLink}>
+            Lihat riwayat transaksi →
+          </Link>
         </div>
-        <p style={sectionDesc}>Harga tiket bersih dari setiap pembayaran yang settled. Tidak termasuk fee admin dan donasi.</p>
+        <p style={sectionDesc}>
+          Harga tiket bersih dari setiap pembayaran yang settled. Tidak termasuk
+          fee admin dan donasi.
+        </p>
 
-        {orgError && <Alert variant="danger" className="mb-3">{orgError}</Alert>}
-        {orgNotice && <Alert variant="info" className="mb-3">{orgNotice}</Alert>}
+        {orgError && (
+          <Alert variant="danger" className="mb-3">
+            {orgError}
+          </Alert>
+        )}
+        {orgNotice && (
+          <Alert variant="info" className="mb-3">
+            {orgNotice}
+          </Alert>
+        )}
 
         <div style={statGrid}>
-          <StatCard label="Saldo" value={org ? formatRupiah(org.balance) : "—"} accent />
-          <StatCard label="Total Terkumpul" value={org ? formatRupiah(org.total_collected) : "—"} />
-          <StatCard label="Total Ditarik" value={org ? formatRupiah(org.total_withdrawn) : "—"} />
+          <StatCard
+            label="Saldo"
+            value={org ? formatRupiah(org.balance) : "—"}
+            accent
+          />
+          <StatCard
+            label="Total Terkumpul"
+            value={org ? formatRupiah(org.total_collected) : "—"}
+          />
+          <StatCard
+            label="Total Ditarik"
+            value={org ? formatRupiah(org.total_withdrawn) : "—"}
+          />
         </div>
 
         <WithdrawForm
-          amount={orgAmount} bank={orgBank} busy={orgBusy} balance={org?.balance ?? 0}
-          onAmount={setOrgAmount} onBank={setOrgBank} onSubmit={handleOrgWithdraw}
+          amount={orgAmount}
+          bank={orgBank}
+          busy={orgBusy}
+          balance={org?.balance ?? 0}
+          onAmount={setOrgAmount}
+          onBank={setOrgBank}
+          onSubmit={handleOrgWithdraw}
         />
       </section>
 
       {/* ── Wallet Donasi ── */}
       <section style={section}>
         <h2 style={sectionTitle}>Wallet Donasi</h2>
-        <p style={sectionDesc}>Hasil donasi peserta dari seluruh event. Dana terpisah, dapat ditarik kapan saja.</p>
+        <p style={sectionDesc}>
+          Hasil donasi peserta dari seluruh event. Dana terpisah, dapat ditarik
+          kapan saja.
+        </p>
 
-        {donError && <Alert variant="danger" className="mb-3">{donError}</Alert>}
-        {donNotice && <Alert variant="info" className="mb-3">{donNotice}</Alert>}
+        {donError && (
+          <Alert variant="danger" className="mb-3">
+            {donError}
+          </Alert>
+        )}
+        {donNotice && (
+          <Alert variant="info" className="mb-3">
+            {donNotice}
+          </Alert>
+        )}
 
         <div style={statGrid}>
-          <StatCard label="Saldo" value={donation ? formatRupiah(donation.balance) : "—"} accent />
-          <StatCard label="Total Terkumpul" value={donation ? formatRupiah(donation.total_collected) : "—"} />
-          <StatCard label="Total Ditarik" value={donation ? formatRupiah(donation.total_withdrawn) : "—"} />
+          <StatCard
+            label="Saldo"
+            value={donation ? formatRupiah(donation.balance) : "—"}
+            accent
+          />
+          <StatCard
+            label="Total Terkumpul"
+            value={donation ? formatRupiah(donation.total_collected) : "—"}
+          />
+          <StatCard
+            label="Total Ditarik"
+            value={donation ? formatRupiah(donation.total_withdrawn) : "—"}
+          />
         </div>
 
         <WithdrawForm
-          amount={donAmount} bank={donBank} busy={donBusy} balance={donation?.balance ?? 0}
-          onAmount={setDonAmount} onBank={setDonBank} onSubmit={handleDonWithdraw}
+          amount={donAmount}
+          bank={donBank}
+          busy={donBusy}
+          balance={donation?.balance ?? 0}
+          onAmount={setDonAmount}
+          onBank={setDonBank}
+          onSubmit={handleDonWithdraw}
         />
       </section>
 
       {/* ── Wallet Admin ── */}
       <section style={section}>
         <h2 style={sectionTitle}>Wallet Admin</h2>
-        <p style={sectionDesc}>Fee aplikasi (Rp 5.000/transaksi) dari setiap pembayaran tiket.</p>
+        <p style={sectionDesc}>
+          Fee aplikasi (Rp 5.000/transaksi) dari setiap pembayaran tiket.
+        </p>
 
-        {platError && <Alert variant="danger" className="mb-3">{platError}</Alert>}
-        {platNotice && <Alert variant="info" className="mb-3">{platNotice}</Alert>}
+        {platError && (
+          <Alert variant="danger" className="mb-3">
+            {platError}
+          </Alert>
+        )}
+        {platNotice && (
+          <Alert variant="info" className="mb-3">
+            {platNotice}
+          </Alert>
+        )}
 
         <div style={statGrid}>
-          <StatCard label="Saldo" value={platform ? formatRupiah(platform.balance) : "—"} accent />
-          <StatCard label="Total Terkumpul" value={platform ? formatRupiah(platform.total_collected) : "—"} />
-          <StatCard label="Total Ditarik" value={platform ? formatRupiah(platform.total_withdrawn) : "—"} />
+          <StatCard
+            label="Saldo"
+            value={platform ? formatRupiah(platform.balance) : "—"}
+            accent
+          />
+          <StatCard
+            label="Total Terkumpul"
+            value={platform ? formatRupiah(platform.total_collected) : "—"}
+          />
+          <StatCard
+            label="Total Ditarik"
+            value={platform ? formatRupiah(platform.total_withdrawn) : "—"}
+          />
         </div>
 
         <WithdrawForm
-          amount={platAmount} bank={platBank} busy={platBusy} balance={platform?.balance ?? 0}
-          onAmount={setPlatAmount} onBank={setPlatBank} onSubmit={handlePlatWithdraw}
+          amount={platAmount}
+          bank={platBank}
+          busy={platBusy}
+          balance={platform?.balance ?? 0}
+          onAmount={setPlatAmount}
+          onBank={setPlatBank}
+          onSubmit={handlePlatWithdraw}
         />
       </section>
     </div>
@@ -181,10 +350,21 @@ export default function WalletPage() {
 }
 
 function WithdrawForm({
-  amount, bank, busy, balance, onAmount, onBank, onSubmit,
+  amount,
+  bank,
+  busy,
+  balance,
+  onAmount,
+  onBank,
+  onSubmit,
 }: {
-  amount: string; bank: string; busy: boolean; balance: number;
-  onAmount: (v: string) => void; onBank: (v: string) => void; onSubmit: () => void;
+  amount: string;
+  bank: string;
+  busy: boolean;
+  balance: number;
+  onAmount: (v: string) => void;
+  onBank: (v: string) => void;
+  onSubmit: () => void;
 }) {
   const n = Number(amount);
   const overBalance = n > 0 && balance > 0 && n > balance;
@@ -194,18 +374,30 @@ function WithdrawForm({
       <div style={{ fontWeight: 600, marginBottom: 12 }}>Tarik Saldo</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div className="field">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-            <label className="field-label" style={{ margin: 0 }}>Nominal (Rp)</label>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 4,
+            }}
+          >
+            <label className="field-label" style={{ margin: 0 }}>
+              Nominal (Rp)
+            </label>
             <button
               type="button"
               disabled={balance <= 0}
               onClick={() => onAmount(String(balance))}
               style={{
-                fontSize: 12, fontWeight: 600, padding: "2px 10px",
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "2px 10px",
                 borderRadius: "var(--radius-pill)",
                 border: "1px solid var(--color-primary)",
                 backgroundColor: "transparent",
-                color: balance <= 0 ? "var(--color-ink-4)" : "var(--color-primary)",
+                color:
+                  balance <= 0 ? "var(--color-ink-4)" : "var(--color-primary)",
                 cursor: balance <= 0 ? "not-allowed" : "pointer",
                 lineHeight: 1.6,
               }}
@@ -215,28 +407,58 @@ function WithdrawForm({
           </div>
           <input
             className="field-input"
-            type="text" inputMode="numeric" value={formatNumberInput(amount)}
+            type="text"
+            inputMode="numeric"
+            value={formatNumberInput(amount)}
             onChange={(e) => onAmount(parseNumberInput(e.target.value))}
             placeholder="0"
-            style={overBalance ? { borderColor: "var(--color-danger, #dc2626)" } : undefined}
+            style={
+              overBalance
+                ? { borderColor: "var(--color-danger, #dc2626)" }
+                : undefined
+            }
           />
           {overBalance && (
-            <span style={{ fontSize: 12, color: "var(--color-danger, #dc2626)", marginTop: 4, display: "block" }}>
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--color-danger, #dc2626)",
+                marginTop: 4,
+                display: "block",
+              }}
+            >
               Melebihi saldo tersedia ({formatRupiah(balance)})
             </span>
           )}
           {!overBalance && balance > 0 && (
-            <span style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 4, display: "block" }}>
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--color-ink-3)",
+                marginTop: 4,
+                display: "block",
+              }}
+            >
               Saldo tersedia: {formatRupiah(balance)}
             </span>
           )}
         </div>
         <div className="field">
           <label className="field-label">No. Rekening Tujuan (opsional)</label>
-          <input className="field-input" type="text" value={bank}
-            onChange={(e) => onBank(e.target.value)} placeholder="Contoh: BCA 1234567890" />
+          <input
+            className="field-input"
+            type="text"
+            value={bank}
+            onChange={(e) => onBank(e.target.value)}
+            placeholder="Contoh: BCA 1234567890"
+          />
         </div>
-        <Button variant="primary" size="md" disabled={busy || overBalance || balance <= 0} onClick={onSubmit}>
+        <Button
+          variant="primary"
+          size="md"
+          disabled={busy || overBalance || balance <= 0}
+          onClick={onSubmit}
+        >
           {busy ? "Memproses…" : "Tarik"}
         </Button>
       </div>
@@ -246,10 +468,16 @@ function WithdrawForm({
 
 const section: React.CSSProperties = { marginBottom: 40 };
 const sectionTitle: React.CSSProperties = {
-  fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, margin: 0,
+  fontFamily: "var(--font-display)",
+  fontSize: 20,
+  fontWeight: 700,
+  margin: 0,
 };
 const sectionDesc: React.CSSProperties = {
-  fontSize: 13, color: "var(--color-ink-3)", marginBottom: 16, lineHeight: 1.5,
+  fontSize: 13,
+  color: "var(--color-ink-3)",
+  marginBottom: 16,
+  lineHeight: 1.5,
 };
 const statGrid: React.CSSProperties = {
   display: "grid",
@@ -264,7 +492,8 @@ const card: React.CSSProperties = {
   backgroundColor: "var(--color-surface)",
 };
 const ledgerLink: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600,
+  fontSize: 13,
+  fontWeight: 600,
   color: "var(--color-primary)",
   textDecoration: "none",
 };

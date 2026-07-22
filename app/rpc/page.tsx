@@ -33,7 +33,9 @@ export default function RpcPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<Event[]>>("/api/v1/events?page_size=200");
+        const res = await api.get<ApiResponse<Event[]>>(
+          "/api/v1/events?page_size=200",
+        );
         if (cancelled) return;
         const list = res.data ?? [];
         setEvents(list);
@@ -48,7 +50,9 @@ export default function RpcPage() {
   }, [isAuthenticated]);
 
   if (isLoading || !isAuthenticated) {
-    return <div style={{ minHeight: "100vh", background: "var(--color-ink)" }} />;
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--color-ink)" }} />
+    );
   }
 
   return (
@@ -63,19 +67,46 @@ export default function RpcPage() {
         margin: "0 auto",
       }}
     >
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800 }}>RPC / Check-in</h1>
-        <a href="/dashboard" style={{ color: "var(--color-ink-4)", fontSize: 14 }}>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 24,
+            fontWeight: 800,
+          }}
+        >
+          RPC / Check-in
+        </h1>
+        <a
+          href="/dashboard"
+          style={{ color: "var(--color-ink-4)", fontSize: 14 }}
+        >
           Dashboard
         </a>
       </header>
 
       {events.length === 0 ? (
-        <p style={{ color: "var(--color-ink-4)" }}>Belum ada event. Buat event di dashboard terlebih dahulu.</p>
+        <p style={{ color: "var(--color-ink-4)" }}>
+          Belum ada event. Buat event di dashboard terlebih dahulu.
+        </p>
       ) : (
         <>
           {/* Event picker */}
-          <label style={{ display: "block", fontSize: 13, color: "var(--color-ink-4)", marginBottom: 6 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 13,
+              color: "var(--color-ink-4)",
+              marginBottom: 6,
+            }}
+          >
             Event
           </label>
           <select
@@ -92,18 +123,40 @@ export default function RpcPage() {
 
           {/* Stage toggle — two big targets */}
           <div style={{ display: "flex", gap: 8, margin: "16px 0" }}>
-            <StageButton active={stage === "rpc"} onClick={() => setStage("rpc")} label="Racepack (H-1/H-2)" />
-            <StageButton active={stage === "raceday"} onClick={() => setStage("raceday")} label="Hari-H" />
+            <StageButton
+              active={stage === "rpc"}
+              onClick={() => setStage("rpc")}
+              label="Racepack (H-1/H-2)"
+            />
+            <StageButton
+              active={stage === "raceday"}
+              onClick={() => setStage("raceday")}
+              label="Hari-H"
+            />
           </div>
 
-          {eventId != null && <CheckinPanel key={`${eventId}-${stage}`} eventId={eventId} stage={stage} />}
+          {eventId != null && (
+            <CheckinPanel
+              key={`${eventId}-${stage}`}
+              eventId={eventId}
+              stage={stage}
+            />
+          )}
         </>
       )}
     </main>
   );
 }
 
-function StageButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function StageButton({
+  active,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+}) {
   return (
     <button
       type="button"
@@ -112,7 +165,9 @@ function StageButton({ active, onClick, label }: { active: boolean; onClick: () 
         flex: 1,
         minHeight: 56,
         borderRadius: "var(--radius-md)",
-        border: active ? "2px solid var(--color-flame)" : "1px solid var(--color-ink-2)",
+        border: active
+          ? "2px solid var(--color-flame)"
+          : "1px solid var(--color-ink-2)",
         background: active ? "var(--color-flame)" : "transparent",
         color: active ? "white" : "var(--color-ink-4)",
         fontSize: 15,
@@ -125,7 +180,13 @@ function StageButton({ active, onClick, label }: { active: boolean; onClick: () 
   );
 }
 
-function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage }) {
+function CheckinPanel({
+  eventId,
+  stage,
+}: {
+  eventId: string;
+  stage: CheckinStage;
+}) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CheckinParticipant[]>([]);
   const [err, setErr] = useState<string | null>(null);
@@ -142,7 +203,8 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
         `/api/v1/events/${eventId}/checkin/search?q=${encodeURIComponent(q.trim())}`,
       );
       setResults(res.data ?? []);
-      if ((res.data ?? []).length === 0) setErr("Tidak ada peserta yang cocok.");
+      if ((res.data ?? []).length === 0)
+        setErr("Tidak ada peserta yang cocok.");
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Pencarian gagal.");
     } finally {
@@ -151,26 +213,32 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
   }, [eventId, q]);
 
   // Replace a participant in the current result list after marking.
-  const applyMarked = useCallback((p: CheckinParticipant) => {
-    setResults((prev) => {
-      const i = prev.findIndex((r) => r.id === p.id);
-      if (i === -1) return [p, ...prev];
-      const next = [...prev];
-      next[i] = p;
-      return next;
-    });
-    setFlash(`${p.name} · ${stageLabel(stage)} ✓`);
-  }, [stage]);
+  const applyMarked = useCallback(
+    (p: CheckinParticipant) => {
+      setResults((prev) => {
+        const i = prev.findIndex((r) => r.id === p.id);
+        if (i === -1) return [p, ...prev];
+        const next = [...prev];
+        next[i] = p;
+        return next;
+      });
+      setFlash(`${p.name} · ${stageLabel(stage)} ✓`);
+    },
+    [stage],
+  );
 
   async function mark(p: CheckinParticipant) {
     if (markingId) return; // ignore a rapid double-tap while a mark is in flight
     setErr(null);
     setMarkingId(p.id);
     try {
-      const res = await api.post<ApiResponse<CheckinParticipant>>(`/api/v1/events/${eventId}/checkin`, {
-        registration_id: p.id,
-        stage,
-      });
+      const res = await api.post<ApiResponse<CheckinParticipant>>(
+        `/api/v1/events/${eventId}/checkin`,
+        {
+          registration_id: p.id,
+          stage,
+        },
+      );
       applyMarked(res.data);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Gagal menandai check-in.");
@@ -182,13 +250,18 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
   async function markByToken(token: string) {
     setErr(null);
     try {
-      const res = await api.post<ApiResponse<CheckinParticipant>>(`/api/v1/events/${eventId}/checkin/scan`, {
-        qr_token: token,
-        stage,
-      });
+      const res = await api.post<ApiResponse<CheckinParticipant>>(
+        `/api/v1/events/${eventId}/checkin/scan`,
+        {
+          qr_token: token,
+          stage,
+        },
+      );
       applyMarked(res.data);
     } catch (e) {
-      setErr(e instanceof ApiError ? e.message : "QR tidak valid untuk event ini.");
+      setErr(
+        e instanceof ApiError ? e.message : "QR tidak valid untuk event ini.",
+      );
     }
   }
 
@@ -237,7 +310,14 @@ function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage
         </Alert>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          marginTop: 12,
+        }}
+      >
         {results.map((p) => (
           <ParticipantCard
             key={p.id}
@@ -280,14 +360,30 @@ function ParticipantCard({
     >
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 800 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 22,
+              fontWeight: 800,
+            }}
+          >
             {p.bib_number || "—"}
           </span>
-          <span style={{ fontSize: 17, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             {p.name}
           </span>
         </div>
-        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 2 }}>
+        <div
+          style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 2 }}
+        >
           {p.registration_number}
           {p.age_class ? ` · ${p.age_class}` : ""}
           {p.gender ? ` · ${p.gender}` : ""}
@@ -350,7 +446,8 @@ function QrScanner({ onToken }: { onToken: (token: string) => void }) {
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const supported = typeof window !== "undefined" && "BarcodeDetector" in window;
+  const supported =
+    typeof window !== "undefined" && "BarcodeDetector" in window;
 
   const stop = useCallback(() => {
     if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
@@ -375,7 +472,13 @@ function QrScanner({ onToken }: { onToken: (token: string) => void }) {
         await videoRef.current.play();
       }
       // BarcodeDetector is experimental; typed loosely to avoid a hard dep.
-      const Detector = (window as unknown as { BarcodeDetector: new (o: { formats: string[] }) => { detect: (s: CanvasImageSource) => Promise<{ rawValue: string }[]> } }).BarcodeDetector;
+      const Detector = (
+        window as unknown as {
+          BarcodeDetector: new (o: { formats: string[] }) => {
+            detect: (s: CanvasImageSource) => Promise<{ rawValue: string }[]>;
+          };
+        }
+      ).BarcodeDetector;
       const detector = new Detector({ formats: ["qr_code"] });
       const tick = async () => {
         if (!videoRef.current) return;
@@ -394,7 +497,9 @@ function QrScanner({ onToken }: { onToken: (token: string) => void }) {
       };
       rafRef.current = requestAnimationFrame(tick);
     } catch {
-      setCamErr("Tidak bisa mengakses kamera. Masukkan token QR manual di bawah.");
+      setCamErr(
+        "Tidak bisa mengakses kamera. Masukkan token QR manual di bawah.",
+      );
     }
   }, [supported, onToken, stop]);
 
@@ -419,21 +524,48 @@ function QrScanner({ onToken }: { onToken: (token: string) => void }) {
           📷 Scan QR (sekunder)
         </button>
       ) : (
-        <div style={{ background: "var(--color-panel)", borderRadius: "var(--radius-md)", padding: 12 }}>
+        <div
+          style={{
+            background: "var(--color-panel)",
+            borderRadius: "var(--radius-md)",
+            padding: 12,
+          }}
+        >
           {supported && (
             <video
               ref={videoRef}
               muted
               playsInline
-              style={{ width: "100%", borderRadius: "var(--radius-sm)", background: "#000", aspectRatio: "1 / 1", objectFit: "cover" }}
+              style={{
+                width: "100%",
+                borderRadius: "var(--radius-sm)",
+                background: "#000",
+                aspectRatio: "1 / 1",
+                objectFit: "cover",
+              }}
             />
           )}
           {camErr && (
-            <p style={{ color: "var(--color-danger)", fontSize: 13, margin: "8px 0" }}>{camErr}</p>
+            <p
+              style={{
+                color: "var(--color-danger)",
+                fontSize: 13,
+                margin: "8px 0",
+              }}
+            >
+              {camErr}
+            </p>
           )}
           {!supported && (
-            <p style={{ color: "var(--color-ink-3)", fontSize: 13, marginBottom: 8 }}>
-              Kamera scan tidak didukung di perangkat ini. Tempel token QR e-tiket:
+            <p
+              style={{
+                color: "var(--color-ink-3)",
+                fontSize: 13,
+                marginBottom: 8,
+              }}
+            >
+              Kamera scan tidak didukung di perangkat ini. Tempel token QR
+              e-tiket:
             </p>
           )}
           <form
@@ -464,7 +596,14 @@ function QrScanner({ onToken }: { onToken: (token: string) => void }) {
               stop();
               setOpen(false);
             }}
-            style={{ background: "none", border: "none", color: "var(--color-ink-3)", fontSize: 13, marginTop: 10, cursor: "pointer" }}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--color-ink-3)",
+              fontSize: 13,
+              marginTop: 10,
+              cursor: "pointer",
+            }}
           >
             Tutup
           </button>

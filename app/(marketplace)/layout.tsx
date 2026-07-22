@@ -1,9 +1,15 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 
-export default function MarketplaceLayout({ children }: { children: ReactNode }) {
+export default function MarketplaceLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
       <header
         style={{
           position: "sticky",
@@ -17,7 +23,13 @@ export default function MarketplaceLayout({ children }: { children: ReactNode })
       >
         <div
           className="max-w-5xl mx-auto"
-          style={{ display: "flex", alignItems: "center", gap: 24, height: 60, padding: "0 24px" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 24,
+            height: 60,
+            padding: "0 24px",
+          }}
         >
           <Link
             href="/"

@@ -40,8 +40,12 @@ function ToolbarButton({
         border: "1px solid var(--color-line)",
         borderRadius: "var(--radius-xs)",
         cursor: "pointer",
-        backgroundColor: active ? "var(--color-flame-tint, #FFEAE2)" : "var(--color-surface)",
-        color: active ? "var(--color-flame-700, #CE3611)" : "var(--color-ink-2)",
+        backgroundColor: active
+          ? "var(--color-flame-tint, #FFEAE2)"
+          : "var(--color-surface)",
+        color: active
+          ? "var(--color-flame-700, #CE3611)"
+          : "var(--color-ink-2)",
       }}
     >
       {label}
@@ -51,7 +55,12 @@ function ToolbarButton({
 
 // RichTextEditor is a small WYSIWYG (Tiptap StarterKit) that reads/writes HTML.
 // Output is sanitized at render time (components/ui/RichText.tsx), not here.
-export default function RichTextEditor({ label, value, onChange, hint }: RichTextEditorProps) {
+export default function RichTextEditor({
+  label,
+  value,
+  onChange,
+  hint,
+}: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
@@ -72,28 +81,137 @@ export default function RichTextEditor({ label, value, onChange, hint }: RichTex
   return (
     <div className="field">
       <span className="field-label">{label}</span>
-      <div style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", backgroundColor: "var(--color-surface)", overflow: "hidden" }}>
+      <div
+        style={{
+          border: "1px solid var(--color-line)",
+          borderRadius: "var(--radius-sm)",
+          backgroundColor: "var(--color-surface)",
+          overflow: "hidden",
+        }}
+      >
         {editor && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", padding: 6, borderBottom: "1px solid var(--color-line)", backgroundColor: "var(--color-paper)" }}>
-            <ToolbarButton editor={editor} label={<strong>B</strong>} title="Tebal" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} />
-            <ToolbarButton editor={editor} label={<em>I</em>} title="Miring" active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} />
-            <ToolbarButton editor={editor} label={<s>S</s>} title="Coret" active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} />
-            <ToolbarButton editor={editor} label="H2" title="Judul" active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
-            <ToolbarButton editor={editor} label="H3" title="Subjudul" active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
-            <ToolbarButton editor={editor} label="• —" title="Daftar poin" active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} />
-            <ToolbarButton editor={editor} label="1." title="Daftar bernomor" active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
-            <ToolbarButton editor={editor} label="⊞" title="Sisipkan tabel 3×3" active={editor.isActive("table")} onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} />
+          <div
+            style={{
+              display: "flex",
+              gap: 4,
+              flexWrap: "wrap",
+              padding: 6,
+              borderBottom: "1px solid var(--color-line)",
+              backgroundColor: "var(--color-paper)",
+            }}
+          >
+            <ToolbarButton
+              editor={editor}
+              label={<strong>B</strong>}
+              title="Tebal"
+              active={editor.isActive("bold")}
+              onClick={() => editor.chain().focus().toggleBold().run()}
+            />
+            <ToolbarButton
+              editor={editor}
+              label={<em>I</em>}
+              title="Miring"
+              active={editor.isActive("italic")}
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+            />
+            <ToolbarButton
+              editor={editor}
+              label={<s>S</s>}
+              title="Coret"
+              active={editor.isActive("strike")}
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+            />
+            <ToolbarButton
+              editor={editor}
+              label="H2"
+              title="Judul"
+              active={editor.isActive("heading", { level: 2 })}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+            />
+            <ToolbarButton
+              editor={editor}
+              label="H3"
+              title="Subjudul"
+              active={editor.isActive("heading", { level: 3 })}
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+            />
+            <ToolbarButton
+              editor={editor}
+              label="• —"
+              title="Daftar poin"
+              active={editor.isActive("bulletList")}
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+            />
+            <ToolbarButton
+              editor={editor}
+              label="1."
+              title="Daftar bernomor"
+              active={editor.isActive("orderedList")}
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            />
+            <ToolbarButton
+              editor={editor}
+              label="⊞"
+              title="Sisipkan tabel 3×3"
+              active={editor.isActive("table")}
+              onClick={() =>
+                editor
+                  .chain()
+                  .focus()
+                  .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                  .run()
+              }
+            />
             {editor.isActive("table") && (
               <>
-                <ToolbarButton editor={editor} label="+Baris" title="Tambah baris di bawah" onClick={() => editor.chain().focus().addRowAfter().run()} />
-                <ToolbarButton editor={editor} label="−Baris" title="Hapus baris ini" onClick={() => editor.chain().focus().deleteRow().run()} />
-                <ToolbarButton editor={editor} label="+Kolom" title="Tambah kolom di kanan" onClick={() => editor.chain().focus().addColumnAfter().run()} />
-                <ToolbarButton editor={editor} label="−Kolom" title="Hapus kolom ini" onClick={() => editor.chain().focus().deleteColumn().run()} />
-                <ToolbarButton editor={editor} label="✕ Tabel" title="Hapus tabel" onClick={() => editor.chain().focus().deleteTable().run()} />
+                <ToolbarButton
+                  editor={editor}
+                  label="+Baris"
+                  title="Tambah baris di bawah"
+                  onClick={() => editor.chain().focus().addRowAfter().run()}
+                />
+                <ToolbarButton
+                  editor={editor}
+                  label="−Baris"
+                  title="Hapus baris ini"
+                  onClick={() => editor.chain().focus().deleteRow().run()}
+                />
+                <ToolbarButton
+                  editor={editor}
+                  label="+Kolom"
+                  title="Tambah kolom di kanan"
+                  onClick={() => editor.chain().focus().addColumnAfter().run()}
+                />
+                <ToolbarButton
+                  editor={editor}
+                  label="−Kolom"
+                  title="Hapus kolom ini"
+                  onClick={() => editor.chain().focus().deleteColumn().run()}
+                />
+                <ToolbarButton
+                  editor={editor}
+                  label="✕ Tabel"
+                  title="Hapus tabel"
+                  onClick={() => editor.chain().focus().deleteTable().run()}
+                />
               </>
             )}
-            <ToolbarButton editor={editor} label="↺" title="Urungkan" onClick={() => editor.chain().focus().undo().run()} />
-            <ToolbarButton editor={editor} label="↻" title="Ulangi" onClick={() => editor.chain().focus().redo().run()} />
+            <ToolbarButton
+              editor={editor}
+              label="↺"
+              title="Urungkan"
+              onClick={() => editor.chain().focus().undo().run()}
+            />
+            <ToolbarButton
+              editor={editor}
+              label="↻"
+              title="Ulangi"
+              onClick={() => editor.chain().focus().redo().run()}
+            />
           </div>
         )}
         <EditorContent editor={editor} className="richtext richtext-editor" />

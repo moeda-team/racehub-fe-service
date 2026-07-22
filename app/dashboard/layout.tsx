@@ -28,7 +28,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [isLoading, isAuthenticated, router]);
 
   // Close mobile menu on route change.
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMenuOpen(false));
+    return () => cancelAnimationFrame(id);
+  }, [pathname]);
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -46,7 +49,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const onLogout = () => { logout(); router.replace("/login"); };
+  const onLogout = () => {
+    logout();
+    router.replace("/login");
+  };
 
   return (
     <div className="dash-shell">
@@ -132,7 +138,8 @@ function ProfileMenu({
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -144,7 +151,12 @@ function ProfileMenu({
     <div className={`profile-menu${open ? " open" : ""}`} ref={ref}>
       {open && (
         <div className="profile-pop" role="menu">
-          <Link href="/dashboard/profile" className="profile-item" role="menuitem" onClick={() => setOpen(false)}>
+          <Link
+            href="/dashboard/profile"
+            className="profile-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
             <UserIcon />
             Profil
           </Link>
@@ -189,7 +201,15 @@ function initials(name: string): string {
 
 function HamburgerIcon({ open }: { open: boolean }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       {open ? (
         <>
           <line x1="4" y1="4" x2="16" y2="16" />
@@ -208,7 +228,17 @@ function HamburgerIcon({ open }: { open: boolean }) {
 
 function ChevronIcon() {
   return (
-    <svg className="profile-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      className="profile-caret"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="m18 15-6-6-6 6" />
     </svg>
   );
@@ -216,7 +246,16 @@ function ChevronIcon() {
 
 function UserIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
@@ -225,7 +264,16 @@ function UserIcon() {
 
 function LogoutIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <path d="m16 17 5-5-5-5" />
       <path d="M21 12H9" />

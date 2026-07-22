@@ -50,9 +50,11 @@
   --spacing-base: 4px;
 
   /* --- Shadows (exact design system values) --- */
-  --shadow-sh-1: 0 1px 2px rgba(20, 24, 31, 0.06), 0 1px 1px rgba(20, 24, 31, 0.04);
-  --shadow-sh-2: 0 6px 18px -8px rgba(20, 24, 31, 0.18), 0 2px 6px rgba(20, 24, 31, 0.06);
-  --shadow-sh-3: 0 24px 48px -18px rgba(20, 24, 31, 0.30);
+  --shadow-sh-1:
+    0 1px 2px rgba(20, 24, 31, 0.06), 0 1px 1px rgba(20, 24, 31, 0.04);
+  --shadow-sh-2:
+    0 6px 18px -8px rgba(20, 24, 31, 0.18), 0 2px 6px rgba(20, 24, 31, 0.06);
+  --shadow-sh-3: 0 24px 48px -18px rgba(20, 24, 31, 0.3);
   --shadow-sh-flame: 0 10px 24px -10px rgba(245, 71, 29, 0.55);
 }
 
@@ -374,7 +376,11 @@ body {
 .evcard-top {
   height: 118px;
   background:
-    radial-gradient(120% 140% at 80% -20%, var(--color-flame-300), transparent 55%),
+    radial-gradient(
+      120% 140% at 80% -20%,
+      var(--color-flame-300),
+      transparent 55%
+    ),
     linear-gradient(135deg, var(--color-flame), var(--color-flame-700));
   position: relative;
   color: #fff;
@@ -627,7 +633,11 @@ body {
   top: 0;
   bottom: 0;
   width: 14px;
-  background-image: radial-gradient(circle at 7px 7px, var(--color-paper) 5px, transparent 6px);
+  background-image: radial-gradient(
+    circle at 7px 7px,
+    var(--color-paper) 5px,
+    transparent 6px
+  );
   background-size: 14px 16px;
   background-repeat: repeat-y;
 }
@@ -802,7 +812,9 @@ body {
   white-space: nowrap;
   color: var(--color-ink-2);
   text-decoration: none;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 .dash-link:hover {
@@ -874,7 +886,9 @@ body {
     background: transparent;
     color: var(--color-ink-2);
     cursor: pointer;
-    transition: background-color 150ms ease, color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
   }
   .dash-hamburger:hover {
     background-color: var(--color-panel);
@@ -929,7 +943,9 @@ body {
     font-weight: 500;
     color: var(--color-ink-2);
     text-decoration: none;
-    transition: background-color 150ms ease, color 150ms ease;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
   }
   .dash-mobile-link:hover {
     background-color: var(--color-panel);
@@ -964,7 +980,9 @@ body {
   border: 1px solid var(--color-line);
   cursor: pointer;
   text-align: left;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
 }
 
 .profile-trigger:hover {
@@ -1083,19 +1101,37 @@ body {
 
 @media (prefers-reduced-motion: no-preference) {
   @keyframes rh-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
   @keyframes rh-fade-up {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: none; }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
   @keyframes rh-scale-in {
-    from { opacity: 0; transform: scale(0.97); }
-    to { opacity: 1; transform: none; }
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
   @keyframes rh-spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   main {
@@ -1125,16 +1161,45 @@ body {
     animation: rh-fade-in 280ms ease-out both;
   }
 
-  .evcard:nth-child(1), .stat:nth-child(1), .dtable tbody tr:nth-child(1) { animation-delay: 0ms; }
-  .evcard:nth-child(2), .stat:nth-child(2), .dtable tbody tr:nth-child(2) { animation-delay: 40ms; }
-  .evcard:nth-child(3), .stat:nth-child(3), .dtable tbody tr:nth-child(3) { animation-delay: 80ms; }
-  .evcard:nth-child(4), .stat:nth-child(4), .dtable tbody tr:nth-child(4) { animation-delay: 120ms; }
-  .evcard:nth-child(5), .stat:nth-child(5), .dtable tbody tr:nth-child(5) { animation-delay: 160ms; }
-  .evcard:nth-child(6), .stat:nth-child(6), .dtable tbody tr:nth-child(6) { animation-delay: 200ms; }
-  .dtable tbody tr:nth-child(n + 7) { animation-delay: 220ms; }
+  .evcard:nth-child(1),
+  .stat:nth-child(1),
+  .dtable tbody tr:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .evcard:nth-child(2),
+  .stat:nth-child(2),
+  .dtable tbody tr:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .evcard:nth-child(3),
+  .stat:nth-child(3),
+  .dtable tbody tr:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .evcard:nth-child(4),
+  .stat:nth-child(4),
+  .dtable tbody tr:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .evcard:nth-child(5),
+  .stat:nth-child(5),
+  .dtable tbody tr:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .evcard:nth-child(6),
+  .stat:nth-child(6),
+  .dtable tbody tr:nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .dtable tbody tr:nth-child(n + 7) {
+    animation-delay: 220ms;
+  }
 
   .btn {
-    transition: transform 120ms ease, background-color 150ms ease, box-shadow 150ms ease;
+    transition:
+      transform 120ms ease,
+      background-color 150ms ease,
+      box-shadow 150ms ease;
   }
   .btn:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -1147,14 +1212,18 @@ body {
   }
 
   .evcard {
-    transition: box-shadow 160ms ease, transform 160ms ease;
+    transition:
+      box-shadow 160ms ease,
+      transform 160ms ease;
   }
   .evcard:hover {
     transform: translateY(-3px);
   }
 
   .stat {
-    transition: box-shadow 160ms ease, transform 160ms ease;
+    transition:
+      box-shadow 160ms ease,
+      transform 160ms ease;
   }
   .stat:hover {
     transform: translateY(-2px);
@@ -1163,7 +1232,9 @@ body {
 
   .pill,
   .badge {
-    transition: transform 150ms ease, background-color 150ms ease;
+    transition:
+      transform 150ms ease,
+      background-color 150ms ease;
   }
 
   .spinner {
@@ -1177,22 +1248,68 @@ body {
   line-height: 1.65;
   color: var(--color-ink-2);
 }
-.richtext p { margin: 0 0 10px; }
-.richtext p:last-child { margin-bottom: 0; }
-.richtext h2 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin: 18px 0 8px; color: var(--color-ink); }
-.richtext h3 { font-family: var(--font-display); font-size: 17px; font-weight: 600; margin: 14px 0 6px; color: var(--color-ink); }
+.richtext p {
+  margin: 0 0 10px;
+}
+.richtext p:last-child {
+  margin-bottom: 0;
+}
+.richtext h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 18px 0 8px;
+  color: var(--color-ink);
+}
+.richtext h3 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 14px 0 6px;
+  color: var(--color-ink);
+}
 /* Preflight Tailwind me-reset list-style ke none — kembalikan untuk konten rich text. */
-.richtext ul { list-style: disc; margin: 0 0 10px; padding-left: 24px; }
-.richtext ol { list-style: decimal; margin: 0 0 10px; padding-left: 24px; }
-.richtext ul ul { list-style: circle; }
-.richtext ol ol { list-style: lower-alpha; }
-.richtext li { margin-bottom: 4px; }
-.richtext blockquote { margin: 0 0 10px; padding-left: 14px; border-left: 3px solid var(--color-line); color: var(--color-ink-3); }
-.richtext a { color: var(--color-sprint, #2456E6); text-decoration: underline; }
-.richtext code { font-family: var(--font-mono); font-size: 0.9em; background: var(--color-paper); padding: 1px 5px; border-radius: 4px; }
+.richtext ul {
+  list-style: disc;
+  margin: 0 0 10px;
+  padding-left: 24px;
+}
+.richtext ol {
+  list-style: decimal;
+  margin: 0 0 10px;
+  padding-left: 24px;
+}
+.richtext ul ul {
+  list-style: circle;
+}
+.richtext ol ol {
+  list-style: lower-alpha;
+}
+.richtext li {
+  margin-bottom: 4px;
+}
+.richtext blockquote {
+  margin: 0 0 10px;
+  padding-left: 14px;
+  border-left: 3px solid var(--color-line);
+  color: var(--color-ink-3);
+}
+.richtext a {
+  color: var(--color-sprint, #2456e6);
+  text-decoration: underline;
+}
+.richtext code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-paper);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
 /* Baris kosong (Enter dua kali → <p></p>) harus tetap terlihat di render publik,
    sama seperti di editor (ProseMirror memberi trailing <br> sendiri). */
-.richtext p:empty { min-height: 1.65em; }
+.richtext p:empty {
+  min-height: 1.65em;
+}
 .richtext table {
   border-collapse: collapse;
   width: 100%;
@@ -1201,18 +1318,31 @@ body {
   overflow-wrap: break-word;
   font-size: 14px;
 }
-.richtext th, .richtext td {
+.richtext th,
+.richtext td {
   border: 1px solid var(--color-line);
   padding: 6px 10px;
   text-align: left;
   vertical-align: top;
 }
-.richtext th { background: var(--color-paper); font-weight: 600; color: var(--color-ink); }
-.richtext th p, .richtext td p { margin: 0; }
+.richtext th {
+  background: var(--color-paper);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.richtext th p,
+.richtext td p {
+  margin: 0;
+}
 /* Tabel lebar tetap bisa digulir horizontal di layar sempit (editor membungkusnya
    dengan .tableWrapper; render publik memakai tag table langsung). */
-.richtext .tableWrapper { overflow-x: auto; margin: 0 0 10px; }
-.richtext .tableWrapper table { margin: 0; }
+.richtext .tableWrapper {
+  overflow-x: auto;
+  margin: 0 0 10px;
+}
+.richtext .tableWrapper table {
+  margin: 0;
+}
 
 .richtext-editor .ProseMirror {
   min-height: 130px;
@@ -1229,5 +1359,5 @@ body {
 /* Seleksi sel tabel di editor (ProseMirror menandai sel terpilih). */
 .richtext-editor .ProseMirror td.selectedCell,
 .richtext-editor .ProseMirror th.selectedCell {
-  background: var(--color-flame-tint, #FFEAE2);
+  background: var(--color-flame-tint, #ffeae2);
 }
