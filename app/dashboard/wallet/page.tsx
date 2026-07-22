@@ -50,7 +50,8 @@ export default function WalletPage() {
   }, []);
 
   useEffect(() => {
-    load().catch(() => {});
+    const id = requestAnimationFrame(() => { load(); });
+    return () => cancelAnimationFrame(id);
   }, [load]);
 
   async function handleOrgWithdraw() {

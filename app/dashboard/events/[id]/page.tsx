@@ -11,6 +11,7 @@ import EventDetailView from "@/components/EventDetailView";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import { confirm } from "@/components/ui/ConfirmDialog";
 import DataTable, { Column } from "@/components/ui/DataTable";
 import type {
   ApiResponse,
@@ -76,7 +77,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
       description: values.description || undefined,
       location: values.location || undefined,
       event_date: values.event_date || undefined,
-      is_running_event: values.is_running_event,
+      event_type: values.event_type,
       master_age_threshold: values.master_age_threshold,
       refund_cutoff_date: values.refund_cutoff_date || undefined,
       registration_close_date: values.registration_close_date || undefined,
@@ -160,13 +161,14 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
             <div style={{ flex: "1 1 420px", maxWidth: 720 }}>
               <BannerUploader event={event} onUploaded={(ev) => setDetail((prev) => (prev ? { ...prev, event: ev } : prev))} />
               <EventForm
+                eventId={eventId}
                 submitLabel="Simpan Perubahan"
                 initial={{
                   name: event.name,
                   description: event.description,
                   location: event.location,
                   event_date: event.event_date,
-                  is_running_event: event.is_running_event,
+                  event_type: event.event_type,
                   master_age_threshold: event.master_age_threshold,
                   refund_cutoff_date: event.refund_cutoff_date ?? "",
                   registration_close_date: event.registration_close_date ?? "",
@@ -185,7 +187,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
         {activeTab === "kategori" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>{detail.event.is_running_event ? "Kategori Jarak" : "Kategori"}</h2>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 20, marginTop: 0 }}>{event.event_type === "running" ? "Kategori Jarak" : "Kategori"}</h2>
               <DistanceManager eventId={eventId} distances={detail.categories} onChanged={load} />
             </div>
             <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
@@ -275,7 +277,7 @@ function RegistrationStatusCard({
   const isClosed = !!closeDate && closeDate <= new Date();
 
   async function closeNow() {
-    if (!window.confirm("Tutup pendaftaran sekarang? Peserta baru tidak dapat mendaftar setelah ini.")) return;
+    if (!(await confirm({ message: "Tutup pendaftaran sekarang? Peserta baru tidak dapat mendaftar setelah ini.", variant: "primary" }))) return;
     setBusy(true);
     setErr(null);
     try {
@@ -284,7 +286,7 @@ function RegistrationStatusCard({
         description: event.description,
         location: event.location,
         event_date: event.event_date,
-        is_running_event: event.is_running_event,
+        event_type: event.event_type,
         master_age_threshold: event.master_age_threshold,
         refund_cutoff_date: event.refund_cutoff_date ?? "",
         registration_close_date: new Date().toISOString(),
@@ -418,7 +420,7 @@ function BibCard({ eventId, hasCloseDate }: { eventId: string; hasCloseDate: boo
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         if (e.message.toLowerCase().includes("already") || e.message.toLowerCase().includes("regenerat")) {
-          if (window.confirm("Nomor BIB sudah pernah dibuat. Buat ulang dari awal? Nomor lama akan ditimpa.")) {
+          if (await confirm({ message: "Nomor BIB sudah pernah dibuat. Buat ulang dari awal? Nomor lama akan ditimpa.", variant: "danger" })) {
             await generate(true);
             return;
           }
@@ -734,8 +736,10 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    load().then(() => { if (cancelled) return; });
-    return () => { cancelled = true; };
+    const id = requestAnimationFrame(() => {
+      load().catch(() => {});
+    });
+    return () => { cancelled = true; cancelAnimationFrame(id); };
   }, [load]);
 
   async function add() {
@@ -760,7 +764,7 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
   }
 
   async function remove(personId: string) {
-    if (!window.confirm("Hapus dari daftar peserta gratis?")) return;
+    if (!(await confirm({ message: "Hapus dari daftar peserta gratis?", variant: "danger" }))) return;
     try {
       await api.delete(`/api/v1/events/${eventId}/complimentary/${personId}`);
       await load();
@@ -856,8 +860,8 @@ function StatusSection({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function transition(target: EventStatus, confirmMsg?: string) {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+  async function transition(target: EventStatus, confirmMsg?: string, variant: "primary" | "danger" = "primary") {
+    if (confirmMsg && !(await confirm({ message: confirmMsg, variant }))) return;
     setError(null);
     setBusy(true);
     try {
@@ -897,7 +901,7 @@ function StatusSection({
           </Button>
         )}
         {(isDraft || isPublished) && (
-          <Button variant="danger" size="sm" disabled={busy} onClick={() => transition("cancelled", "Batalkan event ini? Tindakan ini tidak dapat dibatalkan.")}>
+          <Button variant="danger" size="sm" disabled={busy} onClick={() => transition("cancelled", "Batalkan event ini? Tindakan ini tidak dapat dibatalkan.", "danger")}>
             Batalkan Event
           </Button>
         )}
@@ -939,7 +943,7 @@ function DistanceManager({
   }
 
   async function remove(did: string) {
-    if (!window.confirm("Hapus kategori ini?")) return;
+    if (!(await confirm({ message: "Hapus kategori ini? Kategori tiket di dalamnya juga akan ikut terhapus.", variant: "danger" }))) return;
     setError(null);
     try {
       await api.delete(`/api/v1/events/${eventId}/categories/${did}`);
@@ -995,7 +999,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
   const name = live?.name || ev.name || "Nama Event";
   const location = (live ? live.location : ev.location) || "Lokasi belum diatur";
   const eventDate = live ? live.event_date : ev.event_date;
-  const isRunning = live ? live.is_running_event : ev.is_running_event;
+  const isRunning = live ? live.event_type === "running" : ev.event_type === "running";
   const donationEnabled = live ? live.donation_enabled : ev.donation_enabled;
   const description = live ? live.description : ev.description;
   const color = (live ? live.color : ev.color) || undefined;
@@ -1018,7 +1022,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
       location,
       event_date: eventDate || null,
       status: "published",
-      is_running_event: isRunning,
+      event_type: isRunning ? "running" : ev.event_type,
       master_age_threshold: ev.master_age_threshold,
       refund_cutoff_date: ev.refund_cutoff_date,
       donation_enabled: donationEnabled,
@@ -1043,6 +1047,7 @@ function CardPreview({ detail, live }: { detail: EventDetail; live: EventFormVal
       sale_start: t.sale_start,
       sale_end: t.sale_end,
     })),
+    registration_fields: [],
   };
 
   const modeBtn = (active: boolean): React.CSSProperties => ({
@@ -1379,7 +1384,7 @@ function TicketManager({
   }
 
   async function remove(tid: string) {
-    if (!window.confirm("Hapus kategori tiket ini?")) return;
+    if (!(await confirm({ message: "Hapus kategori tiket ini?", variant: "danger" }))) return;
     setError(null);
     try {
       await api.delete(`/api/v1/events/${eventId}/tickets/${tid}`);

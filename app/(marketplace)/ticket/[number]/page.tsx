@@ -47,9 +47,15 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
-          if (!token) setInvalidLink(true);
-          else setNotReady(true);
-        } else setError("Gagal memuat e-tiket.");
+          const raf = requestAnimationFrame(() => {
+            if (!token) setInvalidLink(true);
+            else setNotReady(true);
+          });
+          raf; // guard reference
+        } else {
+          const raf = requestAnimationFrame(() => setError("Gagal memuat e-tiket."));
+          raf;
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

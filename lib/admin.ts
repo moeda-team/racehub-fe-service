@@ -47,3 +47,6 @@ export const adminApi = {
   get: <T>(path: string) => adminRequest<T>("GET", path),
   post: <T>(path: string, body?: unknown) => adminRequest<T>("POST", path, body),
 };
+
+export { ApiError } from "./api";
+export { translateApiError } from "./error-messages";

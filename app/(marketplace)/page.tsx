@@ -49,13 +49,13 @@ export default function MarketplacePage() {
   useEffect(() => {
     isFirstLoad.current = false;
     let cancelled = false;
-    setIsLoading(true);
+    const raf = requestAnimationFrame(() => setIsLoading(true));
 
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("page_size", String(pageSize));
     if (debouncedSearch.trim()) params.set("q", debouncedSearch.trim());
-    if (runningOnly) params.set("is_running_event", "true");
+    if (runningOnly) params.set("event_type", "running");
     if (dateFrom) params.set("date_from", new Date(dateFrom).toISOString());
 
     (async () => {
@@ -73,7 +73,7 @@ export default function MarketplacePage() {
         if (!cancelled) setIsLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; cancelAnimationFrame(raf); };
   }, [page, pageSize, debouncedSearch, runningOnly, dateFrom]);
 
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -172,7 +172,7 @@ export default function MarketplacePage() {
                 title={ev.name}
                 location={ev.location || "Lokasi belum diatur"}
                 date={formatDate(ev.event_date)}
-                distances={ev.is_running_event ? ["Event Lari"] : []}
+                distances={ev.event_type === "running" ? ["Event Lari"] : []}
                 price={ev.min_price > 0 ? formatRupiah(ev.min_price) : "Gratis"}
                 quotaRemaining={ev.quota_remaining}
                 bannerUrl={ev.banner_url}

@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import { confirm } from "@/components/ui/ConfirmDialog";
 import Badge from "@/components/ui/Badge";
 
 const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
@@ -129,7 +130,7 @@ export default function DashboardRefundPage() {
       setMassErr("Masukkan ID event yang valid.");
       return;
     }
-    if (!window.confirm("Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.")) return;
+    if (!(await confirm({ message: "Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.", variant: "danger" }))) return;
     setMassBusy(true);
     try {
       const res = await api.post<ApiResponse<MassRefundResult>>(`/api/v1/events/${id}/refund-all`, {

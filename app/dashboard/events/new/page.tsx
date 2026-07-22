@@ -19,7 +19,7 @@ export default function NewEventPage() {
       description: values.description || undefined,
       location: values.location || undefined,
       event_date: values.event_date || undefined,
-      is_running_event: values.is_running_event,
+      event_type: values.event_type,
       master_age_threshold: values.master_age_threshold,
       refund_cutoff_date: values.refund_cutoff_date || undefined,
       registration_close_date: values.registration_close_date || undefined,
@@ -55,7 +55,7 @@ export default function NewEventPage() {
             title={preview?.name || "Nama Event"}
             location={preview?.location || "Lokasi belum diatur"}
             date={formatDate(preview?.event_date)}
-            distances={preview?.is_running_event ? ["Event Lari"] : []}
+            distances={preview?.event_type === "running" ? ["Event Lari"] : []}
             price="—"
             color={preview?.color || undefined}
           />

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
@@ -10,6 +10,7 @@ import type {
   CreateRegistrationRequest,
   PublicEventDetail,
   Registration,
+  RegistrationField,
 } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -34,6 +35,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const [birthDate, setBirthDate] = useState("");
   const [gender, setGender] = useState("");
   const [donation, setDonation] = useState("0");
+  const [extraData, setExtraData] = useState<Record<string, string>>({});
 
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -88,6 +90,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
         birth_date: birthDate,
         gender,
         donation: Number(donation) || 0,
+        extra_data: extraData,
       };
       const res = await api.post<ApiResponse<Registration>>("/api/v1/registrations", body, { idempotencyKey: regIdem.keyFor(body) });
       regIdem.reset();
@@ -171,7 +174,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       {step === 1 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="field">
-            <label className="field-label">{detail.event.is_running_event ? "Kategori Jarak" : "Kategori"}</label>
+            <label className="field-label">{detail.event.event_type === "running" ? "Kategori Jarak" : "Kategori"}</label>
             <select
               className="field-input"
               value={distanceId ?? ""}
@@ -180,7 +183,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                 setTicketId(null);
               }}
             >
-              <option value="">{detail.event.is_running_event ? "Pilih jarak" : "Pilih kategori"}</option>
+              <option value="">{detail.event.event_type === "running" ? "Pilih jarak" : "Pilih kategori"}</option>
               {detail.categories.map((d) => (
                 <option key={d.id} value={d.id} disabled={d.quota_remaining <= 0}>
                   {d.name} {d.quota_remaining <= 0 ? "(habis)" : `(${d.quota_remaining} sisa)`}
@@ -237,8 +240,19 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
               <option value="female">Perempuan</option>
             </select>
           </div>
+
+          {detail.registration_fields && detail.registration_fields.length > 0 && (
+            <>
+              <hr style={{ border: "none", borderTop: "1px solid var(--color-line)", margin: "4px 0" }} />
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-2)" }}>Data Tambahan</p>
+              {detail.registration_fields.map((f) => (
+                <DynamicField key={f.id} field={f} value={extraData[f.name] ?? ""} onChange={(v) => setExtraData((prev) => ({ ...prev, [f.name]: v }))} />
+              ))}
+            </>
+          )}
+
           <div style={{ display: "flex", gap: 8 }}>
-            <Button variant="ghost" size="md" onClick={() => setStep(1)}>Kembali</Button>
+            <Button variant="ghost" size="md" onClick={() => { setStep(1); setExtraData({}); }}>Kembali</Button>
             <Button
               variant="primary"
               size="md"
@@ -270,7 +284,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           <div style={card}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>
             <Row label="Event" value={detail.event.name} />
-            <Row label={detail.event.is_running_event ? "Jarak" : "Kategori"} value={selectedDistance?.name ?? "-"} />
+            <Row label={detail.event.event_type === "running" ? "Jarak" : "Kategori"} value={selectedDistance?.name ?? "-"} />
             <Row label="Tiket" value={selectedTicket?.name ?? "-"} />
             <Row label="Harga tiket" value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"} mono />
             <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />
@@ -339,6 +353,71 @@ function LabeledInput({
         }
       />
       {hint && <span className="field-hint">{hint}</span>}
+    </div>
+  );
+}
+
+function DynamicField({ field, value, onChange }: { field: RegistrationField; value: string; onChange: (v: string) => void }) {
+  const fid = useId();
+  const options = field.options ? field.options.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
+  if (field.field_type === "textarea") {
+    return (
+      <div className="field">
+        <label htmlFor={fid} className="field-label">{field.label}{field.required ? " *" : ""}</label>
+        <textarea id={fid} className="field-input" value={value} placeholder={field.placeholder} required={field.required} rows={3} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  if (field.field_type === "select") {
+    return (
+      <div className="field">
+        <label htmlFor={fid} className="field-label">{field.label}{field.required ? " *" : ""}</label>
+        <select id={fid} className="field-input" value={value} required={field.required} onChange={(e) => onChange(e.target.value)}>
+          <option value="">{field.placeholder || "Pilih…"}</option>
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </div>
+    );
+  }
+  if (field.field_type === "radio") {
+    return (
+      <div className="field">
+        <span className="field-label">{field.label}{field.required ? " *" : ""}</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {options.map((o) => (
+            <label key={o} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, cursor: "pointer" }}>
+              <input type="radio" name={field.name} value={o} checked={value === o} required={field.required} onChange={() => onChange(o)} />
+              {o}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (field.field_type === "checkbox") {
+    return (
+      <div className="field">
+        <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+          <input type="checkbox" checked={value === "true"} onChange={(e) => onChange(String(e.target.checked))} />
+          <span className="field-label" style={{ marginBottom: 0 }}>{field.label}{field.required ? " *" : ""}</span>
+        </label>
+      </div>
+    );
+  }
+  return (
+    <div className="field">
+      <label htmlFor={fid} className="field-label">{field.label}{field.required ? " *" : ""}</label>
+      <input
+        id={fid}
+        className="field-input"
+        type={field.field_type === "number" ? "text" : field.field_type}
+        inputMode={field.field_type === "number" ? "numeric" : undefined}
+        value={value}
+        placeholder={field.placeholder}
+        required={field.required}
+        onChange={(e) => onChange(field.field_type === "number" ? normalizeNumberInput(e.target.value) : e.target.value)}
+      />
     </div>
   );
 }

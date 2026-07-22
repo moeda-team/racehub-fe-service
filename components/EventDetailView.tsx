@@ -62,7 +62,7 @@ export default function EventDetailView({
       </p>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {event.is_running_event && <Badge variant="sprint">Event Lari</Badge>}
+        {event.event_type === "running" && <Badge variant="sprint">Event Lari</Badge>}
         {event.donation_enabled && <Badge variant="flame">Donasi Tersedia</Badge>}
         <Badge variant={event.quota_remaining > 0 ? "ok" : "danger"}>
           {event.quota_remaining > 0 ? `${formatNumber(event.quota_remaining)} slot tersisa` : "Kuota habis"}
@@ -77,7 +77,7 @@ export default function EventDetailView({
 
       <section style={{ marginBottom: 24 }}>
         <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 600, marginBottom: 12 }}>
-          {event.is_running_event ? "Kategori Jarak" : "Kategori"}
+          {event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
         </h2>
         {categories.length === 0 ? (
           <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada kategori.</p>

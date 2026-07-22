@@ -58,7 +58,7 @@ export default function EventListPage() {
   useEffect(() => {
     isFirstLoad.current = false;
     let cancelled = false;
-    setIsLoading(true);
+    const raf = requestAnimationFrame(() => setIsLoading(true));
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("page_size", String(pageSize));
@@ -82,6 +82,7 @@ export default function EventListPage() {
     })();
     return () => {
       cancelled = true;
+      cancelAnimationFrame(raf);
     };
   }, [page, pageSize, debouncedSearch, statusFilter]);
 
@@ -194,7 +195,7 @@ export default function EventListPage() {
                     <div style={{ fontWeight: 600, color: "var(--color-ink)" }}>{ev.name}</div>
                     <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
                       {ev.location || "Lokasi belum diatur"}
-                      {ev.is_running_event ? " · Event lari" : ""}
+                      {ev.event_type === "running" ? " · Event lari" : ""}
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -205,7 +206,7 @@ export default function EventListPage() {
                         color: "var(--color-ink-3)",
                       }}
                     >
-                      {ev.is_running_event ? "Lari" : "Umum"}
+                      {ev.event_type === "running" ? "Lari" : "Umum"}
                     </span>
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </div>

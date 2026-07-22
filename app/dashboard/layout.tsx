@@ -28,7 +28,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [isLoading, isAuthenticated, router]);
 
   // Close mobile menu on route change.
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMenuOpen(false));
+    return () => cancelAnimationFrame(id);
+  }, [pathname]);
 
   if (isLoading || !isAuthenticated) {
     return (
