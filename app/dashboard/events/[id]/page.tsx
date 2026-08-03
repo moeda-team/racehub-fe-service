@@ -658,6 +658,8 @@ function DashboardCard({ eventId }: { eventId: string }) {
     { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
     { label: "Donasi", value: formatRupiah(d.donation_total) },
     { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
+    { label: "Racepack Sudah Diambil", value: String(d.rpc_collected) },
+    { label: "Racepack Belum Diambil", value: String(d.rpc_pending) },
   ];
 
   return (
@@ -1009,6 +1011,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [rpcExporting, setRPCExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1053,6 +1056,32 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
       setErr("Gagal mengekspor. Coba lagi.");
     } finally {
       setExporting(false);
+    }
+  }
+
+  async function exportRPCCsv() {
+    setErr(null);
+    setRPCExporting(true);
+    try {
+      const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+      const token = getAuthToken();
+      const res = await fetch(`${base}/api/v1/events/${eventId}/rpc/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rekap-rpc-event-${eventId}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setErr("Gagal mengekspor rekap RPC. Coba lagi.");
+    } finally {
+      setRPCExporting(false);
     }
   }
 
@@ -1110,14 +1139,24 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
         <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           {rows ? `${rows.length} peserta ditampilkan` : "Memuat…"}
         </span>
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={exporting}
-          onClick={exportCsv}
-        >
-          {exporting ? "Mengekspor…" : "Export CSV"}
-        </Button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={rpcExporting}
+            onClick={exportRPCCsv}
+          >
+            {rpcExporting ? "Mengekspor…" : "Download Rekap RPC"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={exporting}
+            onClick={exportCsv}
+          >
+            {exporting ? "Mengekspor…" : "Export CSV"}
+          </Button>
+        </div>
       </div>
       {err && (
         <Alert variant="danger" className="mb-4">

@@ -554,6 +554,8 @@ export interface EventDashboard {
   ticket_revenue: number;
   donation_total: number;
   wallet_balance: number;
+  rpc_collected: number;
+  rpc_pending: number;
 }
 
 export interface RecapRow {
