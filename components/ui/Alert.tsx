@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-type AlertVariant = "warn" | "danger" | "info";
+type AlertVariant = "success" | "warn" | "danger" | "info";
 
 interface AlertProps {
   variant?: AlertVariant;
@@ -9,12 +9,14 @@ interface AlertProps {
 }
 
 const variantClass: Record<AlertVariant, string> = {
+  success: "alert-success",
   warn: "alert-warn",
   danger: "alert-danger",
   info: "alert-info",
 };
 
 const variantIcon: Record<AlertVariant, string> = {
+  success: "✓",
   warn: "!",
   danger: "×",
   info: "i",
@@ -23,6 +25,7 @@ const variantIcon: Record<AlertVariant, string> = {
 /* Bright semantic color for the icon circle background — distinct from the
    darker text color used by each alert variant. */
 const variantIconBg: Record<AlertVariant, string> = {
+  success: "var(--color-ok)",
   warn: "var(--color-warn)",
   danger: "var(--color-danger)",
   info: "var(--color-sprint)",

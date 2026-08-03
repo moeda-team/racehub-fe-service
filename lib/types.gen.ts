@@ -188,7 +188,9 @@ export interface Registration {
   donation: number;
   status: RegistrationStatus;
   is_complimentary?: boolean;
+  extra_data?: Record<string, string>;
   qr_token?: string; // only present when status=paid
+  pending_payment?: PaymentChargeResponse;
 }
 
 export interface ComplimentaryPerson {
@@ -346,6 +348,7 @@ export interface PaymentChargeResponse {
   registration_id: string;
   transaction_id: string;
   status: string;
+  expires_at?: string;
   va_number?: string;
   biller_code?: string;
   bill_key?: string;

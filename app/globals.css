@@ -295,6 +295,12 @@ body {
   color: #5c3a04;
 }
 
+.alert-success {
+  background-color: var(--color-ok-tint);
+  border-color: #b7ddc6;
+  color: #0e6238;
+}
+
 .alert-danger {
   background-color: var(--color-danger-tint);
   border-color: #efc2be;

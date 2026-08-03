@@ -156,16 +156,18 @@ interface FieldBuilderProps {
   eventId: string;
   fields: FieldDraft[];
   onChange: (fields: FieldDraft[]) => void;
-  saving: boolean;
 }
 
 function FieldBuilder({
   eventId,
   fields,
   onChange,
-  saving,
 }: FieldBuilderProps) {
   const [expanded, setExpanded] = useState(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [fieldNotice, setFieldNotice] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const busy = isSaving;
 
   function updateField(index: number, patch: Partial<FieldDraft>) {
     const updated = fields.map((f, i) =>
@@ -185,6 +187,9 @@ function FieldBuilder({
   async function saveField(index: number) {
     const f = fields[index];
     if (!f.name.trim() || !f.label.trim()) return;
+    setFieldError(null);
+    setFieldNotice(null);
+    setIsSaving(true);
     const payload: UpsertRegistrationFieldRequest = {
       id: f.id,
       name: f.name.trim(),
@@ -195,16 +200,23 @@ function FieldBuilder({
       required: f.required,
       sort_order: f.sort_order,
     };
-    const res = await api.post<{ data: RegistrationField }>(
-      `/api/v1/events/${eventId}/registration-fields`,
-      payload,
-    );
-    // Update with server-assigned id
-    onChange(
-      fields.map((prev, i) =>
-        i === index ? { ...prev, id: res.data.id } : prev,
-      ),
-    );
+    try {
+      const res = await api.post<{ data: RegistrationField }>(
+        `/api/v1/events/${eventId}/registration-fields`,
+        payload,
+      );
+      // Update with server-assigned id
+      onChange(
+        fields.map((prev, i) =>
+          i === index ? { ...prev, id: res.data.id } : prev,
+        ),
+      );
+      setFieldNotice("Kolom formulir berhasil disimpan.");
+    } catch (err) {
+      setFieldError(err instanceof Error ? err.message : "Kolom gagal disimpan.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function deleteField(index: number) {
@@ -213,8 +225,18 @@ function FieldBuilder({
       removeField(index);
       return;
     }
-    await api.delete(`/api/v1/events/${eventId}/registration-fields/${f.id}`);
-    removeField(index);
+    setFieldError(null);
+    setFieldNotice(null);
+    setIsSaving(true);
+    try {
+      await api.delete(`/api/v1/events/${eventId}/registration-fields/${f.id}`);
+      removeField(index);
+      setFieldNotice("Kolom formulir berhasil dihapus.");
+    } catch (err) {
+      setFieldError(err instanceof Error ? err.message : "Kolom gagal dihapus.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -262,6 +284,8 @@ function FieldBuilder({
             gap: 16,
           }}
         >
+          {fieldError && <Alert variant="danger">{fieldError}</Alert>}
+          {fieldNotice && <Alert variant="success">{fieldNotice}</Alert>}
           {fields.length === 0 && (
             <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
               Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di
@@ -388,18 +412,18 @@ function FieldBuilder({
                   variant="danger"
                   size="sm"
                   onClick={() => deleteField(i)}
-                  disabled={saving}
+                  disabled={busy}
                 >
-                  Hapus
+                  {busy ? "Memproses…" : "Hapus"}
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
                   onClick={() => saveField(i)}
-                  disabled={saving || !f.name.trim() || !f.label.trim()}
+                  disabled={busy || !f.name.trim() || !f.label.trim()}
                 >
-                  Simpan
+                  {busy ? "Memproses…" : "Simpan"}
                 </Button>
               </div>
             </div>
@@ -453,7 +477,6 @@ export default function EventForm({
   // Registration field builder state
   const [regFields, setRegFields] = useState<FieldDraft[]>([]);
   const [fieldsLoading, setFieldsLoading] = useState(!!eventId);
-  const [fieldsSaving, setFieldsSaving] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -707,12 +730,11 @@ export default function EventForm({
               eventId={eventId}
               fields={regFields}
               onChange={setRegFields}
-              saving={fieldsSaving}
             />
           )}
           <span className="field-hint">
-            Konfigurasi kolom formulir yang muncul saat pendaftar mengisi data
-            diri
+            Konfigurasi form dikunci setelah pendaftaran pertama agar data dan
+            ekspor peserta tetap konsisten.
           </span>
         </div>
       ) : (

@@ -64,6 +64,7 @@ export default function PayPage({
   const [quote, setQuote] = useState<PaymentQuoteResponse | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [charge, setCharge] = useState<PaymentChargeResponse | null>(null);
+  const [resumedPayment, setResumedPayment] = useState(false);
   const [charging, setCharging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,7 +80,16 @@ export default function PayPage({
     (async () => {
       try {
         const data = await loadRegistration();
-        if (!cancelled) setReg(data);
+        if (!cancelled) {
+          setReg(data);
+          if (
+            data.status === "pending_payment" &&
+            data.pending_payment?.status === "pending"
+          ) {
+            setCharge(data.pending_payment);
+            setResumedPayment(true);
+          }
+        }
       } catch {
         if (!cancelled) setLoadError("Pendaftaran tidak ditemukan.");
       } finally {
@@ -145,6 +155,7 @@ export default function PayPage({
         },
       );
       setCharge(res.data);
+      setResumedPayment(false);
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "Gagal memulai pembayaran.",
@@ -204,6 +215,20 @@ export default function PayPage({
             Lihat E-tiket
           </Button>
         </Link>
+      </main>
+    );
+  }
+
+  if (reg.status === "expired") {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-12">
+        <Link href="/" style={back}>
+          ← Kembali ke marketplace
+        </Link>
+        <Alert variant="danger">
+          Batas waktu pembayaran telah berakhir. Pendaftaran ini tidak dapat
+          dibayar lagi.
+        </Alert>
       </main>
     );
   }
@@ -332,6 +357,12 @@ export default function PayPage({
           <div style={{ fontWeight: 600, marginBottom: 8 }}>
             Instruksi Pembayaran
           </div>
+          {resumedPayment && (
+            <Alert variant="info" className="mb-3">
+              Instruksi pembayaran sebelumnya dipulihkan. Gunakan transaksi ini
+              untuk menyelesaikan pembayaran.
+            </Alert>
+          )}
           <Row label="Metode" value={charge.quote.payment_method_label} />
           {charge.va_number && (
             <Row label="Nomor Virtual Account" value={charge.va_number} mono />
@@ -351,6 +382,9 @@ export default function PayPage({
               value={charge.qr_string}
               deeplinkUrl={charge.deeplink_url}
             />
+          )}
+          {charge.expires_at && reg.status === "pending_payment" && (
+            <PaymentCountdown expiresAt={charge.expires_at} />
           )}
           <hr
             style={{
@@ -432,6 +466,66 @@ const card: React.CSSProperties = {
   borderRadius: "var(--radius-md)",
   backgroundColor: "var(--color-surface)",
 };
+
+function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
+  const deadline = new Date(expiresAt).getTime();
+  const [now, setNow] = useState(() => Date.now());
+  const validDeadline = Number.isFinite(deadline);
+  const remaining = validDeadline ? Math.max(0, deadline - now) : 0;
+
+  useEffect(() => {
+    if (!validDeadline) return;
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, [validDeadline]);
+
+  if (!validDeadline) return null;
+  if (remaining === 0) {
+    return (
+      <Alert variant="warn" className="my-3">
+        Batas waktu instruksi pembayaran telah tercapai. Status akan diperbarui
+        otomatis setelah konfirmasi dari penyedia pembayaran.
+      </Alert>
+    );
+  }
+
+  return (
+    <div
+      aria-live="polite"
+      style={{
+        margin: "14px 0",
+        padding: "12px 14px",
+        border: "1px solid #ead4a4",
+        borderRadius: "var(--radius-sm)",
+        backgroundColor: "var(--color-warn-tint)",
+      }}
+    >
+      <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+        Selesaikan pembayaran dalam
+      </div>
+      <div
+        style={{
+          marginTop: 2,
+          color: "var(--color-warn)",
+          fontFamily: "var(--font-mono)",
+          fontSize: 24,
+          fontWeight: 700,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {formatCountdown(remaining)}
+      </div>
+    </div>
+  );
+}
+
+function formatCountdown(milliseconds: number): string {
+  const seconds = Math.ceil(milliseconds / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return [hours, minutes, secs].map((part) => String(part).padStart(2, "0")).join(":");
+}
 
 // QR rendering for QRIS/GoPay. Midtrans returns either a raw QRIS payload
 // (encode it client-side) or a ready-made QR image URL (e.g. GoPay

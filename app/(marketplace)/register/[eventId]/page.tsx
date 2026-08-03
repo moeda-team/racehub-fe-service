@@ -45,6 +45,7 @@ export default function RegisterPage({
   const [gender, setGender] = useState("");
   const [donation, setDonation] = useState("0");
   const [extraData, setExtraData] = useState<Record<string, string>>({});
+  const [extraErrors, setExtraErrors] = useState<Record<string, string>>({});
 
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -90,6 +91,21 @@ export default function RegisterPage({
   // Retry submit (double-click / gagal jaringan) dengan data sama tidak boleh
   // membuat registrasi kedua; edit data → key baru (lihat lib/idempotency).
   const regIdem = useIdempotencyKey();
+
+  function validateExtraFields(): boolean {
+    if (!detail) return true;
+    const errors: Record<string, string> = {};
+    for (const field of detail.registration_fields) {
+      const value = extraData[field.id] ?? "";
+      const valid =
+        field.field_type === "checkbox"
+          ? value === "true"
+          : value.trim() !== "";
+      if (field.required && !valid) errors[field.id] = "Kolom ini wajib diisi.";
+    }
+    setExtraErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
 
   async function handleSubmit() {
     if (!detail || !ticketId || !distanceId) return;
@@ -399,10 +415,12 @@ export default function RegisterPage({
                   <DynamicField
                     key={f.id}
                     field={f}
-                    value={extraData[f.name] ?? ""}
-                    onChange={(v) =>
-                      setExtraData((prev) => ({ ...prev, [f.name]: v }))
-                    }
+                    value={extraData[f.id] ?? ""}
+                    error={extraErrors[f.id]}
+                    onChange={(v) => {
+                      setExtraData((prev) => ({ ...prev, [f.id]: v }));
+                      setExtraErrors((prev) => ({ ...prev, [f.id]: "" }));
+                    }}
                   />
                 ))}
               </>
@@ -424,7 +442,9 @@ export default function RegisterPage({
               size="md"
               style={{ flex: 1 }}
               disabled={!name || !email || !phone || !birthDate || !gender}
-              onClick={() => setStep(3)}
+              onClick={() => {
+                if (validateExtraFields()) setStep(3);
+              }}
             >
               Lanjut
             </Button>
@@ -581,10 +601,12 @@ function LabeledInput({
 function DynamicField({
   field,
   value,
+  error,
   onChange,
 }: {
   field: RegistrationField;
   value: string;
+  error?: string;
   onChange: (v: string) => void;
 }) {
   const fid = useId();
@@ -611,6 +633,7 @@ function DynamicField({
           rows={3}
           onChange={(e) => onChange(e.target.value)}
         />
+        {error && <span className="field-error">{error}</span>}
       </div>
     );
   }
@@ -635,6 +658,7 @@ function DynamicField({
             </option>
           ))}
         </select>
+        {error && <span className="field-error">{error}</span>}
       </div>
     );
   }
@@ -659,7 +683,7 @@ function DynamicField({
             >
               <input
                 type="radio"
-                name={field.name}
+                name={field.id}
                 value={o}
                 checked={value === o}
                 required={field.required}
@@ -669,6 +693,7 @@ function DynamicField({
             </label>
           ))}
         </div>
+        {error && <span className="field-error">{error}</span>}
       </div>
     );
   }
@@ -693,6 +718,7 @@ function DynamicField({
             {field.required ? " *" : ""}
           </span>
         </label>
+        {error && <span className="field-error">{error}</span>}
       </div>
     );
   }
@@ -718,6 +744,7 @@ function DynamicField({
           )
         }
       />
+      {error && <span className="field-error">{error}</span>}
     </div>
   );
 }
