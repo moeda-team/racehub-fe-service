@@ -509,6 +509,17 @@ export interface AdminEventPage {
 
 export interface BibResult {
   generated: number;
+  strategy: BibGenerationStrategy;
+}
+
+export type BibGenerationStrategy =
+  | "all"
+  | "category"
+  | "gender"
+  | "category_gender";
+
+export interface GenerateBibRequest {
+  strategy?: BibGenerationStrategy;
 }
 
 export type CheckinStage = "rpc" | "raceday";

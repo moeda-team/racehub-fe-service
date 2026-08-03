@@ -87,6 +87,7 @@ const MESSAGES: Record<string, string> = {
     "Pendaftaran masih dibuka; tutup pendaftaran sebelum membuat nomor BIB",
   "BIB numbers already generated; confirm regeneration to overwrite":
     "Nomor BIB sudah dibuat; konfirmasi pembuatan ulang untuk menimpa",
+  "invalid BIB generation strategy": "Pola pembuatan nomor BIB tidak valid",
   "invalid check-in stage": "Tahap check-in tidak valid",
 };
 

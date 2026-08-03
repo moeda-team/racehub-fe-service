@@ -21,6 +21,7 @@ import { confirm } from "@/components/ui/ConfirmDialog";
 import DataTable, { Column } from "@/components/ui/DataTable";
 import type {
   ApiResponse,
+  BibGenerationStrategy,
   BibResult,
   ComplimentaryPerson,
   Category,
@@ -384,6 +385,7 @@ export default function EditEventPage({
               <BibCard
                 eventId={eventId}
                 hasCloseDate={!!event.registration_close_date}
+                categories={detail.categories}
               />
             </div>
             <div
@@ -735,13 +737,45 @@ function RecapTable({ eventId }: { eventId: string }) {
 function BibCard({
   eventId,
   hasCloseDate,
+  categories,
 }: {
   eventId: string;
   hasCloseDate: boolean;
+  categories: Category[];
 }) {
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [strategy, setStrategy] = useState<BibGenerationStrategy>("all");
+
+  const strategyCopy: Record<
+    BibGenerationStrategy,
+    { label: string; preview: string; description: string }
+  > = {
+    all: {
+      label: "Semua peserta",
+      preview: "0001, 0002, 0003, …",
+      description: "Satu urutan untuk seluruh peserta, tanpa pemisahan.",
+    },
+    category: {
+      label: "Kategori",
+      preview: "01-0001, 02-0001, …",
+      description:
+        "Setiap kategori mendapat urutan sendiri. Kode 01, 02, dan seterusnya mengikuti urutan kategori dibuat.",
+    },
+    gender: {
+      label: "Gender",
+      preview: "M-0001, F-0001, O-0001, …",
+      description:
+        "M untuk male, F untuk female, dan O untuk nilai gender lainnya.",
+    },
+    category_gender: {
+      label: "Kategori + Gender",
+      preview: "01-M-0001, 01-F-0001, 02-M-0001, …",
+      description:
+        "Paling tepat untuk membedakan peserta seperti 5K Male, 5K Female, 10K Male, dan 10K Female.",
+    },
+  };
 
   async function generate(regenerate: boolean) {
     setErr(null);
@@ -750,12 +784,16 @@ function BibCard({
     try {
       const res = await api.post<ApiResponse<BibResult>>(
         `/api/v1/events/${eventId}/bibs/generate${regenerate ? "?regenerate=true" : ""}`,
+        { strategy },
       );
-      setMsg(`${res.data.generated} nomor BIB berhasil dibuat (0001…).`);
+      setMsg(
+        `${res.data.generated} nomor BIB berhasil dibuat dengan pola ${strategyCopy[res.data.strategy].preview}`,
+      );
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         if (
           e.message.toLowerCase().includes("already") ||
+          e.message.toLowerCase().includes("sudah dibuat") ||
           e.message.toLowerCase().includes("regenerat")
         ) {
           if (
@@ -790,8 +828,8 @@ function BibCard({
           marginBottom: 16,
         }}
       >
-        Nomor polos satu deret menerus (0001, 0002, …) untuk semua kategori,
-        urut waktu pendaftaran. Hanya bisa dibuat{" "}
+        Pilih pola nomor BIB, lalu sistem mengurutkan peserta berdasarkan waktu
+        pendaftaran di dalam setiap kelompok. Hanya bisa dibuat{" "}
         <b>setelah pendaftaran ditutup</b>.
         {!hasCloseDate &&
           ' Atur "Penutupan Pendaftaran" di tab Detail, atau ini memakai tanggal event.'}
@@ -806,6 +844,154 @@ function BibCard({
           {err}
         </Alert>
       )}
+      <div
+        style={{
+          maxWidth: 620,
+          marginBottom: 20,
+          overflow: "hidden",
+          border: "1px solid var(--color-line-2)",
+          borderRadius: "var(--radius-md)",
+          background: "var(--color-surface)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 16,
+            padding: 16,
+          }}
+        >
+          <div style={{ flex: "1 1 220px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 4,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  display: "inline-grid",
+                  width: 25,
+                  height: 25,
+                  placeItems: "center",
+                  borderRadius: "var(--radius-xs)",
+                  background: "var(--color-flame-tint)",
+                  color: "var(--color-flame-700)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                BIB
+              </span>
+              <label
+                htmlFor="bib-strategy"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 17,
+                  fontWeight: 700,
+                }}
+              >
+                Pola penomoran
+              </label>
+            </div>
+            <p
+              style={{
+                margin: 0,
+                color: "var(--color-ink-3)",
+                fontSize: 13,
+              }}
+            >
+              Tentukan pembeda peserta saat race day.
+            </p>
+          </div>
+          <div style={{ position: "relative", flex: "1 1 250px" }}>
+            <select
+              id="bib-strategy"
+              className="field-input"
+              value={strategy}
+              disabled={busy}
+              onChange={(e) =>
+                setStrategy(e.target.value as BibGenerationStrategy)
+              }
+              style={{
+                appearance: "none",
+                minHeight: 48,
+                paddingRight: 42,
+                borderColor: "var(--color-ink)",
+                fontFamily: "var(--font-display)",
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: busy ? "not-allowed" : "pointer",
+              }}
+            >
+              {Object.entries(strategyCopy).map(([value, copy]) => (
+                <option key={value} value={value}>
+                  {copy.label}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: 15,
+                transform: "translateY(-58%)",
+                color: "var(--color-flame)",
+                fontSize: 22,
+                fontWeight: 700,
+                pointerEvents: "none",
+              }}
+            >
+              ⌄
+            </span>
+          </div>
+        </div>
+        <div
+          style={{
+            padding: "12px 16px 14px",
+            borderTop: "1px solid var(--color-line)",
+            background: "var(--color-panel)",
+            color: "var(--color-ink-2)",
+            fontSize: 14,
+          }}
+        >
+          <div style={{ marginBottom: 3, fontSize: 12, fontWeight: 700 }}>
+            FORMAT YANG AKAN DIBUAT
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-mono)",
+              color: "var(--color-ink)",
+              fontSize: 16,
+              fontWeight: 700,
+              marginBottom: 4,
+            }}
+          >
+            {strategyCopy[strategy].preview}
+          </div>
+          <span>{strategyCopy[strategy].description}</span>
+          {(strategy === "category" || strategy === "category_gender") &&
+            categories.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                Kode kategori: {categories.map((category, index) => (
+                  <span key={category.id} style={{ marginRight: 10 }}>
+                    <span style={{ fontFamily: "var(--font-mono)" }}>
+                      {String(index + 1).padStart(2, "0")}
+                    </span>{" "}
+                    {category.name}
+                  </span>
+                ))}
+              </div>
+            )}
+        </div>
+      </div>
       <Button
         variant="primary"
         size="md"
