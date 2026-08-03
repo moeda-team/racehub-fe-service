@@ -187,6 +187,8 @@ export default function PayPage({
 
   const badge = statusBadge(reg.status);
 
+  const paymentDeadline = reg.payment_expires_at ?? charge?.expires_at;
+
   // Already paid → straight to the e-ticket.
   if (reg.status === "paid") {
     return (
@@ -198,6 +200,12 @@ export default function PayPage({
         </Alert>
         <div style={card}>
           <Row label="Nomor Registrasi" value={reg.registration_number} mono />
+          {reg.payment_paid_at && (
+            <Row
+              label="Waktu Pembayaran"
+              value={formatPaymentDate(reg.payment_paid_at)}
+            />
+          )}
           <div
             style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}
           >
@@ -229,6 +237,18 @@ export default function PayPage({
           Batas waktu pembayaran telah berakhir. Pendaftaran ini tidak dapat
           dibayar lagi.
         </Alert>
+        <div style={card}>
+          <Row label="Nomor Registrasi" value={reg.registration_number} mono />
+          {paymentDeadline && (
+            <Row
+              label="Batas Pembayaran"
+              value={formatPaymentDate(paymentDeadline)}
+            />
+          )}
+          <div style={{ marginTop: 8 }}>
+            <Badge variant="danger">Kedaluwarsa</Badge>
+          </div>
+        </div>
       </main>
     );
   }
@@ -364,6 +384,12 @@ export default function PayPage({
             </Alert>
           )}
           <Row label="Metode" value={charge.quote.payment_method_label} />
+          {charge.expires_at && (
+            <Row
+              label="Batas Pembayaran"
+              value={formatPaymentDate(charge.expires_at)}
+            />
+          )}
           {charge.va_number && (
             <Row label="Nomor Virtual Account" value={charge.va_number} mono />
           )}
@@ -482,9 +508,9 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
   if (!validDeadline) return null;
   if (remaining === 0) {
     return (
-      <Alert variant="warn" className="my-3">
-        Batas waktu instruksi pembayaran telah tercapai. Status akan diperbarui
-        otomatis setelah konfirmasi dari penyedia pembayaran.
+      <Alert variant="danger" className="my-3">
+        Waktu pembayaran telah habis. Transaksi ini akan ditandai kedaluwarsa
+        otomatis oleh sistem.
       </Alert>
     );
   }
@@ -525,6 +551,15 @@ function formatCountdown(milliseconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
   return [hours, minutes, secs].map((part) => String(part).padStart(2, "0")).join(":");
+}
+
+function formatPaymentDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(date);
 }
 
 // QR rendering for QRIS/GoPay. Midtrans returns either a raw QRIS payload

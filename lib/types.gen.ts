@@ -191,6 +191,8 @@ export interface Registration {
   extra_data?: Record<string, string>;
   qr_token?: string; // only present when status=paid
   pending_payment?: PaymentChargeResponse;
+  payment_paid_at?: string;
+  payment_expires_at?: string;
 }
 
 export interface ComplimentaryPerson {
