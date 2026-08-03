@@ -324,6 +324,7 @@ export interface PaymentQuoteResponse {
   donation: number;
   fee_platform: number;
   fee_midtrans: number;
+  fee_midtrans_charged_to_buyer: boolean;
   sub_total: number;
   payment_method: string;
   payment_method_label: string;

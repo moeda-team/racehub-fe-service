@@ -273,10 +273,14 @@ export default function PayPage({
               ? formatRupiah(quote.original_fee_platform)
               : undefined,
         },
-        {
-          label: `Fee Midtrans · ${quote.payment_method_label}`,
-          value: formatRupiah(quote.fee_midtrans),
-        },
+        ...(quote.fee_midtrans_charged_to_buyer
+          ? [
+              {
+                label: `Fee Midtrans · ${quote.payment_method_label}`,
+                value: formatRupiah(quote.fee_midtrans),
+              },
+            ]
+          : []),
       ]
     : [];
 
@@ -444,11 +448,13 @@ export default function PayPage({
             }
             mono
           />
-          <Row
-            label={`Fee Admin · ${charge.quote.payment_method_label}`}
-            value={formatRupiah(charge.quote.fee_midtrans)}
-            mono
-          />
+          {charge.quote.fee_midtrans_charged_to_buyer && (
+            <Row
+              label={`Fee Midtrans · ${charge.quote.payment_method_label}`}
+              value={formatRupiah(charge.quote.fee_midtrans)}
+              mono
+            />
+          )}
           <hr
             style={{
               border: 0,
