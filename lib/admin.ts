@@ -5,18 +5,11 @@
 import { ApiError } from "./api";
 import { translateApiError } from "./error-messages";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-const ADMIN_TOKEN_KEY = "racehub_admin_token";
+const BASE_URL = "";
 
-export function getAdminToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(ADMIN_TOKEN_KEY);
-}
-
-export function setAdminToken(token: string | null): void {
-  if (typeof window === "undefined") return;
-  if (token) window.localStorage.setItem(ADMIN_TOKEN_KEY, token);
-  else window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+function csrfToken(): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  return document.cookie.split("; ").find((v) => v.startsWith("racehub_csrf="))?.split("=")[1];
 }
 
 async function adminRequest<T>(
@@ -27,8 +20,8 @@ async function adminRequest<T>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const token = getAdminToken();
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const csrf = csrfToken();
+  if (csrf && !["GET", "HEAD"].includes(method)) headers["X-CSRF-Token"] = csrf;
 
   const res = await fetch(`${BASE_URL}${path}`, {
     method,

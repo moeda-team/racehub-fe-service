@@ -1,29 +1,17 @@
 import type { Metadata } from "next";
-import { Saira, Hanken_Grotesk, Spline_Sans_Mono } from "next/font/google";
+import "@fontsource/saira/500.css";
+import "@fontsource/saira/600.css";
+import "@fontsource/saira/700.css";
+import "@fontsource/saira/800.css";
+import "@fontsource/hanken-grotesk/400.css";
+import "@fontsource/hanken-grotesk/500.css";
+import "@fontsource/hanken-grotesk/600.css";
+import "@fontsource/hanken-grotesk/700.css";
+import "@fontsource/spline-sans-mono/500.css";
+import "@fontsource/spline-sans-mono/600.css";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 import { AdminAuthProvider } from "@/lib/adminAuth";
-
-const saira = Saira({
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-body",
-  display: "swap",
-});
-
-const spline = Spline_Sans_Mono({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "LowkeyThings — Platform Event Indonesia",
@@ -39,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${saira.variable} ${hanken.variable} ${spline.variable}`}
+      className=""
     >
       <body
         className="min-h-screen antialiased"

@@ -60,16 +60,14 @@ export default function TicketPage({
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
-          const raf = requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
             if (!token) setInvalidLink(true);
             else setNotReady(true);
           });
-          raf; // guard reference
         } else {
-          const raf = requestAnimationFrame(() =>
+          requestAnimationFrame(() =>
             setError("Gagal memuat e-tiket."),
           );
-          raf;
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -78,7 +76,7 @@ export default function TicketPage({
     return () => {
       cancelled = true;
     };
-  }, [number]);
+  }, [number, token]);
 
   if (loading) {
     return (

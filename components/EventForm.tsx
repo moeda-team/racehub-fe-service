@@ -527,6 +527,9 @@ export default function EventForm({
   const notifyChange = onChange;
   useEffect(() => {
     notifyChange?.(buildValues());
+    // buildValues reads the values explicitly listed below; keeping that list
+    // makes the preview update contract visible and avoids recreating it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     notifyChange,
     name,

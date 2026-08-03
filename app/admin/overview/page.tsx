@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminApi, ApiError } from "@/lib/admin";
+import { adminApi } from "@/lib/admin";
 import { formatRupiah } from "@/lib/format";
 import type { ApiResponse, PlatformRevenue } from "@/lib/types.gen";
-import type { Event, AdminEventPage } from "@/lib/types.gen";
+import type { AdminEventPage } from "@/lib/types.gen";
 
 export default function AdminOverviewPage() {
   const [events, setEvents] = useState<{

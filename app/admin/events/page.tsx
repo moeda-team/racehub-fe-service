@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { adminApi } from "@/lib/admin";
 import { formatDate } from "@/lib/format";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import type {
-  ApiResponse,
   AdminEventPage,
-  Event,
   EventStatus,
 } from "@/lib/types.gen";
 
@@ -32,7 +29,6 @@ export default function AdminEventsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<"all" | EventStatus>("all");
-  const [search, setSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;

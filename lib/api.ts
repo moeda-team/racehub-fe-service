@@ -7,30 +7,13 @@
 
 import { translateApiError } from "./error-messages";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+// Browser requests are same-origin and terminate at the Next.js BFF. The
+// opaque HttpOnly session never enters JavaScript or localStorage.
+const BASE_URL = "";
 
-const TOKEN_KEY = "racehub_token";
-
-let authToken: string | null = null;
-
-// Hydrate from localStorage on the client so auth survives reloads.
-if (typeof window !== "undefined") {
-  authToken = window.localStorage.getItem(TOKEN_KEY);
-}
-
-export function setAuthToken(token: string | null): void {
-  authToken = token;
-  if (typeof window !== "undefined") {
-    if (token) {
-      window.localStorage.setItem(TOKEN_KEY, token);
-    } else {
-      window.localStorage.removeItem(TOKEN_KEY);
-    }
-  }
-}
-
-export function getAuthToken(): string | null {
-  return authToken;
+function csrfToken(): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  return document.cookie.split("; ").find((v) => v.startsWith("racehub_csrf="))?.split("=")[1];
 }
 
 export class ApiError extends Error {
@@ -65,9 +48,9 @@ async function request<T>(
     "Content-Type": "application/json",
   };
 
-  if (authToken && opts?.auth !== false) {
-    headers["Authorization"] = `Bearer ${authToken}`;
-  }
+  if (opts?.auth === false) delete headers.Authorization;
+  const csrf = csrfToken();
+  if (csrf && !["GET", "HEAD"].includes(method)) headers["X-CSRF-Token"] = csrf;
   if (opts?.idempotencyKey) {
     headers["Idempotency-Key"] = opts.idempotencyKey;
   }
@@ -112,9 +95,8 @@ async function requestForm<T>(
   form: FormData,
 ): Promise<T> {
   const headers: Record<string, string> = {};
-  if (authToken) {
-    headers["Authorization"] = `Bearer ${authToken}`;
-  }
+  const csrf = csrfToken();
+  if (csrf) headers["X-CSRF-Token"] = csrf;
 
   const res = await fetch(`${BASE_URL}${path}`, {
     method,

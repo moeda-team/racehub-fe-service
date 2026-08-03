@@ -8,20 +8,6 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import type { ApiResponse, Event, RegistrationSummary } from "@/lib/types.gen";
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: "Draft",
-  published: "Published",
-  cancelled: "Cancelled",
-  finished: "Finished",
-};
-
-const STATUS_BADGE: Record<string, "neutral" | "ok" | "danger" | "warn"> = {
-  draft: "neutral",
-  published: "ok",
-  cancelled: "danger",
-  finished: "neutral",
-};
-
 const REG_STATUS: Record<string, string> = {
   pending_payment: "Pending",
   paid: "Lunas",

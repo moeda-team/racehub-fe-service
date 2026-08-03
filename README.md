@@ -22,7 +22,7 @@ Repo ini **konsumen API** dari [`racehub-be-service`](../racehub-be-service/); t
 pnpm install
 
 # Arahkan ke API backend (override default .env.example)
-echo 'NEXT_PUBLIC_API_URL=http://localhost:3001' > .env.local
+echo 'BACKEND_API_URL=http://localhost:3001' > .env.local
 
 pnpm dev      # http://localhost:3000
 pnpm lint
@@ -58,7 +58,8 @@ pnpm build
 pnpm dev        # development server
 pnpm build      # production build
 pnpm lint       # ESLint
-pnpm gen:api    # generate types dari OpenAPI (masih stub)
+pnpm gen:api    # generate lib/openapi.gen.ts dari OpenAPI backend
+pnpm check:api  # gagal bila output generator belum di-commit
 ```
 
 ## Dokumentasi lanjutan

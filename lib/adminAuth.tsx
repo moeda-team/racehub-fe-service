@@ -8,7 +8,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { adminApi, setAdminToken, getAdminToken } from "./admin";
+import { adminApi } from "./admin";
 import type { ApiResponse } from "./types.gen";
 
 interface AdminProfile {
@@ -16,13 +16,7 @@ interface AdminProfile {
   email: string;
 }
 
-interface AdminLoginResponse {
-  token: string;
-  expires_at: string;
-}
-
 interface AdminAuthState {
-  token: string | null;
   profile: AdminProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -48,19 +42,13 @@ export function useAdminAuth(): AdminAuthContextValue {
 }
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => getAdminToken());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   // Only spinner while validating a stored token; immediately false when no token
-  const [isLoading, setIsLoading] = useState<boolean>(!!getAdminToken());
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      // No stored token — nothing to validate, proceed immediately.
-      const id = requestAnimationFrame(() => setIsLoading(false));
-      return () => cancelAnimationFrame(id);
-    }
     let cancelled = false;
-    const raf = requestAnimationFrame(() => setIsLoading(true));
     (async () => {
       try {
         // Admin has no /me endpoint — verify by hitting a lightweight admin endpoint.
@@ -68,56 +56,48 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
           "/api/v1/admin/events?page_size=1",
         );
         if (!cancelled) {
-          const id = requestAnimationFrame(() => {
+	          requestAnimationFrame(() => {
             setProfile({ id: "", email: "" });
+	            setIsAuthenticated(true);
             setIsLoading(false);
           });
-          id;
         }
       } catch {
         if (!cancelled) {
-          const id = requestAnimationFrame(() => {
-            setAdminToken(null);
-            setToken(null);
+	          requestAnimationFrame(() => {
+	            setIsAuthenticated(false);
             setProfile(null);
             setIsLoading(false);
           });
-          id;
         }
       }
     })();
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
     };
-  }, [token]);
-
-  const isAuthenticated = !!token;
+  }, []);
 
   const login = useCallback(
     async (email: string, password: string, keepSignedIn = false) => {
-      const res = await adminApi.post<ApiResponse<AdminLoginResponse>>(
+      await adminApi.post(
         "/api/v1/admin/login",
         { email, password, keep_signed_in: keepSignedIn },
       );
-      const newToken = res.data.token;
-      setAdminToken(newToken);
-      setToken(newToken);
+	      setIsAuthenticated(true);
       setProfile({ id: "", email });
     },
     [],
   );
 
   const logout = useCallback(() => {
-    setAdminToken(null);
-    setToken(null);
+    void adminApi.post("/api/v1/organizers/logout").catch(() => undefined);
+	    setIsAuthenticated(false);
     setProfile(null);
   }, []);
 
   return (
     <AdminAuthContext.Provider
       value={{
-        token,
         profile,
         isAuthenticated,
         isLoading,

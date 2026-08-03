@@ -8,16 +8,14 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { api, setAuthToken, getAuthToken } from "./api";
+import { api } from "./api";
 import type {
   ApiResponse,
   OrganizerProfile,
-  OrganizerLoginResponse,
   WalletResponse,
 } from "./types.gen";
 
 interface AuthState {
-  token: string | null;
   profile: OrganizerProfile | null;
   wallet: WalletResponse | null;
   isAuthenticated: boolean;
@@ -52,15 +50,13 @@ export function useAuth(): AuthContextValue {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Lazy init from the persisted token (localStorage, via lib/api).
-  const [token, setToken] = useState<string | null>(() => getAuthToken());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<OrganizerProfile | null>(null);
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(() => !!getAuthToken());
+  const [isLoading, setIsLoading] = useState(true);
 
-  // If we booted with a token, validate it by loading the profile.
+  // Validate the HttpOnly session cookie on every fresh browser boot.
   useEffect(() => {
-    if (!token) return;
     let cancelled = false;
     (async () => {
       try {
@@ -70,9 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setProfile(res.data);
       } catch {
         if (!cancelled) {
-          setAuthToken(null);
-          setToken(null);
-          setProfile(null);
+	          setProfile(null);
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -81,27 +75,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-    // Run once on mount; token changes from login() set profile directly.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const isAuthenticated = !!token;
 
   const login = useCallback(
     async (email: string, password: string, keepSignedIn = false) => {
-      const res = await api.post<ApiResponse<OrganizerLoginResponse>>(
+      await api.post(
         "/api/v1/organizers/login",
         { email, password, keep_signed_in: keepSignedIn },
       );
-      const newToken = res.data.token;
-      setAuthToken(newToken);
-      setToken(newToken);
-
       // Fetch profile after login
       const profileRes = await api.get<ApiResponse<OrganizerProfile>>(
         "/api/v1/organizers/me",
       );
       setProfile(profileRes.data);
+	      setIsAuthenticated(true);
     },
     [],
   );
@@ -119,8 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    setAuthToken(null);
-    setToken(null);
+    void api.post("/api/v1/organizers/logout").catch(() => undefined);
+	    setIsAuthenticated(false);
     setProfile(null);
     setWallet(null);
   }, []);
@@ -132,9 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
       setProfile(res.data);
     } catch {
-      // If unauthorized, clear auth
-      setAuthToken(null);
-      setToken(null);
+      setIsAuthenticated(false);
       setProfile(null);
     }
   }, []);
@@ -153,7 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        token,
         profile,
         wallet,
         isAuthenticated,

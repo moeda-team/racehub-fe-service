@@ -31,7 +31,6 @@ export interface OrganizerLoginRequest {
 }
 
 export interface OrganizerLoginResponse {
-  token: string;
   expires_at: string;
 }
 

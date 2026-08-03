@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { api, ApiError, getAuthToken } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import {
   formatRupiah,
   formatNumber,
@@ -1034,13 +1034,10 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
     setErr(null);
     setExporting(true);
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-      const token = getAuthToken();
+      const base = "";
       const res = await fetch(
         `${base}/api/v1/events/${eventId}/participants/export`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
+        { credentials: "same-origin" },
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
@@ -1063,10 +1060,9 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
     setErr(null);
     setRPCExporting(true);
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-      const token = getAuthToken();
+      const base = "";
       const res = await fetch(`${base}/api/v1/events/${eventId}/rpc/export`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: "same-origin",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
@@ -1539,12 +1535,10 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
   }, [eventId]);
 
   useEffect(() => {
-    let cancelled = false;
     const id = requestAnimationFrame(() => {
       load().catch(() => {});
     });
     return () => {
-      cancelled = true;
       cancelAnimationFrame(id);
     };
   }, [load]);
