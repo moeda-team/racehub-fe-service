@@ -26,7 +26,6 @@ const METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
   { value: "va_permata", label: "VA Permata" },
   { value: "gopay", label: "GoPay" },
   { value: "qris", label: "QRIS" },
-  { value: "card", label: "Kartu Kredit/Debit" },
 ];
 
 type StatusVariant = "warn" | "ok" | "danger" | "neutral";
