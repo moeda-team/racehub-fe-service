@@ -194,6 +194,23 @@ export interface Registration {
   payment_expires_at?: string;
 }
 
+export interface StandaloneDonation {
+  id: string;
+  event_id: string;
+  donor_name: string;
+  donor_email: string;
+  amount: number;
+  method: PaymentMethod;
+  transaction_id: string;
+  status: "pending" | "paid" | "expired" | "cancelled";
+  expires_at?: string;
+  va_number?: string;
+  biller_code?: string;
+  bill_key?: string;
+  qr_string?: string;
+  deeplink_url?: string;
+}
+
 export interface ComplimentaryPerson {
   id: string;
   event_id: string;
@@ -452,7 +469,7 @@ export interface PlatformWalletBalance {
 
 // === Refund (F9) ===
 
-export type RefundStatus = "processing" | "completed" | "rejected";
+export type RefundStatus = "requested" | "processing" | "completed" | "rejected";
 
 export type RefundMode = "auto" | "manual";
 

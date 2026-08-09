@@ -112,10 +112,10 @@ export default function MarketplaceLayout({
           style={{
             padding: "40px 24px 28px",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
             flexWrap: "wrap",
-            gap: 16,
+            gap: 24,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -148,28 +148,20 @@ export default function MarketplaceLayout({
               LowkeyThings
             </span>
           </div>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 13,
-              fontFamily: "var(--font-mono)",
-              color: "#c7cdd6",
-            }}
-          >
-            by{" "}
-            <a
-              href="https://www.hompimpa.biz.id/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "var(--color-flame-300)",
-                textDecoration: "none",
-                fontWeight: 600,
-              }}
-            >
-              Hompimpa
-            </a>
-          </p>
+          <div style={{ fontSize: 13, lineHeight: 1.7, maxWidth: 420 }}>
+            <p style={{ margin: 0 }}>
+              Temukan, daftar, dan kelola event dengan cepat dan transparan.
+            </p>
+            <p style={{ margin: "8px 0 0", fontFamily: "var(--font-mono)" }}>
+              © {new Date().getFullYear()} LowkeyThings · by{" "}
+              <a href="https://www.hompimpa.biz.id/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-flame-300)", textDecoration: "none", fontWeight: 600 }}>
+                Hompimpa
+              </a>
+              {process.env.NEXT_PUBLIC_SUPPORT_EMAIL && <>
+                {" · "}<a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`} style={{ color: "var(--color-flame-300)", textDecoration: "none" }}>Hubungi dukungan</a>
+              </>}
+            </p>
+          </div>
         </div>
       </footer>
     </div>

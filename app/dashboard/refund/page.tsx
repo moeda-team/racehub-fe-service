@@ -18,6 +18,7 @@ const REFUND_STATUS: Record<
   string,
   { label: string; variant: "ok" | "warn" | "danger" }
 > = {
+	requested: { label: "Menunggu Persetujuan", variant: "warn" },
   completed: { label: "Selesai", variant: "ok" },
   processing: { label: "Diproses", variant: "warn" },
   rejected: { label: "Ditolak", variant: "danger" },
@@ -136,6 +137,12 @@ export default function DashboardRefundPage() {
       setBusy(false);
     }
   }
+  async function approvePersonal(refundId: string) {
+    setBusy(true); setCompleteErr(null);
+    try { await api.post(`/api/v1/events/${lookupEventId.trim()}/refunds/${refundId}/approve`); await loadEventData(); }
+    catch (e) { setCompleteErr(e instanceof ApiError ? e.message : "Refund tidak dapat disetujui."); }
+    finally { setBusy(false); }
+  }
 
   async function submitMass() {
     setMassErr(null);
@@ -174,6 +181,7 @@ export default function DashboardRefundPage() {
 
   const processingRefunds =
     pendingRefunds?.filter((r) => r.status === "processing") ?? [];
+  const requestedRefunds = pendingRefunds?.filter((r) => r.status === "requested") ?? [];
 
   return (
     <div className="rh-reveal" style={{ maxWidth: 760 }}>
@@ -308,6 +316,12 @@ export default function DashboardRefundPage() {
       </section>
 
       {/* Pending manual refunds */}
+      {requestedRefunds.length > 0 && (
+        <section style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Pengajuan Refund Personal ({requestedRefunds.length})</div>
+          {requestedRefunds.map((r) => <div key={r.id} style={{ display:"flex", justifyContent:"space-between", gap:12, padding:"8px 0", borderBottom:"1px solid var(--color-line)" }}><span><code>{r.id.slice(0,8)}…</code><br/><small>{formatRupiah(r.amount)} · {r.reason || "Tanpa alasan"}</small></span><Button variant="primary" size="sm" disabled={busy} onClick={()=>approvePersonal(r.id)}>Setujui</Button></div>)}
+        </section>
+      )}
       {processingRefunds.length > 0 && (
         <section
           style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}

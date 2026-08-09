@@ -7,11 +7,17 @@ import { formatRupiah } from "@/lib/format";
 import type { ApiResponse, Refund } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 
 const STATUS_MAP: Record<
   string,
   { label: string; desc: string; variant: "ok" | "warn" | "danger" }
 > = {
+	requested: {
+		label: "Menunggu Persetujuan",
+		desc: "Pengajuan refund telah dikirim dan sedang ditinjau penyelenggara.",
+		variant: "warn",
+	},
   completed: {
     label: "Selesai",
     desc: "Dana refund telah dikembalikan ke metode pembayaran asal Anda.",
@@ -44,6 +50,17 @@ export default function RefundStatusPage({
   const [refund, setRefund] = useState<Refund | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reason, setReason] = useState("");
+  const [bankAccount, setBankAccount] = useState("");
+  const [refundDonation, setRefundDonation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function requestRefund(e: React.FormEvent) {
+    e.preventDefault(); setSubmitting(true); setError(null);
+    try { const res = await api.post<ApiResponse<Refund>>(`/api/v1/registrations/${number}/refund`, { reason, bank_account: bankAccount || undefined, refund_donation: refundDonation }, { auth: false }); setRefund(res.data); }
+    catch (err) { setError(err instanceof ApiError ? err.message : "Pengajuan refund gagal."); }
+    finally { setSubmitting(false); }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -111,6 +128,19 @@ export default function RefundStatusPage({
       {loading && <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>}
 
       {error && <Alert variant="danger">{error}</Alert>}
+
+      {!loading && !refund && (
+        <form onSubmit={requestRefund} style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", padding: 20, background: "var(--color-surface)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, marginTop: 0 }}>Ajukan refund personal</h2>
+          <p style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Jika disetujui organizer, refund personal bernilai 75% dari pembayaran selain donasi; pilih opsi di bawah bila donasi juga ingin direfund.</p>
+          <label className="field-label">Alasan</label>
+          <textarea className="field-input" value={reason} onChange={(e) => setReason(e.target.value)} required style={{ minHeight: 88, marginBottom: 12 }} />
+          <label className="field-label">Nomor rekening (wajib untuk pembayaran VA)</label>
+          <input className="field-input" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} style={{ marginBottom: 12 }} />
+          <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, marginBottom: 16 }}><input type="checkbox" checked={refundDonation} onChange={(e) => setRefundDonation(e.target.checked)} /> Sertakan donasi dalam basis refund (tetap dikenai potongan 25%)</label>
+          <Button type="submit" variant="primary" disabled={submitting} style={{ width: "100%" }}>{submitting ? "Mengirim…" : "Kirim Pengajuan Refund"}</Button>
+        </form>
+      )}
 
       {refund &&
         (() => {

@@ -266,7 +266,7 @@ export default function PayPage({
         },
         { label: "Donasi", value: formatRupiah(quote.donation) },
         {
-          label: "Fee Platform",
+          label: "Layanan Platform",
           value: formatRupiah(quote.fee_platform),
           original:
             quote.original_fee_platform != null
@@ -439,7 +439,7 @@ export default function PayPage({
             mono
           />
           <Row
-            label="Fee Platform"
+            label="Layanan Platform"
             value={formatRupiah(charge.quote.fee_platform)}
             original={
               charge.quote.original_fee_platform != null

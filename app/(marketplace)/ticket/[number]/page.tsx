@@ -236,7 +236,7 @@ export default function TicketPage({
           <Row label="Harga Tiket" value={formatRupiah(inv.price)} mono />
           <Row label="Donasi" value={formatRupiah(inv.donation)} mono />
           <Row
-            label="Fee Platform"
+            label="Layanan Platform"
             value={formatRupiah(inv.fee_platform)}
             mono
           />

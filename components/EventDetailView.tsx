@@ -103,6 +103,12 @@ export default function EventDetailView({
         </div>
       )}
 
+      {event.donation_enabled && interactive && (
+        <Link href={`/donate/${event.id}`} style={{ display: "block", margin: "0 0 24px" }}>
+          <Button variant="secondary" size="md" style={{ width: "100%" }}>Donasi tanpa mendaftar</Button>
+        </Link>
+      )}
+
       <section style={{ marginBottom: 24 }}>
         <h2
           style={{

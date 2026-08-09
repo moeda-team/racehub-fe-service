@@ -36,6 +36,7 @@ export interface RequestOptions {
   // Idempotency-Key untuk operasi uang/registrasi: retry dengan key yang sama
   // tidak menghasilkan efek kedua di server (lihat OpenAPI).
   idempotencyKey?: string;
+  headers?: Record<string, string>;
 }
 
 async function request<T>(
@@ -54,6 +55,7 @@ async function request<T>(
   if (opts?.idempotencyKey) {
     headers["Idempotency-Key"] = opts.idempotencyKey;
   }
+  Object.assign(headers, opts?.headers);
 
   const res = await fetch(`${BASE_URL}${path}`, {
     method,

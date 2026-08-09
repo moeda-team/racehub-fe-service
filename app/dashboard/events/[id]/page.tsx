@@ -38,13 +38,14 @@ import type {
   TicketCategory,
 } from "@/lib/types.gen";
 
-type Tab = "detail" | "kategori" | "peserta" | "keuangan" | "refund";
+type Tab = "detail" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
 
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
   { id: "kategori", label: "Kategori" },
   { id: "peserta", label: "Peserta & BIB" },
   { id: "keuangan", label: "Keuangan" },
+  { id: "komunikasi", label: "Komunikasi" },
 ];
 
 export default function EditEventPage({
@@ -330,6 +331,7 @@ export default function EditEventPage({
               eventId={eventId}
               onChanged={load}
             />
+            <RPCAccessCard eventId={eventId} />
             <div
               style={{
                 padding: 28,
@@ -438,6 +440,13 @@ export default function EditEventPage({
           </div>
         )}
 
+        {activeTab === "komunikasi" && (
+          <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+            <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, marginTop: 0 }}>Email peserta terjadwal</h2>
+            <CampaignCard eventId={eventId} />
+          </div>
+        )}
+
         {activeTab === "keuangan" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div
@@ -529,6 +538,23 @@ export default function EditEventPage({
       </div>
     </div>
   );
+}
+
+type EmailCampaign = { id: string; subject: string; content: string; audience: "paid" | "pending_payment"; send_at: string; status: string };
+function CampaignCard({ eventId }: { eventId: string }) {
+  const [items, setItems] = useState<EmailCampaign[]>([]); const [subject,setSubject]=useState(""); const [content,setContent]=useState(""); const [audience,setAudience]=useState<EmailCampaign["audience"]>("paid"); const [sendAt,setSendAt]=useState(""); const [error,setError]=useState<string|null>(null);
+  const load = useCallback(async()=>{ try { const r=await api.get<ApiResponse<EmailCampaign[]>>(`/api/v1/events/${eventId}/email-campaigns`);setItems(r.data??[]);}catch(e){setError(e instanceof ApiError?e.message:"Gagal memuat kampanye.");}},[eventId]);
+  useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
+  async function create(){setError(null);try{await api.post(`/api/v1/events/${eventId}/email-campaigns`,{subject,content,audience,send_at:new Date(sendAt).toISOString()});setSubject("");setContent("");setSendAt("");await load();}catch(e){setError(e instanceof ApiError?e.message:"Kampanye gagal dijadwalkan.");}}
+  async function cancel(id:string){try{await api.delete(`/api/v1/events/${eventId}/email-campaigns/${id}`);await load();}catch(e){setError(e instanceof ApiError?e.message:"Tidak dapat membatalkan kampanye.");}}
+  return <div>{error&&<Alert variant="danger" className="mb-4">{error}</Alert>}<div style={{display:"grid",gap:12,maxWidth:680}}><input className="field-input" placeholder="Subjek email" value={subject} onChange={e=>setSubject(e.target.value)}/><textarea className="field-input" placeholder="Informasi untuk peserta" value={content} onChange={e=>setContent(e.target.value)} style={{minHeight:110}}/><div style={{display:"flex",gap:12,flexWrap:"wrap"}}><select className="field-input" value={audience} onChange={e=>setAudience(e.target.value as EmailCampaign["audience"])} style={{maxWidth:220}}><option value="paid">Peserta lunas</option><option value="pending_payment">Menunggu pembayaran</option></select><input className="field-input" type="datetime-local" value={sendAt} onChange={e=>setSendAt(e.target.value)} style={{maxWidth:240}}/><Button variant="primary" onClick={create} disabled={!subject||!content||!sendAt}>Jadwalkan</Button></div></div><div style={{marginTop:24,display:"grid",gap:8}}>{items.map(c=><div key={c.id} style={{padding:12,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",display:"flex",justifyContent:"space-between",gap:12}}><span><b>{c.subject}</b><br/><small>{c.audience==="paid"?"Peserta lunas":"Menunggu pembayaran"} · {new Date(c.send_at).toLocaleString("id-ID")} · {c.status}</small></span>{c.status==="scheduled"&&<Button variant="ghost" size="sm" onClick={()=>cancel(c.id)}>Batalkan</Button>}</div>)}</div></div>;
+}
+
+function RPCAccessCard({ eventId }: { eventId: string }) {
+  const [code,setCode]=useState<string|null>(null);const [error,setError]=useState<string|null>(null);
+  async function rotate(){try{const r=await api.post<ApiResponse<{access_code:string}>>(`/api/v1/events/${eventId}/rpc-access/rotate`);setCode(r.data.access_code);setError(null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal membuat kode akses.")}}
+  async function revoke(){try{await api.delete(`/api/v1/events/${eventId}/rpc-access`);setCode(null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal mencabut akses.")}}
+  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,marginTop:0}}>Akses volunteer RPC</h2><p style={{fontSize:13,color:"var(--color-ink-3)"}}>Buat kode untuk volunteer eksternal. Kode hanya berlaku pada halaman <code>/rpc/volunteer</code> dan tidak memberi akses wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}<div style={{display:"flex",gap:8}}><Button variant="secondary" onClick={rotate}>{code?"Putar kode":"Buat kode akses"}</Button>{code&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
 }
 
 // RegistrationStatusCard shows whether registration is open or closed and lets
