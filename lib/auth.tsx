@@ -63,7 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await api.get<ApiResponse<OrganizerProfile>>(
           "/api/v1/organizers/me",
         );
-        if (!cancelled) setProfile(res.data);
+        if (!cancelled) {
+          setProfile(res.data);
+          setIsAuthenticated(true);
+        }
       } catch {
         if (!cancelled) {
 	          setProfile(null);
