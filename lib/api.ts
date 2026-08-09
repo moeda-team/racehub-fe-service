@@ -49,7 +49,12 @@ async function request<T>(
     "Content-Type": "application/json",
   };
 
-  if (opts?.auth === false) delete headers.Authorization;
+  if (opts?.auth === false) {
+    delete headers.Authorization;
+    // Tell the BFF to strip the browser session before forwarding. Public
+    // marketplace responses have a deliberately different, safe shape.
+    headers["X-RaceHub-Public"] = "1";
+  }
   const csrf = csrfToken();
   if (csrf && !["GET", "HEAD"].includes(method)) headers["X-CSRF-Token"] = csrf;
   if (opts?.idempotencyKey) {

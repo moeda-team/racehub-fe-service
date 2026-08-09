@@ -1,7 +1,8 @@
 /**
  * Format a plain integer with thousand-separator commas (id-ID locale). DISPLAY ONLY.
  */
-export function formatNumber(n: number): string {
+export function formatNumber(n: number | null | undefined): string {
+  if (typeof n !== "number" || !Number.isFinite(n)) return "—";
   return new Intl.NumberFormat("id-ID").format(n);
 }
 
@@ -28,7 +29,8 @@ export function parseNumberInput(formatted: string): string {
  * Menggunakan Indonesian locale. TIDAK melakukan perhitungan apapun.
  * Hanya memformat angka yang sudah diterima dari backend.
  */
-export function formatRupiah(amount: number): string {
+export function formatRupiah(amount: number | null | undefined): string {
+  if (typeof amount !== "number" || !Number.isFinite(amount)) return "—";
   const formatter = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",

@@ -7,7 +7,10 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
   const { path } = await context.params;
   const route = path.join("/");
   const unsafe = !["GET", "HEAD", "OPTIONS"].includes(request.method);
-  const session = request.cookies.get("racehub_session")?.value;
+  const isPublic = request.headers.get("x-racehub-public") === "1";
+  const session = isPublic
+    ? undefined
+    : request.cookies.get("racehub_session")?.value;
   if (unsafe && session && !csrfExempt.has(route)) {
     const csrfCookie = request.cookies.get("racehub_csrf")?.value;
     if (!csrfCookie || request.headers.get("x-csrf-token") !== csrfCookie) {
@@ -21,6 +24,13 @@ async function proxy(request: NextRequest, context: { params: Promise<{ path: st
 
   const headers = new Headers(request.headers);
   headers.delete("host");
+  headers.delete("x-racehub-public");
+  if (isPublic) {
+    // An organizer session must never alter the representation of an endpoint
+    // explicitly requested as public (e.g. event detail with quota_remaining).
+    headers.delete("cookie");
+    headers.delete("authorization");
+  }
   headers.set("x-forwarded-proto", request.nextUrl.protocol.replace(":", ""));
   headers.set("x-racehub-bff", "1");
   const target = new URL(`/api/v1/${route}`, backendBase);

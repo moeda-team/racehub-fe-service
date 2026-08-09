@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import type {
   ApiResponse,
+  Event,
   MassRefundResult,
   Refund,
   RegistrationSummary,
@@ -35,6 +36,8 @@ const REG_STATUS_LABEL: Record<string, string> = {
 };
 
 export default function DashboardRefundPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [lookupEventId, setLookupEventId] = useState("");
   const [registrations, setRegistrations] = useState<
     RegistrationSummary[] | null
@@ -58,6 +61,27 @@ export default function DashboardRefundPage() {
   const [mass, setMass] = useState<MassRefundResult | null>(null);
   const [massErr, setMassErr] = useState<string | null>(null);
   const [massBusy, setMassBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<Event[]>>("/api/v1/events");
+        if (!cancelled) setEvents(res.data ?? []);
+      } catch (e) {
+        if (!cancelled) {
+          setLookupErr(
+            e instanceof ApiError ? e.message : "Gagal memuat daftar event.",
+          );
+        }
+      } finally {
+        if (!cancelled) setEventsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function loadEventData() {
     setLookupErr(null);
@@ -206,7 +230,7 @@ export default function DashboardRefundPage() {
       {/* Event lookup */}
       <section style={card}>
         <div style={{ fontWeight: 600, marginBottom: 12 }}>
-          Cari Pendaftar per Event
+          Pilih Event untuk Kelola Refund
         </div>
         {lookupErr && (
           <Alert variant="danger" className="mb-4">
@@ -222,23 +246,30 @@ export default function DashboardRefundPage() {
           }}
         >
           <div className="field" style={{ flex: 1, minWidth: 240 }}>
-            <label className="field-label">ID Event</label>
-            <input
+            <label className="field-label">Event</label>
+            <select
               className="field-input"
-              type="text"
               value={lookupEventId}
               onChange={(e) => setLookupEventId(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && loadEventData()}
-              placeholder="UUID event"
-            />
+              disabled={eventsLoading}
+            >
+              <option value="">
+                {eventsLoading ? "Memuat event…" : "Pilih event"}
+              </option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.name}
+                </option>
+              ))}
+            </select>
           </div>
           <Button
             variant="primary"
             size="md"
-            disabled={lookupBusy}
+            disabled={lookupBusy || !lookupEventId}
             onClick={loadEventData}
           >
-            {lookupBusy ? "Memuat…" : "Muat"}
+            {lookupBusy ? "Memuat…" : "Tampilkan Permintaan"}
           </Button>
         </div>
 
