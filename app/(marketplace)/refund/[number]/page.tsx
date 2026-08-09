@@ -73,9 +73,10 @@ export default function RefundStatusPage({
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
-          setError(
-            "Refund tidak ditemukan untuk nomor registrasi ini. Pastikan nomor benar atau hubungi penyelenggara.",
-          );
+          // A missing refund is the normal starting state: show the personal
+          // refund request form below. The server remains authoritative for
+          // whether this registration is eligible to submit one.
+          setRefund(null);
         } else {
           setError("Gagal memuat status refund. Coba lagi nanti.");
         }
