@@ -2934,13 +2934,13 @@ export interface paths {
         };
         /**
          * Manual RPC participant lookup (FR-605)
-         * @description Primary RPC method — search paid participants by name, BIB, or registration number. Organizer must own the event.
+         * @description Primary RPC method — search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query lists all paid participants.
          */
         get: {
             parameters: {
-                query: {
+                query?: {
                     /** @description Name */
-                    q: string;
+                    q?: string;
                 };
                 header?: never;
                 path: {
@@ -3560,6 +3560,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/donations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get standalone donation payment status
+         * @description Poll this public endpoint after payment; the server/webhook is authoritative for status.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Current donation payment state */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StandaloneDonationEnvelope"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rpc-access/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve a volunteer RPC code to its event
+         * @description No organizer session is created. The code is supplied in `X-RPC-Access-Code` and the response only identifies the event that code may operate.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Volunteer event session. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["RPCAccessSession"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/{id}/rpc-access/rotate": {
         parameters: {
             query?: never;
@@ -3603,7 +3688,30 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get the active volunteer RPC code for an event
+         * @description Organizer-only. The code is stored encrypted at rest and is returned only to the event owner.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Current volunteer RPC access state */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         put?: never;
         post?: never;
         /** Revoke volunteer RPC access */
@@ -4475,6 +4583,11 @@ export interface components {
             /** @description Empty or 'checked_in' (FR-603). */
             raceday_status?: string;
         };
+        RPCAccessSession: {
+            /** Format: uuid */
+            event_id: string;
+            event_name: string;
+        };
         ScanRequest: {
             qr_token: string;
             /** @enum {string} */
@@ -4591,6 +4704,15 @@ export interface components {
         Rupiah: number;
     };
     responses: {
+        /** @description Invalid request. */
+        BadRequest: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description Missing or invalid authentication. */
         Unauthorized: {
             headers: {

@@ -555,6 +555,11 @@ export interface CheckinParticipant {
   raceday_status: string; // "" | "checked_in"
 }
 
+export interface RPCAccessSession {
+  event_id: string;
+  event_name: string;
+}
+
 export interface ScanRequest {
   qr_token: string;
   stage: CheckinStage;

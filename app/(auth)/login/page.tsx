@@ -129,6 +129,42 @@ export default function LoginPage() {
           {isSubmitting ? "Memproses..." : "Masuk"}
         </Button>
       </form>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          margin: "24px 0 16px",
+          color: "var(--color-ink-3)",
+          fontSize: 12,
+        }}
+      >
+        <span style={{ height: 1, flex: 1, background: "var(--color-line)" }} />
+        atau
+        <span style={{ height: 1, flex: 1, background: "var(--color-line)" }} />
+      </div>
+
+      <Button
+        type="button"
+        variant="secondary"
+        size="md"
+        style={{ width: "100%" }}
+        onClick={() => router.push("/rpc/volunteer")}
+      >
+        Akses sebagai volunteer RPC
+      </Button>
+      <p
+        style={{
+          color: "var(--color-ink-3)",
+          fontSize: 13,
+          lineHeight: 1.5,
+          margin: "10px 0 0",
+          textAlign: "center",
+        }}
+      >
+        Tidak perlu akun. Masukkan ID event dan kode akses RPC dari organizer.
+      </p>
     </div>
   );
 }
