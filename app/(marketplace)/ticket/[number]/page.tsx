@@ -216,16 +216,38 @@ export default function TicketPage({
           )}
         </div>
       ) : (
-        <Ticket
-          registrationNumber={ticket.registration_number}
-          name={ticket.participant_name}
-          event={ticket.event_name}
-          distance={ticket.category_name}
-          ageClass={ticket.age_class || undefined}
-          gender={ticket.gender || undefined}
-          date={ticket.issued_at ? formatDate(ticket.issued_at) : undefined}
-          qrToken={ticket.qr_token}
-        />
+        <>
+          <Ticket
+            registrationNumber={ticket.registration_number}
+            name={ticket.participant_name}
+            event={ticket.event_name}
+            distance={ticket.category_name}
+            ageClass={ticket.age_class || undefined}
+            gender={ticket.gender || undefined}
+            date={ticket.issued_at ? formatDate(ticket.issued_at) : undefined}
+            qrToken={ticket.qr_token}
+          />
+          <div style={card}>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>
+              Butuh membatalkan pendaftaran?
+            </div>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--color-ink-3)",
+                margin: "0 0 14px",
+              }}
+            >
+              Ajukan refund sebelum batas waktu yang ditetapkan penyelenggara.
+              Pengajuan akan ditinjau oleh penyelenggara.
+            </p>
+            <Link href={`/refund/${number}`}>
+              <Button variant="secondary" size="sm">
+                Ajukan Refund
+              </Button>
+            </Link>
+          </div>
+        </>
       )}
 
       {inv && (
