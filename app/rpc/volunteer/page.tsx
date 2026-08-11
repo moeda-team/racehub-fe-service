@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api";
 import type {
   ApiResponse,
   CheckinParticipant,
+  CheckinStage,
   RPCAccessSession,
 } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
@@ -17,6 +18,7 @@ export default function VolunteerRPCPage() {
   const [session, setSession] = useState<RPCAccessSession | null>(null);
   const [participants, setParticipants] = useState<CheckinParticipant[]>([]);
   const [query, setQuery] = useState("");
+  const [stage, setStage] = useState<CheckinStage>("rpc");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
@@ -66,13 +68,14 @@ export default function VolunteerRPCPage() {
   }
 
   async function collect(participant: CheckinParticipant) {
-    if (!session || participant.rpc_status === "collected" || markingId) return;
+    const done = stage === "rpc" ? participant.rpc_status !== "" : participant.raceday_status !== "";
+    if (!session || done || markingId) return;
     setError(null);
     setMarkingId(participant.id);
     try {
       const response = await api.post<ApiResponse<CheckinParticipant>>(
         `/api/v1/events/${session.event_id}/checkin`,
-        { registration_id: participant.id, stage: "rpc" },
+        { registration_id: participant.id, stage },
         options,
       );
       setParticipants((current) =>
@@ -107,7 +110,12 @@ export default function VolunteerRPCPage() {
                 style={inputStyle}
               />
             </label>
-            <Button type="submit" variant="primary" disabled={busy || !code.trim()}>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={busy || !code.trim()}
+              style={{ width: "100%", minHeight: 48 }}
+            >
               {busy ? "Memeriksa akses…" : "Masuk ke event"}
             </Button>
           </form>
@@ -118,52 +126,65 @@ export default function VolunteerRPCPage() {
 
   return (
     <main style={pageStyle}>
-      <header style={{ marginBottom: 20 }}>
+      <header style={headerStyle}>
         <p style={eyebrowStyle}>PENGAMBILAN RACEPACK</p>
         <h1 style={titleStyle}>{session.event_name}</h1>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <p style={{ ...descriptionStyle, margin: 0 }}>
-            {participants.length} peserta lunas · {participants.filter((item) => item.rpc_status === "collected").length} sudah mengambil
+        <div style={summaryStyle}>
+          <p style={summaryTextStyle}>
+            {participants.length} peserta lunas · {participants.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil racepack" : "check-in Hari-H"}
           </p>
-          <button type="button" onClick={() => { setSession(null); setParticipants([]); setQuery(""); }} style={changeCodeStyle}>
+          <button type="button" onClick={() => { setSession(null); setParticipants([]); setQuery(""); setStage("rpc"); }} style={changeCodeStyle}>
             Ganti kode
           </button>
         </div>
       </header>
 
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
-      <input
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Filter nama, BIB, atau nomor registrasi"
-        inputMode="search"
-        style={{ ...inputStyle, marginBottom: 14 }}
-      />
+      <div style={stageToggleStyle}>
+        <StageButton active={stage === "rpc"} onClick={() => setStage("rpc")} label="Racepack (H-1/H-2)" />
+        <StageButton active={stage === "raceday"} onClick={() => setStage("raceday")} label="Hari-H" />
+      </div>
+      <label style={searchLabelStyle}>
+        Cari peserta
+        <input
+          autoFocus
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Nama / BIB / no. registrasi"
+          inputMode="search"
+          style={inputStyle}
+        />
+      </label>
 
-      <div style={{ display: "grid", gap: 8 }}>
+      <div style={participantListStyle}>
         {visibleParticipants.map((participant) => {
-          const collected = participant.rpc_status === "collected";
+          const done = stage === "rpc" ? participant.rpc_status !== "" : participant.raceday_status !== "";
           return (
             <article key={participant.id} style={participantStyle}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <strong style={bibStyle}>{participant.bib_number || "—"}</strong>
-                  <strong style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{participant.name}</strong>
+                  <strong style={participantNameStyle}>{participant.name}</strong>
                 </div>
                 <p style={participantMetaStyle}>
                   {participant.registration_number}
                   {participant.age_class ? ` · ${participant.age_class}` : ""}
                   {participant.gender ? ` · ${participant.gender}` : ""}
                 </p>
+                <div style={statusListStyle}>
+                  <StatusPill done={participant.rpc_status !== ""} label="Racepack" />
+                  <StatusPill done={participant.raceday_status !== ""} label="Hari-H" />
+                </div>
               </div>
               <Button
                 type="button"
-                size="sm"
-                variant={collected ? "secondary" : "primary"}
-                disabled={collected || markingId === participant.id}
                 onClick={() => collect(participant)}
+                variant={done ? "secondary" : "primary"}
+                size="md"
+                disabled={done || markingId === participant.id}
+                style={markButtonStyle}
               >
-                {collected ? "Sudah diambil" : markingId === participant.id ? "Menandai…" : "Tandai ambil"}
+                {done ? "✓ OK" : markingId === participant.id ? "Menandai…" : `Tandai ${stage === "rpc" ? "Racepack" : "Hari-H"}`}
               </Button>
             </article>
           );
@@ -176,8 +197,28 @@ export default function VolunteerRPCPage() {
   );
 }
 
+function StageButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ ...stageButtonStyle, ...(active ? stageButtonActiveStyle : {}) }}
+    >
+      {label}
+    </button>
+  );
+}
+
+function StatusPill({ done, label }: { done: boolean; label: string }) {
+  return (
+    <span style={{ ...statusPillStyle, ...(done ? statusPillDoneStyle : {}) }}>
+      {done ? "✓ " : ""}{label}
+    </span>
+  );
+}
+
 const pageStyle: React.CSSProperties = {
-  minHeight: "100vh", maxWidth: 680, margin: "0 auto", padding: "32px 16px 48px",
+  minHeight: "100vh", maxWidth: 560, margin: "0 auto", padding: "16px 16px 48px",
   background: "var(--color-ink)", color: "white",
 };
 const loginCardStyle: React.CSSProperties = { maxWidth: 440, margin: "10vh auto 0", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)" };
@@ -185,8 +226,21 @@ const eyebrowStyle: React.CSSProperties = { margin: "0 0 6px", color: "var(--col
 const titleStyle: React.CSSProperties = { margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800 };
 const descriptionStyle: React.CSSProperties = { color: "var(--color-ink-3)", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" };
 const labelStyle: React.CSSProperties = { display: "grid", gap: 6, fontSize: 14, fontWeight: 700 };
-const inputStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "13px 14px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "white", color: "var(--color-ink)", fontSize: 16 };
+const headerStyle: React.CSSProperties = { marginBottom: 16 };
+const summaryStyle: React.CSSProperties = { display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" };
+const summaryTextStyle: React.CSSProperties = { margin: 0, color: "var(--color-ink-4)", fontSize: 14, lineHeight: 1.5 };
+const stageToggleStyle: React.CSSProperties = { display: "flex", gap: 8, margin: "16px 0" };
+const stageButtonStyle: React.CSSProperties = { flex: 1, minHeight: 56, border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-md)", background: "transparent", color: "var(--color-ink-4)", fontSize: 15, fontWeight: 700, cursor: "pointer" };
+const stageButtonActiveStyle: React.CSSProperties = { border: "2px solid var(--color-flame)", background: "var(--color-flame)", color: "white" };
+const searchLabelStyle: React.CSSProperties = { display: "grid", gap: 6, marginBottom: 12, color: "var(--color-ink-4)", fontSize: 13 };
+const inputStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "13px 14px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", color: "var(--color-ink)", fontSize: 16 };
+const participantListStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 10 };
 const participantStyle: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: 14, borderRadius: "var(--radius-md)", background: "var(--color-surface)", color: "var(--color-ink)" };
-const bibStyle: React.CSSProperties = { minWidth: 42, color: "var(--color-flame)", fontFamily: "var(--font-mono)", fontSize: 18 };
-const participantMetaStyle: React.CSSProperties = { margin: "4px 0 0", color: "var(--color-ink-3)", fontFamily: "var(--font-mono)", fontSize: 12 };
-const changeCodeStyle: React.CSSProperties = { padding: 0, border: 0, background: "transparent", color: "var(--color-ink-4)", cursor: "pointer", textDecoration: "underline", whiteSpace: "nowrap" };
+const bibStyle: React.CSSProperties = { minWidth: 42, fontFamily: "var(--font-mono)", fontSize: 22, fontWeight: 800 };
+const participantNameStyle: React.CSSProperties = { fontSize: 17, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
+const participantMetaStyle: React.CSSProperties = { margin: "2px 0 0", color: "var(--color-ink-3)", fontFamily: "var(--font-mono)", fontSize: 12 };
+const statusListStyle: React.CSSProperties = { display: "flex", gap: 6, marginTop: 6 };
+const statusPillStyle: React.CSSProperties = { display: "inline-block", padding: "2px 8px", border: "1px solid var(--color-line)", borderRadius: 999, background: "var(--color-panel)", color: "var(--color-ink-3)", fontSize: 11, fontWeight: 700 };
+const statusPillDoneStyle: React.CSSProperties = { border: "none", background: "var(--color-sprint)", color: "var(--color-ink)" };
+const markButtonStyle: React.CSSProperties = { minWidth: 112, minHeight: 56, flexShrink: 0, borderRadius: "var(--radius-md)", fontWeight: 800 };
+const changeCodeStyle: React.CSSProperties = { minHeight: 36, padding: "0 10px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-pill)", background: "transparent", color: "var(--color-ink-4)", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" };
