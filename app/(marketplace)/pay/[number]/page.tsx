@@ -5,6 +5,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
+import { PAYMENT_METHOD_OPTIONS } from "@/lib/paymentMethods";
 import type {
   ApiResponse,
   PaymentChargeResponse,
@@ -16,17 +17,6 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
 import PaymentBreakdown from "@/components/ui/PaymentBreakdown";
-
-// Methods offered. Order/label only — fees come from the server.
-const METHOD_OPTIONS: { value: PaymentMethod; label: string }[] = [
-  { value: "va_bca", label: "VA BCA" },
-  { value: "va_bni", label: "VA BNI" },
-  { value: "va_bri", label: "VA BRI" },
-  { value: "va_mandiri", label: "VA Mandiri" },
-  { value: "va_permata", label: "VA Permata" },
-  { value: "gopay", label: "GoPay" },
-  { value: "qris", label: "QRIS" },
-];
 
 type StatusVariant = "warn" | "ok" | "danger" | "neutral";
 
@@ -346,7 +336,7 @@ export default function PayPage({
         <>
           <PaymentBreakdown
             method={method}
-            methodOptions={METHOD_OPTIONS}
+            methodOptions={PAYMENT_METHOD_OPTIONS}
             onMethodChange={handleMethodChange}
             lines={lines}
             total={quote ? formatRupiah(quote.sub_total) : "—"}
