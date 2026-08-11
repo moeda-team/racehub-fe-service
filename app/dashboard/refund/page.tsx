@@ -202,9 +202,17 @@ export default function DashboardRefundPage() {
     }
   }
 
-  const processingRefunds =
-    pendingRefunds?.filter((r) => r.status === "processing") ?? [];
-  const requestedRefunds = pendingRefunds?.filter((r) => r.status === "requested") ?? [];
+  const activeRefunds =
+    pendingRefunds?.filter(
+      (refundItem) =>
+        refundItem.status === "requested" || refundItem.status === "processing",
+    ) ?? [];
+
+  function registrationForRefund(refundItem: Refund) {
+    return registrations?.find(
+      (registration) => registration.id === refundItem.registration_id,
+    );
+  }
 
   return (
     <div className="rh-reveal" style={{ maxWidth: 760 }}>
@@ -345,64 +353,54 @@ export default function DashboardRefundPage() {
         )}
       </section>
 
-      {/* Pending manual refunds */}
-      {requestedRefunds.length > 0 && (
+      {pendingRefunds !== null && (
         <section style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Pengajuan Refund Personal ({requestedRefunds.length})</div>
-          {requestedRefunds.map((r) => <div key={r.id} style={{ display:"flex", justifyContent:"space-between", gap:12, padding:"8px 0", borderBottom:"1px solid var(--color-line)" }}><span><code>{r.id.slice(0,8)}…</code><br/><small>{formatRupiah(r.amount)} · {r.reason || "Tanpa alasan"}</small></span><Button variant="primary" size="sm" disabled={busy} onClick={()=>approvePersonal(r.id)}>Setujui</Button></div>)}
-        </section>
-      )}
-      {processingRefunds.length > 0 && (
-        <section
-          style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}
-        >
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>
-            Refund Manual Menunggu Konfirmasi ({processingRefunds.length})
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 8 }}>
+            <div style={{ fontWeight: 600 }}>Permintaan Refund Aktif</div>
+            <Badge variant="warn">{activeRefunds.length} aktif</Badge>
           </div>
-          {completeErr && (
-            <Alert variant="danger" className="mb-4">
-              {completeErr}
-            </Alert>
-          )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {processingRefunds.map((r) => (
-              <div
-                key={r.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "8px 12px",
-                  border: "1px solid var(--color-line)",
-                  borderRadius: "var(--radius-sm)",
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>
-                    Refund{" "}
-                    <code style={{ fontSize: 12 }}>{r.id.slice(0, 8)}…</code>
-                  </div>
-                  {r.bank_account && (
-                    <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
-                      Rekening: {r.bank_account}
+          <p style={{ color: "var(--color-ink-3)", fontSize: 13, margin: "0 0 12px" }}>
+            Pengajuan personal dan refund manual yang masih membutuhkan tindakan untuk event terpilih.
+          </p>
+          {completeErr && <Alert variant="danger" className="mb-4">{completeErr}</Alert>}
+          {activeRefunds.length === 0 ? (
+            <p style={{ color: "var(--color-ink-3)", fontSize: 14, margin: 0 }}>
+              Tidak ada permintaan refund aktif untuk event ini.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {activeRefunds.map((refundItem) => {
+                const registration = registrationForRefund(refundItem);
+                const requested = refundItem.status === "requested";
+                return (
+                  <div key={refundItem.id} style={activeRefundRow}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                        <strong style={{ fontSize: 14 }}>{registration?.name ?? `Refund ${refundItem.id.slice(0, 8)}…`}</strong>
+                        <Badge variant={REFUND_STATUS[refundItem.status]?.variant ?? "warn"}>
+                          {REFUND_STATUS[refundItem.status]?.label ?? refundItem.status}
+                        </Badge>
+                      </div>
+                      <div style={{ color: "var(--color-ink-3)", fontFamily: "var(--font-mono)", fontSize: 12, marginTop: 3 }}>
+                        {registration?.registration_number ?? refundItem.id}
+                        {" · "}{formatRupiah(refundItem.amount)}
+                      </div>
+                      {refundItem.reason && <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginTop: 3 }}>Alasan: {refundItem.reason}</div>}
+                      {refundItem.bank_account && <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginTop: 3 }}>Rekening: {refundItem.bank_account}</div>}
                     </div>
-                  )}
-                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>
-                    {formatRupiah(r.amount)}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      disabled={busy}
+                      onClick={() => requested ? approvePersonal(refundItem.id) : completeManual(refundItem.id)}
+                    >
+                      {requested ? "Setujui" : "Tandai Selesai"}
+                    </Button>
                   </div>
-                </div>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  disabled={busy}
-                  onClick={() => completeManual(r.id)}
-                >
-                  Tandai Selesai
-                </Button>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
 
@@ -595,6 +593,16 @@ const th: React.CSSProperties = {
 
 const td: React.CSSProperties = {
   padding: "8px 8px",
+};
+
+const activeRefundRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  padding: "12px",
+  border: "1px solid var(--color-line)",
+  borderRadius: "var(--radius-sm)",
 };
 
 function Labeled({
