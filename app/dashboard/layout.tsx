@@ -1,6 +1,7 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { CSSProperties, ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
@@ -132,55 +133,110 @@ function ProfileMenu({
   onLogout: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<CSSProperties | null>(null);
   const ref = useRef<HTMLDivElement | null>(null);
+  const popupRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const firstMenuItemRef = useRef<HTMLAnchorElement | null>(null);
 
   // Close when clicking outside the menu.
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node))
+      if (
+        ref.current &&
+        !ref.current.contains(e.target as Node) &&
+        !popupRef.current?.contains(e.target as Node)
+      )
         setOpen(false);
     }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKeyDown);
+    firstMenuItemRef.current?.focus();
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   if (!profile) return null;
 
-  return (
-    <div className={`profile-menu${open ? " open" : ""}`} ref={ref}>
-      {open && (
-        <div className="profile-pop" role="menu">
-          <Link
-            href="/dashboard/profile"
-            className="profile-item"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            <UserIcon />
-            Profil
-          </Link>
-          <div className="profile-sep" />
-          <button
-            type="button"
-            className="profile-item profile-item-danger"
-            role="menuitem"
-            onClick={() => {
-              setOpen(false);
-              onLogout();
-            }}
-          >
-            <LogoutIcon />
-            Keluar
-          </button>
-        </div>
-      )}
+  const toggleMenu = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    setMenuPosition(
+      isMobile
+        ? {
+            top: rect.bottom + 8,
+            right: 12,
+            bottom: "auto",
+            left: "auto",
+            width: Math.min(280, window.innerWidth - 24),
+          }
+        : {
+            top: "auto",
+            right: "auto",
+            bottom: window.innerHeight - rect.top + 8,
+            left: rect.left,
+            width: rect.width,
+          },
+    );
+    setOpen(true);
+  };
+
+  const popup = open && menuPosition && (
+    <div
+      className="profile-pop profile-pop-portal"
+      role="menu"
+      ref={popupRef}
+      style={menuPosition}
+    >
+      <Link
+        href="/dashboard/profile"
+        className="profile-item"
+        role="menuitem"
+        ref={firstMenuItemRef}
+        onClick={() => setOpen(false)}
+      >
+        <UserIcon />
+        Profil
+      </Link>
+      <div className="profile-sep" />
       <button
         type="button"
+        className="profile-item profile-item-danger"
+        role="menuitem"
+        onClick={() => {
+          setOpen(false);
+          onLogout();
+        }}
+      >
+        <LogoutIcon />
+        Keluar
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      <div className={`profile-menu${open ? " open" : ""}`} ref={ref}>
+      <button
+        type="button"
+        ref={triggerRef}
         className="profile-trigger"
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleMenu}
       >
         <span className="profile-avatar">{initials(profile.name)}</span>
         <span className="profile-meta">
@@ -188,7 +244,9 @@ function ProfileMenu({
         </span>
         <ChevronIcon />
       </button>
-    </div>
+      </div>
+      {popup && createPortal(popup, document.body)}
+    </>
   );
 }
 

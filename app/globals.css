@@ -867,7 +867,7 @@ body {
     border-bottom: 1px solid var(--color-line);
     position: sticky;
     top: 0;
-    z-index: 20;
+    z-index: 30;
     min-height: unset;
     overflow: visible;
   }
@@ -909,27 +909,31 @@ body {
   .dash-main {
     padding: 16px;
   }
-  /* Shrink profile-menu to avatar size so the popup anchors correctly */
+  /* Keep the profile control compact; its menu opens directly below it. */
   .profile-menu {
-    width: auto;
+    width: 44px;
   }
   .profile-trigger {
-    width: auto;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
     background-color: transparent;
     border-color: transparent;
-    padding: 2px;
+    padding: 5px;
     gap: 0;
+  }
+  .profile-trigger:hover,
+  .profile-menu.open .profile-trigger {
+    background-color: var(--color-panel);
+    border-color: var(--color-line);
   }
   .profile-meta,
   .profile-caret {
     display: none;
   }
   .profile-pop {
-    bottom: auto;
-    top: calc(100% + 8px);
-    left: auto;
-    right: 0;
-    width: 220px;
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
   }
   /* Mobile nav dropdown panel */
   .dash-mobile-menu {
@@ -1014,10 +1018,12 @@ body {
 
 .profile-meta {
   min-width: 0;
+  max-width: 110px;
   flex: 1;
 }
 
 .profile-name {
+  display: block;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-ink);
@@ -1055,6 +1061,11 @@ body {
   box-shadow: var(--shadow-sh-3);
   padding: 6px;
   z-index: 50;
+}
+
+.profile-pop-portal {
+  position: fixed;
+  z-index: 1000;
 }
 
 .profile-item {
