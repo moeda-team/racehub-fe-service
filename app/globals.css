@@ -342,11 +342,13 @@ body {
 }
 
 .stat-val {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-weight: 800;
-  font-size: 30px;
+  font-size: clamp(20px, 2.4vw, 30px);
+  line-height: 1.2;
   margin: 6px 0 2px;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .stat-accent .stat-val {
@@ -852,6 +854,18 @@ body {
   display: none;
 }
 
+/* Event detail tabs keep their natural label width; narrow screens scroll them
+   horizontally rather than shrinking labels or overflowing the dashboard. */
+.event-tabs {
+  max-width: 100%;
+}
+
+.event-tab {
+  flex: 0 0 auto;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .dash-shell {
     flex-direction: column;
@@ -908,6 +922,18 @@ body {
   }
   .dash-main {
     padding: 16px;
+  }
+  .event-tabs {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding: 0 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .event-tabs::-webkit-scrollbar {
+    display: none;
   }
   /* Keep the profile control compact; its menu opens directly below it. */
   .profile-menu {

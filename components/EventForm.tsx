@@ -32,6 +32,17 @@ export interface EventFormValues {
   color: string; // "#rrggbb" — card header color when no banner image
 }
 
+export interface RegistrationFieldPreview {
+  id?: string;
+  name: string;
+  label: string;
+  field_type: string;
+  options: string;
+  placeholder: string;
+  required: boolean;
+  sort_order: number;
+}
+
 interface EventFormProps {
   eventId?: string; // set when editing an existing event
   initial?: Partial<EventFormValues>;
@@ -39,6 +50,8 @@ interface EventFormProps {
   onSubmit: (values: EventFormValues) => Promise<void>;
   // Emits current values on every change — used for the live card preview.
   onChange?: (values: EventFormValues) => void;
+  // Emits registration-field configuration for the registration-page preview.
+  onRegistrationFieldsChange?: (fields: RegistrationFieldPreview[]) => void;
 }
 
 const EVENT_TYPE_OPTIONS = [
@@ -61,6 +74,8 @@ const FIELD_TYPE_OPTIONS = [
   { value: "radio", label: "Pilihan (radio)" },
   { value: "checkbox", label: "Centang (checkbox)" },
 ];
+
+const REGISTRATION_FIELD_SLUG_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 
 // LabeledInput reuses the design-system .field classes and forwards any input
 // attribute (type, min, etc.) — Field only forwards a fixed prop subset.
@@ -128,16 +143,7 @@ const toggleRow: React.CSSProperties = {
 };
 
 // --- Registration Field Builder types ---
-interface FieldDraft {
-  id?: string; // empty = new field
-  name: string;
-  label: string;
-  field_type: string;
-  options: string; // comma-separated for select/radio
-  placeholder: string;
-  required: boolean;
-  sort_order: number;
-}
+type FieldDraft = RegistrationFieldPreview;
 
 function emptyDraft(sortOrder: number): FieldDraft {
   return {
@@ -184,9 +190,31 @@ function FieldBuilder({
     onChange(fields.filter((_, i) => i !== index));
   }
 
+  function slugError(name: string, index: number): string | null {
+    const slug = name.trim();
+    if (!slug) return null;
+    if (!REGISTRATION_FIELD_SLUG_PATTERN.test(slug)) {
+      return "Gunakan huruf kecil, angka, - atau _ (maks. 64 karakter; harus diawali huruf).";
+    }
+    if (
+      fields.some(
+        (field, fieldIndex) =>
+          fieldIndex !== index && field.name.trim() === slug,
+      )
+    ) {
+      return "Slug ini sudah digunakan pada kolom lain di event ini.";
+    }
+    return null;
+  }
+
   async function saveField(index: number) {
     const f = fields[index];
     if (!f.name.trim() || !f.label.trim()) return;
+    const invalidSlug = slugError(f.name, index);
+    if (invalidSlug) {
+      setFieldError(invalidSlug);
+      return;
+    }
     setFieldError(null);
     setFieldNotice(null);
     setIsSaving(true);
@@ -286,14 +314,22 @@ function FieldBuilder({
         >
           {fieldError && <Alert variant="danger">{fieldError}</Alert>}
           {fieldNotice && <Alert variant="success">{fieldNotice}</Alert>}
+          <p className="field-hint" style={{ margin: 0 }}>
+            Slug: maks. 64 karakter, diawali huruf kecil; hanya a-z, angka,
+            tanda hubung (<span style={{ fontFamily: "var(--font-mono)" }}>-</span>)
+            atau garis bawah (<span style={{ fontFamily: "var(--font-mono)" }}>_</span>)
+            (contoh: <span style={{ fontFamily: "var(--font-mono)" }}>shirt_size</span>).
+          </p>
           {fields.length === 0 && (
             <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
               Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di
               bawah.
             </p>
           )}
-          {fields.map((f, i) => (
-            <div
+          {fields.map((f, i) => {
+            const nameError = slugError(f.name, i);
+            return (
+              <div
               key={i}
               style={{
                 border: "1px solid var(--color-line)",
@@ -319,10 +355,9 @@ function FieldBuilder({
                     value={f.name}
                     onChange={(e) => updateField(i, { name: e.target.value })}
                     placeholder="Contoh: jersey_size"
+                    aria-invalid={!!nameError || undefined}
                   />
-                  <span className="field-hint">
-                    Huruf kecil, strip sebagai pemisah
-                  </span>
+                  {nameError && <span className="field-error">{nameError}</span>}
                 </div>
                 <div className="field">
                   <label className="field-label">Label tampilan</label>
@@ -421,13 +456,14 @@ function FieldBuilder({
                   variant="secondary"
                   size="sm"
                   onClick={() => saveField(i)}
-                  disabled={busy || !f.name.trim() || !f.label.trim()}
+                  disabled={busy || !f.name.trim() || !f.label.trim() || !!nameError}
                 >
                   {busy ? "Memproses…" : "Simpan"}
                 </Button>
               </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
           <Button
             type="button"
             variant="secondary"
@@ -449,6 +485,7 @@ export default function EventForm({
   submitLabel,
   onSubmit,
   onChange,
+  onRegistrationFieldsChange,
 }: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -544,6 +581,10 @@ export default function EventForm({
     refundDonationOnCancel,
     color,
   ]);
+
+  useEffect(() => {
+    onRegistrationFieldsChange?.(regFields);
+  }, [onRegistrationFieldsChange, regFields]);
 
   function validate(): boolean {
     const next: Record<string, string> = {};

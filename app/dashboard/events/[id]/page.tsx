@@ -12,7 +12,10 @@ import {
 } from "@/lib/format";
 import EventCard from "@/components/ui/EventCard";
 import { eventStatusDisplay } from "@/lib/event-status";
-import EventForm, { EventFormValues } from "@/components/EventForm";
+import EventForm, {
+  EventFormValues,
+  RegistrationFieldPreview,
+} from "@/components/EventForm";
 import EventDetailView from "@/components/EventDetailView";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -61,6 +64,9 @@ export default function EditEventPage({
   const [loadError, setLoadError] = useState<string | null>(null);
   // Live values from the edit form, feeding the marketplace-card preview.
   const [formPreview, setFormPreview] = useState<EventFormValues | null>(null);
+  const [registrationFieldsPreview, setRegistrationFieldsPreview] = useState<
+    RegistrationFieldPreview[]
+  >([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("detail");
 
@@ -183,6 +189,7 @@ export default function EditEventPage({
 
       {/* Tab bar */}
       <div
+        className="event-tabs"
         style={{
           display: "flex",
           gap: 0,
@@ -200,6 +207,7 @@ export default function EditEventPage({
           <button
             key={t.id}
             type="button"
+            className="event-tab"
             onClick={() => setActiveTab(t.id)}
             style={{
               padding: "11px 26px",
@@ -262,9 +270,14 @@ export default function EditEventPage({
                 }}
                 onSubmit={handleUpdate}
                 onChange={setFormPreview}
+                onRegistrationFieldsChange={setRegistrationFieldsPreview}
               />
             </div>
-            <CardPreview detail={detail} live={formPreview} />
+            <CardPreview
+              detail={detail}
+              live={formPreview}
+              registrationFields={registrationFieldsPreview}
+            />
           </div>
         )}
 
@@ -556,7 +569,7 @@ function RPCAccessCard({ eventId }: { eventId: string }) {
   useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
   async function rotate(){try{const r=await api.post<ApiResponse<{access_code:string}>>(`/api/v1/events/${eventId}/rpc-access/rotate`);setCode(r.data.access_code);setActive(true);setError(null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal membuat kode akses.")}}
   async function revoke(){try{await api.delete(`/api/v1/events/${eventId}/rpc-access`);setCode(null);setActive(false)}catch(e){setError(e instanceof ApiError?e.message:"Gagal mencabut akses.")}}
-  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,marginTop:0}}>Akses volunteer RPC</h2><p style={{fontSize:13,color:"var(--color-ink-3)"}}>Satu kode aktif untuk satu event. Kode hanya berlaku di <code>/rpc/volunteer</code> dan tidak memberi akses wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
+  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,margin:"0 0 8px"}}>Akses volunteer RPC</h2><p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Satu kode aktif untuk satu event. Kode hanya berlaku di <code>/rpc/volunteer</code> dan tidak memberi akses wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,margin:"0 0 16px",background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
 }
 
 // RegistrationStatusCard shows whether registration is open or closed and lets
@@ -1331,7 +1344,12 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table
-            style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
+            style={{
+              width: "100%",
+              minWidth: 560,
+              borderCollapse: "collapse",
+              fontSize: 14,
+            }}
           >
             <thead>
               <tr
@@ -1341,7 +1359,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
                 }}
               >
                 <th style={th}>Referensi</th>
-                <th style={th}>Nominal</th>
+                <th style={{ ...th, textAlign: "right" }}>Nominal</th>
                 <th style={th}>Waktu</th>
               </tr>
             </thead>
@@ -1359,9 +1377,22 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
                       ...td,
                       fontFamily: "var(--font-mono)",
                       color: "var(--color-sprint)",
+                      textAlign: "right",
+                      whiteSpace: "nowrap",
+                      width: 150,
+                      verticalAlign: "top",
                     }}
                   >
-                    +{formatRupiah(e.amount)}
+                    <span
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 8,
+                      }}
+                    >
+                      <span>+Rp</span>
+                      <span>{formatNumber(e.amount)}</span>
+                    </span>
                   </td>
                   <td style={{ ...td, color: "var(--color-ink-3)" }}>
                     {e.created_at
@@ -2054,11 +2085,13 @@ function DistanceManager({
 function CardPreview({
   detail,
   live,
+  registrationFields,
 }: {
   detail: EventDetail;
   live: EventFormValues | null;
+  registrationFields: RegistrationFieldPreview[];
 }) {
-  const [mode, setMode] = useState<"card" | "detail">("card");
+  const [mode, setMode] = useState<"card" | "detail" | "register">("card");
   const ev = detail.event;
   const name = live?.name || ev.name || "Nama Event";
   const location =
@@ -2137,7 +2170,7 @@ function CardPreview({
     <aside
       style={
         mode === "card"
-          ? { flex: "0 1 340px", minWidth: 280, position: "sticky", top: 24 }
+          ? { flex: "0 1 400px", minWidth: "min(340px, 100%)", position: "sticky", top: 24 }
           : { flex: "1 1 420px", minWidth: 320 }
       }
     >
@@ -2146,6 +2179,7 @@ function CardPreview({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
           marginBottom: 10,
           gap: 8,
         }}
@@ -2161,7 +2195,7 @@ function CardPreview({
         >
           Pratinjau
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
           <button
             type="button"
             style={modeBtn(mode === "card")}
@@ -2175,6 +2209,13 @@ function CardPreview({
             onClick={() => setMode("detail")}
           >
             Halaman Detail
+          </button>
+          <button
+            type="button"
+            style={modeBtn(mode === "register")}
+            onClick={() => setMode("register")}
+          >
+            Pendaftaran
           </button>
         </div>
       </div>
@@ -2205,7 +2246,7 @@ function CardPreview({
             banner. Harga &amp; kuota mengikuti kategori/tiket yang tersimpan.
           </p>
         </>
-      ) : (
+      ) : mode === "detail" ? (
         <div
           style={{
             border: "1px solid var(--color-line)",
@@ -2247,9 +2288,191 @@ function CardPreview({
             <EventDetailView detail={previewDetail} interactive={false} />
           </div>
         </div>
+      ) : (
+        <div
+          style={{
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-lg)",
+            overflow: "hidden",
+            backgroundColor: "var(--color-paper)",
+          }}
+        >
+          <div
+            style={{
+              padding: "8px 14px",
+              borderBottom: "1px solid var(--color-line)",
+              backgroundColor: "var(--color-surface)",
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: "var(--color-ink-3)",
+            }}
+          >
+            /register/{ev.id}
+          </div>
+          <div className="max-w-xl mx-auto px-4 py-8">
+            <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
+              ← {name}
+            </p>
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 26,
+                fontWeight: 700,
+                marginBottom: 4,
+              }}
+            >
+              Pendaftaran
+            </h2>
+            <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
+              Langkah 2 dari 3
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <RegistrationPreviewField label="Nama Lengkap" placeholder="Nama peserta" />
+              <RegistrationPreviewField label="Email" type="email" placeholder="nama@email.com" />
+              <RegistrationPreviewField label="No. HP" type="tel" placeholder="08xxxxxxxxxx" />
+              <RegistrationPreviewField
+                label="Tanggal Lahir"
+                type="date"
+                hint="Wajib — menentukan kelas usia (Open/Master) otomatis"
+              />
+              <div className="field">
+                <label className="field-label">Jenis Kelamin</label>
+                <select className="field-input" disabled value="">
+                  <option>Pilih</option>
+                </select>
+              </div>
+              {registrationFields.length > 0 && (
+                <>
+                  <hr
+                    style={{
+                      border: "none",
+                      borderTop: "1px solid var(--color-line)",
+                      margin: "4px 0",
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "var(--color-ink-2)",
+                    }}
+                  >
+                    Data Tambahan
+                  </p>
+                  {registrationFields.map((field, index) => (
+                    <RegistrationPreviewCustomField
+                      key={field.id ?? `${field.name}-${index}`}
+                      field={field}
+                    />
+                  ))}
+                </>
+              )}
+              <div style={{ display: "flex", gap: 8 }}>
+                <Button variant="ghost" size="md" disabled>
+                  Kembali
+                </Button>
+                <Button variant="primary" size="md" style={{ flex: 1 }} disabled>
+                  Lanjut
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </aside>
   );
+}
+
+function RegistrationPreviewField({
+  label,
+  placeholder,
+  type = "text",
+  hint,
+}: {
+  label: string;
+  placeholder?: string;
+  type?: "text" | "email" | "tel" | "date" | "number";
+  hint?: string;
+}) {
+  return (
+    <div className="field">
+      <label className="field-label">{label}</label>
+      <input className="field-input" type={type} placeholder={placeholder} readOnly />
+      {hint && <span className="field-hint">{hint}</span>}
+    </div>
+  );
+}
+
+function RegistrationPreviewCustomField({
+  field,
+}: {
+  field: RegistrationFieldPreview;
+}) {
+  const label = `${field.label}${field.required ? " *" : ""}`;
+  const options = field.options
+    .split(",")
+    .map((option) => option.trim())
+    .filter(Boolean);
+
+  if (field.field_type === "textarea") {
+    return (
+      <div className="field">
+        <label className="field-label">{label}</label>
+        <textarea className="field-input" placeholder={field.placeholder} readOnly />
+      </div>
+    );
+  }
+
+  if (field.field_type === "select") {
+    return (
+      <div className="field">
+        <label className="field-label">{label}</label>
+        <select className="field-input" disabled value="">
+          <option>Pilih</option>
+          {options.map((option) => (
+            <option key={option}>{option}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  if (field.field_type === "radio") {
+    return (
+      <div className="field">
+        <span className="field-label">{label}</span>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+          {options.map((option) => (
+            <label key={option} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14 }}>
+              <input type="radio" name={`preview-${field.name}`} disabled />
+              {option}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (field.field_type === "checkbox") {
+    return (
+      <label className="field" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <input type="checkbox" disabled />
+        <span className="field-label" style={{ margin: 0 }}>{label}</span>
+      </label>
+    );
+  }
+
+  const type =
+    field.field_type === "email"
+      ? "email"
+      : field.field_type === "phone"
+        ? "tel"
+        : field.field_type === "date"
+          ? "date"
+          : field.field_type === "number"
+            ? "number"
+            : "text";
+  return <RegistrationPreviewField label={label} placeholder={field.placeholder} type={type} />;
 }
 
 const dot: React.CSSProperties = {
