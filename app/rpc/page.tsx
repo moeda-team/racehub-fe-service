@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -190,27 +190,38 @@ function CheckinPanel({
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CheckinParticipant[]>([]);
   const [err, setErr] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [flash, setFlash] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
 
-  const search = useCallback(async () => {
-    if (!q.trim()) return;
-    setErr(null);
-    setBusy(true);
-    try {
-      const res = await api.get<ApiResponse<CheckinParticipant[]>>(
-        `/api/v1/events/${eventId}/checkin/search?q=${encodeURIComponent(q.trim())}`,
-      );
-      setResults(res.data ?? []);
-      if ((res.data ?? []).length === 0)
-        setErr("Tidak ada peserta yang cocok.");
-    } catch (e) {
-      setErr(e instanceof ApiError ? e.message : "Pencarian gagal.");
-    } finally {
-      setBusy(false);
-    }
-  }, [eventId, q]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<CheckinParticipant[]>>(
+          `/api/v1/events/${eventId}/checkin/search`,
+        );
+        if (!cancelled) setResults(res.data ?? []);
+      } catch (e) {
+        if (!cancelled) setErr(e instanceof ApiError ? e.message : "Daftar peserta gagal dimuat.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  const visibleParticipants = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return results;
+    return results.filter((participant) =>
+      [participant.name, participant.bib_number, participant.registration_number].some(
+        (value) => value.toLowerCase().includes(needle),
+      ),
+    );
+  }, [q, results]);
 
   // Replace a participant in the current result list after marking.
   const applyMarked = useCallback(
@@ -267,26 +278,20 @@ function CheckinPanel({
 
   return (
     <div>
-      {/* Primary: manual search */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          search();
-        }}
-        style={{ display: "flex", gap: 8 }}
-      >
+      <p style={{ margin: "0 0 12px", color: "var(--color-ink-4)", fontSize: 14, lineHeight: 1.5 }}>
+        {results.length} peserta lunas · {results.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil racepack" : "check-in Hari-H"}
+      </p>
+      <label style={{ display: "grid", gap: 6, color: "var(--color-ink-4)", fontSize: 13 }}>
+        Cari peserta
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Cari nama / BIB / no. registrasi"
+          placeholder="Nama / BIB / no. registrasi"
           inputMode="search"
           autoFocus
-          style={{ ...fieldStyle, flex: 1, marginBottom: 0 }}
+          style={fieldStyle}
         />
-        <Button type="submit" variant="primary" size="md" disabled={busy}>
-          {busy ? "…" : "Cari"}
-        </Button>
-      </form>
+      </label>
 
       <QrScanner onToken={markByToken} />
 
@@ -318,7 +323,7 @@ function CheckinPanel({
           marginTop: 12,
         }}
       >
-        {results.map((p) => (
+        {visibleParticipants.map((p) => (
           <ParticipantCard
             key={p.id}
             p={p}
@@ -328,6 +333,11 @@ function CheckinPanel({
           />
         ))}
       </div>
+      {!loading && visibleParticipants.length === 0 && !err && (
+        <p style={{ color: "var(--color-ink-4)", fontSize: 14, marginTop: 12 }}>
+          Tidak ada peserta yang cocok.
+        </p>
+      )}
     </div>
   );
 }
@@ -393,25 +403,16 @@ function ParticipantCard({
           <StatusPill on={p.raceday_status !== ""} label="Hari-H" />
         </div>
       </div>
-      <button
+      <Button
         type="button"
         onClick={onMark}
         disabled={disabled}
-        style={{
-          minHeight: 56,
-          minWidth: 96,
-          flexShrink: 0,
-          borderRadius: "var(--radius-md)",
-          border: "none",
-          background: disabled ? "var(--color-line)" : "var(--color-flame)",
-          color: disabled ? "var(--color-ink-3)" : "white",
-          fontSize: 15,
-          fontWeight: 800,
-          cursor: disabled ? "default" : "pointer",
-        }}
+        variant={done ? "secondary" : "primary"}
+        size="md"
+        style={{ minHeight: 56, minWidth: 112, flexShrink: 0, borderRadius: "var(--radius-md)", fontWeight: 800 }}
       >
-        {done ? "✓ OK" : marking ? "…" : `Tandai ${stageLabel(stage)}`}
-      </button>
+        {done ? "✓ OK" : marking ? "Menandai…" : `Tandai ${stageLabel(stage)}`}
+      </Button>
     </div>
   );
 }
