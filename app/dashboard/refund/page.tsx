@@ -56,7 +56,6 @@ export default function DashboardRefundPage() {
   const [completeErr, setCompleteErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const [massEventId, setMassEventId] = useState("");
   const [massReason, setMassReason] = useState("");
   const [mass, setMass] = useState<MassRefundResult | null>(null);
   const [massErr, setMassErr] = useState<string | null>(null);
@@ -171,9 +170,9 @@ export default function DashboardRefundPage() {
   async function submitMass() {
     setMassErr(null);
     setMass(null);
-    const id = massEventId.trim();
+    const id = lookupEventId.trim();
     if (!id) {
-      setMassErr("Masukkan ID event yang valid.");
+      setMassErr("Pilih event pada dropdown di atas terlebih dahulu.");
       return;
     }
     if (
@@ -534,16 +533,16 @@ export default function DashboardRefundPage() {
           </Alert>
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <Labeled
-            label="ID Event"
-            value={massEventId}
-            onChange={setMassEventId}
-          />
+          <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: 0 }}>
+            Event terpilih: {lookupEventId
+              ? events.find((event) => event.id === lookupEventId)?.name ?? lookupEventId
+              : "Belum ada event yang dipilih"}
+          </p>
           <Labeled label="Alasan" value={massReason} onChange={setMassReason} />
           <Button
             variant="danger"
             size="md"
-            disabled={massBusy}
+            disabled={massBusy || !lookupEventId}
             onClick={submitMass}
           >
             {massBusy ? "Memproses…" : "Refund Semua Pendaftar"}
