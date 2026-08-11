@@ -83,6 +83,11 @@ export default function WalletPage() {
       );
       return;
     }
+    if (
+      !confirmManualWithdrawal("Wallet Organizer", n, orgBank.trim())
+    ) {
+      return;
+    }
     setOrgBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
@@ -97,7 +102,7 @@ export default function WalletPage() {
       setOrgAmount("");
       setOrgBank("");
       setOrgNotice(
-        `Penarikan ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`,
+        `Penarikan manual ${formatRupiah(n)} telah dicatat. Saldo kini ${formatRupiah(res.data.balance)}.`,
       );
     } catch (err) {
       setOrgError(err instanceof ApiError ? err.message : "Penarikan gagal.");
@@ -120,6 +125,9 @@ export default function WalletPage() {
       );
       return;
     }
+    if (!confirmManualWithdrawal("Wallet Donasi", n, donBank.trim())) {
+      return;
+    }
     setDonBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
@@ -134,7 +142,7 @@ export default function WalletPage() {
       setDonAmount("");
       setDonBank("");
       setDonNotice(
-        `Penarikan donasi ${formatRupiah(n)} berhasil. Saldo donasi kini ${formatRupiah(res.data.balance)}.`,
+        `Penarikan donasi manual ${formatRupiah(n)} telah dicatat. Saldo donasi kini ${formatRupiah(res.data.balance)}.`,
       );
     } catch (err) {
       setDonError(
@@ -159,6 +167,9 @@ export default function WalletPage() {
       );
       return;
     }
+    if (!confirmManualWithdrawal("Wallet Admin", n, platBank.trim())) {
+      return;
+    }
     setPlatBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
@@ -173,7 +184,7 @@ export default function WalletPage() {
       setPlatAmount("");
       setPlatBank("");
       setPlatNotice(
-        `Penarikan admin ${formatRupiah(n)} berhasil. Saldo kini ${formatRupiah(res.data.balance)}.`,
+        `Penarikan admin manual ${formatRupiah(n)} telah dicatat. Saldo kini ${formatRupiah(res.data.balance)}.`,
       );
     } catch (err) {
       setPlatError(err instanceof ApiError ? err.message : "Penarikan gagal.");
@@ -209,12 +220,13 @@ export default function WalletPage() {
         >
           <h2 style={sectionTitle}>Wallet Organizer</h2>
           <Link href="/dashboard/wallet/ledger" style={ledgerLink}>
-            Lihat riwayat transaksi →
+            Lihat semua riwayat →
           </Link>
         </div>
         <p style={sectionDesc}>
           Harga tiket bersih dari setiap pembayaran yang settled. Tidak termasuk
-          fee admin dan donasi.
+          fee admin dan donasi. Penarikan hanya dicatat di sistem; transfer bank
+          dilakukan manual.
         </p>
 
         {orgError && (
@@ -257,10 +269,16 @@ export default function WalletPage() {
 
       {/* ── Wallet Donasi ── */}
       <section style={section}>
-        <h2 style={sectionTitle}>Wallet Donasi</h2>
+        <div style={sectionHeader}>
+          <h2 style={sectionTitle}>Wallet Donasi</h2>
+          <Link href="/dashboard/wallet/ledger" style={ledgerLink}>
+            Lihat riwayat →
+          </Link>
+        </div>
         <p style={sectionDesc}>
           Hasil donasi peserta dari seluruh event. Dana terpisah, dapat ditarik
-          kapan saja.
+          kapan saja. Penarikan hanya dicatat di sistem; transfer bank dilakukan
+          manual.
         </p>
 
         {donError && (
@@ -303,9 +321,15 @@ export default function WalletPage() {
 
       {/* ── Wallet Admin ── */}
       <section style={section}>
-        <h2 style={sectionTitle}>Wallet Admin</h2>
+        <div style={sectionHeader}>
+          <h2 style={sectionTitle}>Wallet Admin</h2>
+          <Link href="/dashboard/wallet/ledger" style={ledgerLink}>
+            Lihat riwayat →
+          </Link>
+        </div>
         <p style={sectionDesc}>
           Fee aplikasi (Rp 5.000/transaksi) dari setiap pembayaran tiket.
+          Penarikan hanya dicatat di sistem; transfer bank dilakukan manual.
         </p>
 
         {platError && (
@@ -371,7 +395,12 @@ function WithdrawForm({
 
   return (
     <div style={card}>
-      <div style={{ fontWeight: 600, marginBottom: 12 }}>Tarik Saldo</div>
+      <div style={{ fontWeight: 600, marginBottom: 4 }}>
+        Catat Penarikan Manual
+      </div>
+      <p style={{ fontSize: 12, color: "var(--color-ink-3)", margin: "0 0 12px" }}>
+        Aksi ini mengurangi saldo di RaceHub dan tidak mengirim transfer bank.
+      </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div className="field">
           <div
@@ -444,7 +473,9 @@ function WithdrawForm({
           )}
         </div>
         <div className="field">
-          <label className="field-label">No. Rekening Tujuan (opsional)</label>
+          <label className="field-label">
+            Rekening tujuan untuk catatan (opsional)
+          </label>
           <input
             className="field-input"
             type="text"
@@ -459,7 +490,7 @@ function WithdrawForm({
           disabled={busy || overBalance || balance <= 0}
           onClick={onSubmit}
         >
-          {busy ? "Memproses…" : "Tarik"}
+          {busy ? "Mencatat…" : "Catat Penarikan"}
         </Button>
       </div>
     </div>
@@ -472,6 +503,14 @@ const sectionTitle: React.CSSProperties = {
   fontSize: 20,
   fontWeight: 700,
   margin: 0,
+};
+const sectionHeader: React.CSSProperties = {
+  display: "flex",
+  alignItems: "baseline",
+  justifyContent: "space-between",
+  flexWrap: "wrap",
+  gap: 8,
+  marginBottom: 6,
 };
 const sectionDesc: React.CSSProperties = {
   fontSize: 13,
@@ -497,3 +536,10 @@ const ledgerLink: React.CSSProperties = {
   color: "var(--color-primary)",
   textDecoration: "none",
 };
+
+function confirmManualWithdrawal(wallet: string, amount: number, bankAccount: string) {
+  const destination = bankAccount || "belum dicatat";
+  return window.confirm(
+    `Catat penarikan manual dari ${wallet}?\n\nNominal: ${formatRupiah(amount)}\nRekening tujuan: ${destination}\n\nSaldo RaceHub akan berkurang. Aksi ini tidak mengirim transfer bank.`,
+  );
+}

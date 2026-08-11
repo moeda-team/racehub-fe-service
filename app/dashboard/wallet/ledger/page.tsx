@@ -6,7 +6,8 @@ import { api } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import type {
   ApiResponse,
-  LedgerEntry,
+  WalletHistoryEntry,
+  WalletKind,
   WalletEntryType,
 } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
@@ -23,6 +24,12 @@ const TYPE_COLOR: Record<string, string> = {
   withdraw: "var(--color-warn)",
 };
 
+const WALLET_LABEL: Record<WalletKind, string> = {
+  organizer: "Organizer",
+  donation: "Donasi",
+  platform: "Admin",
+};
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("id-ID", {
     day: "2-digit",
@@ -34,12 +41,13 @@ function formatDate(iso: string) {
 }
 
 export default function LedgerPage() {
-  const [entries, setEntries] = useState<LedgerEntry[]>([]);
+  const [entries, setEntries] = useState<WalletHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<WalletEntryType | "">("");
+  const [walletFilter, setWalletFilter] = useState<WalletKind | "">("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -47,8 +55,8 @@ export default function LedgerPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<LedgerEntry[]>>(
-          "/api/v1/organizers/me/wallet/ledger?limit=500",
+        const res = await api.get<ApiResponse<WalletHistoryEntry[]>>(
+          "/api/v1/organizers/me/wallet/history?limit=500",
         );
         if (!cancelled) setEntries(res.data ?? []);
       } catch {
@@ -69,17 +77,19 @@ export default function LedgerPage() {
 
     return entries.filter((e) => {
       if (typeFilter && e.type !== typeFilter) return false;
+      if (walletFilter && e.wallet !== walletFilter) return false;
       if (
         q &&
         !e.description.toLowerCase().includes(q) &&
-        !e.reference_id.toLowerCase().includes(q)
+        !e.reference_id.toLowerCase().includes(q) &&
+        !e.bank_account.toLowerCase().includes(q)
       )
         return false;
       if (from && new Date(e.created_at).getTime() < from) return false;
       if (to && new Date(e.created_at).getTime() > to) return false;
       return true;
     });
-  }, [entries, search, typeFilter, dateFrom, dateTo]);
+  }, [entries, search, typeFilter, walletFilter, dateFrom, dateTo]);
 
   const totalShown = useMemo(
     () => filtered.reduce((sum, e) => sum + e.amount, 0),
@@ -150,6 +160,20 @@ export default function LedgerPage() {
         </div>
 
         <div className="field" style={{ flex: "1 1 140px" }}>
+          <label className="field-label">Wallet</label>
+          <select
+            className="field-input"
+            value={walletFilter}
+            onChange={(e) => setWalletFilter(e.target.value as WalletKind | "")}
+          >
+            <option value="">Semua</option>
+            <option value="organizer">Organizer</option>
+            <option value="donation">Donasi</option>
+            <option value="platform">Admin</option>
+          </select>
+        </div>
+
+        <div className="field" style={{ flex: "1 1 140px" }}>
           <label className="field-label">Dari tanggal</label>
           <input
             className="field-input"
@@ -169,12 +193,13 @@ export default function LedgerPage() {
           />
         </div>
 
-        {(search || typeFilter || dateFrom || dateTo) && (
+        {(search || typeFilter || walletFilter || dateFrom || dateTo) && (
           <button
             type="button"
             onClick={() => {
               setSearch("");
               setTypeFilter("");
+              setWalletFilter("");
               setDateFrom("");
               setDateTo("");
             }}
@@ -234,7 +259,15 @@ export default function LedgerPage() {
           <table style={table}>
             <thead>
               <tr>
-                {["Tanggal", "Jenis", "Keterangan", "Nominal"].map((h) => (
+                {[
+                  "Tanggal",
+                  "Wallet",
+                  "Jenis",
+                  "Keterangan",
+                  "Rekening tujuan",
+                  "Referensi",
+                  "Nominal",
+                ].map((h) => (
                   <th key={h} style={th}>
                     {h}
                   </th>
@@ -257,6 +290,7 @@ export default function LedgerPage() {
                   >
                     {e.created_at ? formatDate(e.created_at) : "—"}
                   </td>
+                  <td style={td}>{WALLET_LABEL[e.wallet]}</td>
                   <td style={td}>
                     <span
                       style={{
@@ -276,6 +310,29 @@ export default function LedgerPage() {
                     style={{ ...td, color: "var(--color-ink-2)", fontSize: 13 }}
                   >
                     {e.description || e.reference_id}
+                  </td>
+                  <td
+                    style={{
+                      ...td,
+                      color: "var(--color-ink-2)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 12,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {e.bank_account || "—"}
+                  </td>
+                  <td
+                    style={{
+                      ...td,
+                      color: "var(--color-ink-3)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      maxWidth: 160,
+                      overflowWrap: "anywhere",
+                    }}
+                  >
+                    {e.reference_id || e.id}
                   </td>
                   <td
                     style={{

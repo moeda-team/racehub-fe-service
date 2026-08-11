@@ -2122,7 +2122,7 @@ export interface paths {
         put?: never;
         /**
          * Withdraw from the organizer wallet (FR-803)
-         * @description Cash-out limited by balance; audited (NFR-209). Amounts are int64 rupiah.
+         * @description Records a manual withdrawal against the internal organizer wallet; it does not initiate a bank transfer. Limited by balance and audited (NFR-209). Amounts are int64 rupiah.
          */
         post: {
             parameters: {
@@ -2209,6 +2209,47 @@ export interface paths {
                     content: {
                         "application/json": {
                             data?: components["schemas"]["LedgerEntry"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizers/me/wallet/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List combined organizer, donation, and platform wallet history */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Combined wallet entries, most recent first. Destination accounts are masked. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["WalletHistoryEntry"][];
                         };
                     };
                 };
@@ -4325,12 +4366,16 @@ export interface components {
              * @description Rupiah int64; must be > 0 and <= balance
              */
             amount: number;
-            /** @description Optional destination bank account number for record-keeping. */
+            /** @description Optional destination bank account for manual record-keeping; no bank transfer is initiated. */
             bank_account?: string;
         };
         WalletBalance: {
             /** Format: int64 */
             balance?: number;
+            /** Format: int64 */
+            total_collected?: number;
+            /** Format: int64 */
+            total_withdrawn?: number;
         };
         LedgerEntry: {
             /** Format: uuid */
@@ -4344,6 +4389,25 @@ export interface components {
             type?: "credit" | "refund" | "withdraw";
             reference_id?: string;
             description?: string;
+            /** Format: date-time */
+            created_at?: string;
+        };
+        WalletHistoryEntry: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            wallet?: "organizer" | "donation" | "platform";
+            /**
+             * Format: int64
+             * @description Positive = credit, negative = refund or manual withdrawal
+             */
+            amount?: number;
+            /** @enum {string} */
+            type?: "credit" | "refund" | "withdraw";
+            reference_id?: string;
+            description?: string;
+            /** @description Masked destination account, if recorded. */
+            bank_account?: string;
             /** Format: date-time */
             created_at?: string;
         };

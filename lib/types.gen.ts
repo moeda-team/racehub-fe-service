@@ -433,6 +433,13 @@ export interface LedgerEntry {
   created_at: string;
 }
 
+export type WalletKind = "organizer" | "donation" | "platform";
+
+export interface WalletHistoryEntry extends LedgerEntry {
+  wallet: WalletKind;
+  bank_account: string;
+}
+
 export interface DonationReport {
   event_id: string;
   ticket_revenue: number;
