@@ -291,10 +291,7 @@ export default function RegisterPage({
                   value={d.id}
                   disabled={d.quota_remaining <= 0}
                 >
-                  {d.name}{" "}
-                  {d.quota_remaining <= 0
-                    ? "(habis)"
-                    : `(${d.quota_remaining} sisa)`}
+                  {d.name}
                 </option>
               ))}
             </select>
@@ -319,9 +316,7 @@ export default function RegisterPage({
                     ? "(berakhir)"
                     : notStarted
                       ? "(belum dibuka)"
-                      : soldOut
-                        ? "(habis)"
-                        : "";
+                      : "";
                   return (
                     <option
                       key={t.id}

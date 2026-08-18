@@ -199,7 +199,6 @@ export default function MarketplacePage() {
                 date={formatDate(ev.event_date)}
                 distances={ev.event_type === "running" ? ["Event Lari"] : []}
                 price={ev.min_price > 0 ? formatRupiah(ev.min_price) : "Gratis"}
-                quotaRemaining={ev.quota_remaining}
                 bannerUrl={ev.banner_url}
                 color={ev.color || undefined}
               />

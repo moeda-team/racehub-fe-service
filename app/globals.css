@@ -460,31 +460,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.evcard-quota {
-  text-align: right;
-}
-
-.evcard-quota-bar {
-  width: 120px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background-color: var(--color-panel);
-  overflow: hidden;
-  margin-bottom: 5px;
-}
-
-.evcard-quota-fill {
-  height: 100%;
-  background-color: var(--color-flame);
-  border-radius: var(--radius-pill);
-}
-
-.evcard-quota-text {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-ink-3);
-}
-
 /* === Pill === */
 
 .pill {

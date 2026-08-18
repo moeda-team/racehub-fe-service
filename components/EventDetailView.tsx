@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatRupiah, formatDate, formatNumber } from "@/lib/format";
+import { formatRupiah, formatDate } from "@/lib/format";
 import type { PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
 import RichText from "@/components/ui/RichText";
@@ -33,9 +33,9 @@ export default function EventDetailView({
       variant="primary"
       size="lg"
       style={{ width: "100%" }}
-      disabled={!interactive || event.quota_remaining <= 0}
+      disabled={!interactive}
     >
-      {event.quota_remaining > 0 ? "Daftar Sekarang" : "Kuota Habis"}
+      Daftar Sekarang
     </Button>
   );
 
@@ -90,11 +90,6 @@ export default function EventDetailView({
         {event.donation_enabled && (
           <Badge variant="flame">Donasi Tersedia</Badge>
         )}
-        <Badge variant={event.quota_remaining > 0 ? "ok" : "danger"}>
-          {event.quota_remaining > 0
-            ? `${formatNumber(event.quota_remaining)} slot tersisa`
-            : "Kuota habis"}
-        </Badge>
       </div>
 
       {event.description && (
@@ -133,11 +128,6 @@ export default function EventDetailView({
             }}
           >
             {categories.map((d) => {
-              const pct =
-                d.quota > 0
-                  ? Math.max(0, Math.min(1, d.quota_remaining / d.quota))
-                  : 0;
-              const empty = d.quota_remaining <= 0;
               return (
                 <div
                   key={d.id}
@@ -157,37 +147,6 @@ export default function EventDetailView({
                     }}
                   >
                     {d.name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12.5,
-                      color: empty
-                        ? "var(--color-danger, #C0392B)"
-                        : "var(--color-ink-3)",
-                      margin: "3px 0 8px",
-                    }}
-                  >
-                    {empty
-                      ? "Kuota habis"
-                      : `${formatNumber(d.quota_remaining)} dari ${formatNumber(d.quota)} slot tersisa`}
-                  </div>
-                  <div
-                    style={{
-                      height: 4,
-                      borderRadius: 2,
-                      backgroundColor: "var(--color-line)",
-                      overflow: "hidden",
-                    }}
-                    aria-hidden
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${pct * 100}%`,
-                        borderRadius: 2,
-                        backgroundColor: "var(--color-flame, #F5471D)",
-                      }}
-                    />
                   </div>
                 </div>
               );
@@ -250,7 +209,6 @@ export default function EventDetailView({
                     {tickets.map((t) => {
                       const expired =
                         !!t.sale_end && new Date(t.sale_end).getTime() < now;
-                      const soldOut = !expired && t.quota_remaining <= 0;
                       return (
                         <div
                           key={t.id}
@@ -264,7 +222,7 @@ export default function EventDetailView({
                             border: "1px solid var(--color-line)",
                             borderRadius: "var(--radius-md)",
                             backgroundColor: "var(--color-surface)",
-                            opacity: expired || soldOut ? 0.6 : 1,
+                            opacity: expired ? 0.6 : 1,
                           }}
                         >
                           <div style={{ minWidth: 0 }}>
@@ -281,11 +239,7 @@ export default function EventDetailView({
                               </span>
                               {expired ? (
                                 <Badge variant="neutral">Berakhir</Badge>
-                              ) : soldOut ? (
-                                <Badge variant="danger">Habis</Badge>
-                              ) : (
-                                <Badge variant="ok">Tersedia</Badge>
-                              )}
+                              ) : null}
                             </div>
                             <div
                               style={{
@@ -296,9 +250,9 @@ export default function EventDetailView({
                             >
                               {expired
                                 ? `Penjualan berakhir ${formatDate(t.sale_end)}`
-                                : soldOut
-                                  ? "Kuota habis"
-                                  : `${formatNumber(t.quota_remaining)} dari ${formatNumber(t.quota)} slot tersisa${t.sale_end ? ` · s.d. ${formatDate(t.sale_end)}` : ""}`}
+                                : t.sale_end
+                                  ? `Penjualan s.d. ${formatDate(t.sale_end)}`
+                                  : ""}
                             </div>
                           </div>
                           <div

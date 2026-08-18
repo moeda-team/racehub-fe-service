@@ -1,4 +1,3 @@
-import { formatNumber } from "@/lib/format";
 import Pill from "./Pill";
 
 interface EventCardProps {
@@ -7,7 +6,6 @@ interface EventCardProps {
   date: string;
   distances: string[];
   price: string;
-  quotaRemaining?: number;
   bannerUrl?: string | null;
   color?: string;
   href?: string;
@@ -20,7 +18,6 @@ export default function EventCard({
   date,
   distances,
   price,
-  quotaRemaining,
   bannerUrl,
   color,
   href,
@@ -56,15 +53,6 @@ export default function EventCard({
             <div className="evcard-price-k">Mulai dari</div>
             <div className="evcard-price-v">{price}</div>
           </div>
-          {quotaRemaining !== undefined && (
-            <div className="evcard-quota">
-              <div className="evcard-quota-text">
-                {quotaRemaining > 0
-                  ? `${formatNumber(quotaRemaining)} slot tersisa`
-                  : "Kuota habis"}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>

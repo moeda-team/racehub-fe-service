@@ -2286,7 +2286,6 @@ function CardPreview({
               isRunning && distances.length === 0 ? ["Event Lari"] : distances
             }
             price={minPrice > 0 ? formatRupiah(minPrice) : "Gratis"}
-            quotaRemaining={quotaRemaining}
             bannerUrl={ev.banner_url}
             color={color}
           />
