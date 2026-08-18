@@ -295,6 +295,7 @@ export interface TicketCategory {
   quota_used: number;
   sale_start: string | null;
   sale_end: string | null;
+  is_visible: boolean;
   created_at: string;
 }
 
@@ -305,6 +306,7 @@ export interface CreateTicketRequest {
   category_id: string;
   sale_start?: string;
   sale_end?: string;
+  is_visible?: boolean;
 }
 
 export interface UpdateTicketRequest {
@@ -314,6 +316,7 @@ export interface UpdateTicketRequest {
   category_id: string;
   sale_start?: string;
   sale_end?: string;
+  is_visible?: boolean;
 }
 
 // === Registration ===

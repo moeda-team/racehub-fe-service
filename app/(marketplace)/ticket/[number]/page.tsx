@@ -11,20 +11,13 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Ticket from "@/components/ui/Ticket";
 
-const REFUND_STATUS: Record<
-  string,
-  { label: string; variant: "ok" | "warn" | "danger" }
-> = {
+const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
   completed: { label: "Selesai", variant: "ok" },
   processing: { label: "Diproses", variant: "warn" },
   rejected: { label: "Ditolak", variant: "danger" },
 };
 
-export default function TicketPage({
-  params,
-}: {
-  params: Promise<{ number: string }>;
-}) {
+export default function TicketPage({ params }: { params: Promise<{ number: string }> }) {
   const { number } = use(params);
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -40,18 +33,14 @@ export default function TicketPage({
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<ETicket>>(
-          `/api/v1/registrations/${number}/ticket?token=${token}`,
-        );
+        const res = await api.get<ApiResponse<ETicket>>(`/api/v1/registrations/${number}/ticket?token=${token}`);
         if (cancelled) return;
         const t = res.data;
         setTicket(t);
         // When the event was cancelled and refund was initiated, also load refund details.
         if (t.registration_status === "refunded") {
           try {
-            const rr = await api.get<ApiResponse<Refund>>(
-              `/api/v1/registrations/${number}/refund`,
-            );
+            const rr = await api.get<ApiResponse<Refund>>(`/api/v1/registrations/${number}/refund`);
             if (!cancelled) setRefund(rr.data);
           } catch {
             /* refund may still be in-flight — show ticket without it */
@@ -65,9 +54,7 @@ export default function TicketPage({
             else setNotReady(true);
           });
         } else {
-          requestAnimationFrame(() =>
-            setError("Gagal memuat e-tiket."),
-          );
+          requestAnimationFrame(() => setError("Gagal memuat e-tiket."));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -140,9 +127,7 @@ export default function TicketPage({
       >
         {isRefunded ? "Pendaftaran Dibatalkan" : "E-tiket"}
       </h1>
-      <p
-        style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}
-      >
+      <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
         {isRefunded
           ? `${ticket.event_name} · ${ticket.category_name}`
           : "Tunjukkan QR ini saat check-in di lokasi acara."}
@@ -152,10 +137,7 @@ export default function TicketPage({
         <div
           style={{
             ...card,
-            borderColor:
-              refund?.status === "completed"
-                ? "var(--color-sprint)"
-                : "var(--color-warn)",
+            borderColor: refund?.status === "completed" ? "var(--color-sprint)" : "var(--color-warn)",
           }}
         >
           <div
@@ -175,36 +157,24 @@ export default function TicketPage({
           </div>
           {refund ? (
             <>
-              <Row
-                label="Nominal Refund"
-                value={formatRupiah(refund.amount)}
-                mono
-              />
-              <Row
-                label="Metode"
-                value={`${refund.method} · ${refund.mode === "auto" ? "Otomatis" : "Manual"}`}
-              />
+              <Row label="Nominal Refund" value={formatRupiah(refund.amount)} mono />
+              <Row label="Metode" value={`${refund.method} · ${refund.mode === "auto" ? "Otomatis" : "Manual"}`} />
               {refund.mode === "manual" && refund.status === "processing" && (
                 <div style={{ marginTop: 12 }}>
                   <Alert variant="warn" className="mb-0">
-                    Refund diproses secara manual. Tim kami akan menghubungi
-                    Anda untuk konfirmasi transfer.
+                    Refund diproses secara manual. Tim kami akan menghubungi Anda untuk konfirmasi transfer.
                   </Alert>
                 </div>
               )}
               {refund.status === "completed" && (
                 <div style={{ marginTop: 12 }}>
                   <Alert variant="info" className="mb-0">
-                    Dana telah dikembalikan. Donasi tidak dikembalikan dan tetap
-                    disalurkan.
+                    Dana telah dikembalikan. Donasi tidak dikembalikan dan tetap disalurkan.
                   </Alert>
                 </div>
               )}
               <div style={{ marginTop: 14 }}>
-                <Link
-                  href={`/refund/${number}`}
-                  style={{ fontSize: 13, color: "var(--color-flame)" }}
-                >
+                <Link href={`/refund/${number}`} style={{ fontSize: 13, color: "var(--color-flame)" }}>
                   Lihat detail refund →
                 </Link>
               </div>
@@ -228,9 +198,7 @@ export default function TicketPage({
             qrToken={ticket.qr_token}
           />
           <div style={card}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>
-              Butuh membatalkan pendaftaran?
-            </div>
+            <div style={{ fontWeight: 600, marginBottom: 6 }}>Butuh membatalkan pendaftaran?</div>
             <p
               style={{
                 fontSize: 13,
@@ -238,8 +206,8 @@ export default function TicketPage({
                 margin: "0 0 14px",
               }}
             >
-              Ajukan refund sebelum batas waktu yang ditetapkan penyelenggara.
-              Pengajuan akan ditinjau oleh penyelenggara.
+              Ajukan refund sebelum batas waktu yang ditetapkan penyelenggara. Pengajuan akan ditinjau oleh
+              penyelenggara.
             </p>
             <Link href={`/refund/${number}`}>
               <Button variant="secondary" size="sm">
@@ -252,21 +220,11 @@ export default function TicketPage({
 
       {inv && (
         <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>
-            Rincian Pembayaran
-          </div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Rincian Pembayaran</div>
           <Row label="Harga Tiket" value={formatRupiah(inv.price)} mono />
           <Row label="Donasi" value={formatRupiah(inv.donation)} mono />
-          <Row
-            label="Layanan Platform"
-            value={formatRupiah(inv.fee_platform)}
-            mono
-          />
-          <Row
-            label={`Fee Admin · ${inv.payment_method_label}`}
-            value={formatRupiah(inv.fee_midtrans)}
-            mono
-          />
+          <Row label="Platform" value={formatRupiah(inv.fee_platform)} mono />
+          <Row label={`Fee Admin · ${inv.payment_method_label}`} value={formatRupiah(inv.fee_midtrans)} mono />
           <hr
             style={{
               border: 0,
@@ -274,12 +232,7 @@ export default function TicketPage({
               margin: "8px 0",
             }}
           />
-          <Row
-            label="Sub Total"
-            value={formatRupiah(inv.sub_total)}
-            mono
-            bold
-          />
+          <Row label="Sub Total" value={formatRupiah(inv.sub_total)} mono bold />
         </div>
       )}
     </main>
@@ -300,17 +253,7 @@ const card: React.CSSProperties = {
   backgroundColor: "var(--color-surface)",
 };
 
-function Row({
-  label,
-  value,
-  mono,
-  bold,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-  bold?: boolean;
-}) {
+function Row({ label, value, mono, bold }: { label: string; value: string; mono?: boolean; bold?: boolean }) {
   return (
     <div
       style={{

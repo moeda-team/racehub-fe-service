@@ -4577,6 +4577,11 @@ export interface components {
             sale_start?: string;
             /** Format: date-time */
             sale_end?: string;
+            /**
+             * @description Whether this ticket category is visible and selectable on public pages.
+             * @default true
+             */
+            is_visible: boolean;
             /** Format: date-time */
             created_at?: string;
         };
@@ -4594,6 +4599,8 @@ export interface components {
             sale_start?: string;
             /** Format: date-time */
             sale_end?: string;
+            /** @description Whether this ticket category starts publicly visible. Omit to default to true. */
+            is_visible?: boolean;
         };
         UpdateTicketRequest: {
             name: string;
@@ -4609,6 +4616,8 @@ export interface components {
             sale_start?: string;
             /** Format: date-time */
             sale_end?: string;
+            /** @description Hide or show this ticket category on public pages. Omit to preserve the current value. */
+            is_visible?: boolean;
         };
         BibResult: {
             /**

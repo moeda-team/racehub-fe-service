@@ -2198,7 +2198,7 @@ function CardPreview({
       quota: d.quota,
       quota_remaining: Math.max(0, d.quota - d.quota_used),
     })),
-    ticket_categories: detail.ticket_categories.map((t) => ({
+    ticket_categories: detail.ticket_categories.filter((t) => t.is_visible).map((t) => ({
       id: t.id,
       category_id: t.category_id,
       name: t.name,
@@ -2917,6 +2917,7 @@ function TicketManager({
         category_id: editDistanceId,
         sale_start: toRFC3339(editSaleStart),
         sale_end: toRFC3339(editSaleEnd),
+        is_visible: t.is_visible,
       });
       setEditingId(null);
       await onChanged();
@@ -2925,6 +2926,31 @@ function TicketManager({
         err instanceof ApiError
           ? err.message
           : "Gagal memperbarui tiket.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleVisibility(t: TicketCategory) {
+    setError(null);
+    setBusy(true);
+    try {
+      await api.put(`/api/v1/events/${eventId}/tickets/${t.id}`, {
+        name: t.name,
+        price: t.price,
+        quota: t.quota,
+        category_id: t.category_id,
+        sale_start: t.sale_start ?? "",
+        sale_end: t.sale_end ?? "",
+        is_visible: !t.is_visible,
+      });
+      await onChanged();
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Gagal mengubah visibilitas tiket.",
       );
     } finally {
       setBusy(false);
@@ -3024,6 +3050,11 @@ function TicketManager({
                       Berakhir
                     </Badge>
                   )}
+                  {!t.is_visible && (
+                    <Badge variant="neutral" className="ml-2">
+                      Disembunyikan
+                    </Badge>
+                  )}
                 </span>
                 <span
                   style={{ display: "flex", alignItems: "center", gap: 12 }}
@@ -3042,6 +3073,22 @@ function TicketManager({
                   >
                     {formatNumber(t.quota_used)}/{formatNumber(t.quota)}
                   </span>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => toggleVisibility(t)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: t.is_visible
+                        ? "var(--color-ink-3)"
+                        : "var(--color-ok)",
+                      cursor: busy ? "not-allowed" : "pointer",
+                      fontSize: 14,
+                    }}
+                  >
+                    {t.is_visible ? "Sembunyikan" : "Tampilkan"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => startTicketEdit(t)}

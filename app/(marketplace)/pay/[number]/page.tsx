@@ -38,11 +38,7 @@ function statusBadge(status: string): {
   }
 }
 
-export default function PayPage({
-  params,
-}: {
-  params: Promise<{ number: string }>;
-}) {
+export default function PayPage({ params }: { params: Promise<{ number: string }> }) {
   const { number } = use(params);
 
   const [reg, setReg] = useState<Registration | null>(null);
@@ -58,9 +54,7 @@ export default function PayPage({
   const [error, setError] = useState<string | null>(null);
 
   const loadRegistration = useCallback(async () => {
-    const res = await api.get<ApiResponse<Registration>>(
-      `/api/v1/registrations/${number}`,
-    );
+    const res = await api.get<ApiResponse<Registration>>(`/api/v1/registrations/${number}`);
     return res.data;
   }, [number]);
 
@@ -71,10 +65,7 @@ export default function PayPage({
         const data = await loadRegistration();
         if (!cancelled) {
           setReg(data);
-          if (
-            data.status === "pending_payment" &&
-            data.pending_payment?.status === "pending"
-          ) {
+          if (data.status === "pending_payment" && data.pending_payment?.status === "pending") {
             setCharge(data.pending_payment);
             setResumedPayment(true);
           }
@@ -112,20 +103,13 @@ export default function PayPage({
     if (!m || !reg) return;
     setQuoting(true);
     try {
-      const res = await api.post<ApiResponse<PaymentQuoteResponse>>(
-        "/api/v1/payments/quote",
-        {
-          registration_id: reg.id,
-          payment_method: m,
-        },
-      );
+      const res = await api.post<ApiResponse<PaymentQuoteResponse>>("/api/v1/payments/quote", {
+        registration_id: reg.id,
+        payment_method: m,
+      });
       setQuote(res.data);
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal mengambil rincian biaya.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal mengambil rincian biaya.");
     } finally {
       setQuoting(false);
     }
@@ -136,19 +120,14 @@ export default function PayPage({
     setCharging(true);
     setError(null);
     try {
-      const res = await api.post<ApiResponse<PaymentChargeResponse>>(
-        "/api/v1/payments/charge",
-        {
-          registration_id: reg.id,
-          payment_method: method,
-        },
-      );
+      const res = await api.post<ApiResponse<PaymentChargeResponse>>("/api/v1/payments/charge", {
+        registration_id: reg.id,
+        payment_method: method,
+      });
       setCharge(res.data);
       setResumedPayment(false);
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal memulai pembayaran.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal memulai pembayaran.");
     } finally {
       setCharging(false);
     }
@@ -167,9 +146,7 @@ export default function PayPage({
         <Link href="/" style={back}>
           ← Kembali ke marketplace
         </Link>
-        <Alert variant="danger">
-          {loadError ?? "Pendaftaran tidak ditemukan."}
-        </Alert>
+        <Alert variant="danger">{loadError ?? "Pendaftaran tidak ditemukan."}</Alert>
       </main>
     );
   }
@@ -189,19 +166,10 @@ export default function PayPage({
         </Alert>
         <div style={card}>
           <Row label="Nomor Registrasi" value={reg.registration_number} mono />
-          {reg.payment_paid_at && (
-            <Row
-              label="Waktu Pembayaran"
-              value={formatPaymentDate(reg.payment_paid_at)}
-            />
-          )}
-          <div
-            style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}
-          >
+          {reg.payment_paid_at && <Row label="Waktu Pembayaran" value={formatPaymentDate(reg.payment_paid_at)} />}
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
             <Badge variant="ok">Lunas</Badge>
-            {reg.is_complimentary && (
-              <Badge variant="sprint">Complimentary</Badge>
-            )}
+            {reg.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
           </div>
         </div>
         <Link
@@ -222,18 +190,10 @@ export default function PayPage({
         <Link href="/" style={back}>
           ← Kembali ke marketplace
         </Link>
-        <Alert variant="danger">
-          Batas waktu pembayaran telah berakhir. Pendaftaran ini tidak dapat
-          dibayar lagi.
-        </Alert>
+        <Alert variant="danger">Batas waktu pembayaran telah berakhir. Pendaftaran ini tidak dapat dibayar lagi.</Alert>
         <div style={card}>
           <Row label="Nomor Registrasi" value={reg.registration_number} mono />
-          {paymentDeadline && (
-            <Row
-              label="Batas Pembayaran"
-              value={formatPaymentDate(paymentDeadline)}
-            />
-          )}
+          {paymentDeadline && <Row label="Batas Pembayaran" value={formatPaymentDate(paymentDeadline)} />}
           <div style={{ marginTop: 8 }}>
             <Badge variant="danger">Kedaluwarsa</Badge>
           </div>
@@ -248,19 +208,13 @@ export default function PayPage({
         {
           label: "Harga Tiket",
           value: formatRupiah(quote.price),
-          original:
-            quote.original_price != null
-              ? formatRupiah(quote.original_price)
-              : undefined,
+          original: quote.original_price != null ? formatRupiah(quote.original_price) : undefined,
         },
         { label: "Donasi", value: formatRupiah(quote.donation) },
         {
-          label: "Layanan Platform",
+          label: "Platform",
           value: formatRupiah(quote.fee_platform),
-          original:
-            quote.original_fee_platform != null
-              ? formatRupiah(quote.original_fee_platform)
-              : undefined,
+          original: quote.original_fee_platform != null ? formatRupiah(quote.original_fee_platform) : undefined,
         },
         ...(quote.fee_midtrans_charged_to_buyer
           ? [
@@ -297,13 +251,8 @@ export default function PayPage({
         </h1>
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
-      <p
-        style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}
-      >
-        No. Registrasi{" "}
-        <span style={{ fontFamily: "var(--font-mono)" }}>
-          {reg.registration_number}
-        </span>
+      <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
+        No. Registrasi <span style={{ fontFamily: "var(--font-mono)" }}>{reg.registration_number}</span>
       </p>
 
       {reg.is_complimentary && (
@@ -312,14 +261,12 @@ export default function PayPage({
             padding: "12px 16px",
             border: "1px solid var(--color-sprint)",
             borderRadius: "var(--radius-md)",
-            backgroundColor:
-              "color-mix(in srgb, var(--color-sprint) 8%, transparent)",
+            backgroundColor: "color-mix(in srgb, var(--color-sprint) 8%, transparent)",
             marginBottom: 16,
             fontSize: 14,
           }}
         >
-          <strong>Anda diundang — Tiket Gratis</strong> — harga tiket dan fee
-          platform dibebaskan.
+          <strong>Anda diundang — Tiket Gratis</strong> — harga tiket dan fee platform dibebaskan.
           {reg.donation > 0
             ? " Anda hanya perlu membayar donasi dan fee transaksi."
             : " Tidak ada biaya yang perlu dibayar."}
@@ -348,8 +295,8 @@ export default function PayPage({
               margin: "10px 0 16px",
             }}
           >
-            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif.
-            Donasi bebas biaya admin &amp; tidak dapat dikembalikan.
+            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif. Donasi bebas biaya admin &amp; tidak
+            dapat dikembalikan.
           </p>
           <Button
             variant="primary"
@@ -358,53 +305,24 @@ export default function PayPage({
             disabled={!quote || quoting || charging}
             onClick={handleCharge}
           >
-            {quoting
-              ? "Menghitung…"
-              : charging
-                ? "Memproses…"
-                : "Bayar Sekarang"}
+            {quoting ? "Menghitung…" : charging ? "Memproses…" : "Bayar Sekarang"}
           </Button>
         </>
       ) : (
         <div style={card}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>
-            Instruksi Pembayaran
-          </div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Instruksi Pembayaran</div>
           {resumedPayment && (
             <Alert variant="info" className="mb-3">
-              Instruksi pembayaran sebelumnya dipulihkan. Gunakan transaksi ini
-              untuk menyelesaikan pembayaran.
+              Instruksi pembayaran sebelumnya dipulihkan. Gunakan transaksi ini untuk menyelesaikan pembayaran.
             </Alert>
           )}
           <Row label="Metode" value={charge.quote.payment_method_label} />
-          {charge.expires_at && (
-            <Row
-              label="Batas Pembayaran"
-              value={formatPaymentDate(charge.expires_at)}
-            />
-          )}
-          {charge.va_number && (
-            <Row label="Nomor Virtual Account" value={charge.va_number} mono />
-          )}
-          {charge.biller_code && (
-            <Row
-              label="Kode Biller (Mandiri)"
-              value={charge.biller_code}
-              mono
-            />
-          )}
-          {charge.bill_key && (
-            <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />
-          )}
-          {charge.qr_string && (
-            <QrDisplay
-              value={charge.qr_string}
-              deeplinkUrl={charge.deeplink_url}
-            />
-          )}
-          {charge.expires_at && reg.status === "pending_payment" && (
-            <PaymentCountdown expiresAt={charge.expires_at} />
-          )}
+          {charge.expires_at && <Row label="Batas Pembayaran" value={formatPaymentDate(charge.expires_at)} />}
+          {charge.va_number && <Row label="Nomor Virtual Account" value={charge.va_number} mono />}
+          {charge.biller_code && <Row label="Kode Biller (Mandiri)" value={charge.biller_code} mono />}
+          {charge.bill_key && <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />}
+          {charge.qr_string && <QrDisplay value={charge.qr_string} deeplinkUrl={charge.deeplink_url} />}
+          {charge.expires_at && reg.status === "pending_payment" && <PaymentCountdown expiresAt={charge.expires_at} />}
           <hr
             style={{
               border: 0,
@@ -415,25 +333,15 @@ export default function PayPage({
           <Row
             label="Harga Tiket"
             value={formatRupiah(charge.quote.price)}
-            original={
-              charge.quote.original_price != null
-                ? formatRupiah(charge.quote.original_price)
-                : undefined
-            }
+            original={charge.quote.original_price != null ? formatRupiah(charge.quote.original_price) : undefined}
             mono
           />
+          <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />
           <Row
-            label="Donasi"
-            value={formatRupiah(charge.quote.donation)}
-            mono
-          />
-          <Row
-            label="Layanan Platform"
+            label="Platform"
             value={formatRupiah(charge.quote.fee_platform)}
             original={
-              charge.quote.original_fee_platform != null
-                ? formatRupiah(charge.quote.original_fee_platform)
-                : undefined
+              charge.quote.original_fee_platform != null ? formatRupiah(charge.quote.original_fee_platform) : undefined
             }
             mono
           />
@@ -451,11 +359,7 @@ export default function PayPage({
               margin: "12px 0",
             }}
           />
-          <Row
-            label="Sub Total"
-            value={formatRupiah(charge.quote.sub_total)}
-            mono
-          />
+          <Row label="Sub Total" value={formatRupiah(charge.quote.sub_total)} mono />
           <hr
             style={{
               border: 0,
@@ -504,8 +408,7 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
   if (remaining === 0) {
     return (
       <Alert variant="danger" className="my-3">
-        Waktu pembayaran telah habis. Transaksi ini akan ditandai kedaluwarsa
-        otomatis oleh sistem.
+        Waktu pembayaran telah habis. Transaksi ini akan ditandai kedaluwarsa otomatis oleh sistem.
       </Alert>
     );
   }
@@ -521,9 +424,7 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
         backgroundColor: "var(--color-warn-tint)",
       }}
     >
-      <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
-        Selesaikan pembayaran dalam
-      </div>
+      <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Selesaikan pembayaran dalam</div>
       <div
         style={{
           marginTop: 2,
@@ -561,13 +462,7 @@ function formatPaymentDate(value: string): string {
 // (encode it client-side) or a ready-made QR image URL (e.g. GoPay
 // generate-qr-code). A URL must be shown as <img>, never re-encoded — its
 // pixels already are the payment QR.
-function QrDisplay({
-  value,
-  deeplinkUrl,
-}: {
-  value: string;
-  deeplinkUrl?: string;
-}) {
+function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string }) {
   const isUrl = /^https?:\/\//i.test(value);
   return (
     <div
@@ -610,12 +505,7 @@ function QrDisplay({
             }}
           />
         ) : (
-          <QRCodeSVG
-            value={value}
-            size={280}
-            level="M"
-            style={{ width: "100%", maxWidth: 280, height: "auto" }}
-          />
+          <QRCodeSVG value={value} size={280} level="M" style={{ width: "100%", maxWidth: 280, height: "auto" }} />
         )}
       </div>
       {(isUrl || deeplinkUrl) && (
@@ -676,17 +566,7 @@ function QrDisplay({
   );
 }
 
-function Row({
-  label,
-  value,
-  original,
-  mono,
-}: {
-  label: string;
-  value: string;
-  original?: string;
-  mono?: boolean;
-}) {
+function Row({ label, value, original, mono }: { label: string; value: string; original?: string; mono?: boolean }) {
   return (
     <div
       style={{

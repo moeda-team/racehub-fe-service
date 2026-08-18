@@ -4,12 +4,7 @@ import { use, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
-import {
-  formatRupiah,
-  formatNumberInput,
-  normalizeNumberInput,
-  parseNumberInput,
-} from "@/lib/format";
+import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import type {
   ApiResponse,
   CreateRegistrationRequest,
@@ -21,11 +16,7 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
 
-export default function RegisterPage({
-  params,
-}: {
-  params: Promise<{ eventId: string }>;
-}) {
+export default function RegisterPage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
 
   const [detail, setDetail] = useState<PublicEventDetail | null>(null);
@@ -55,14 +46,10 @@ export default function RegisterPage({
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<PublicEventDetail>>(
-          `/api/v1/events/${eventId}`,
-          { auth: false },
-        );
+        const res = await api.get<ApiResponse<PublicEventDetail>>(`/api/v1/events/${eventId}`, { auth: false });
         if (!cancelled) setDetail(res.data);
       } catch {
-        if (!cancelled)
-          setLoadError("Event tidak ditemukan atau belum dipublikasikan.");
+        if (!cancelled) setLoadError("Event tidak ditemukan atau belum dipublikasikan.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -73,10 +60,7 @@ export default function RegisterPage({
   }, [eventId]);
 
   const ticketsForDistance = useMemo(
-    () =>
-      detail && distanceId
-        ? detail.ticket_categories.filter((t) => t.category_id === distanceId)
-        : [],
+    () => (detail && distanceId ? detail.ticket_categories.filter((t) => t.category_id === distanceId) : []),
     [detail, distanceId],
   );
   const selectedTicket = useMemo(
@@ -97,10 +81,7 @@ export default function RegisterPage({
     const errors: Record<string, string> = {};
     for (const field of detail.registration_fields) {
       const value = extraData[field.id] ?? "";
-      const valid =
-        field.field_type === "checkbox"
-          ? value === "true"
-          : value.trim() !== "";
+      const valid = field.field_type === "checkbox" ? value === "true" : value.trim() !== "";
       if (field.required && !valid) errors[field.id] = "Kolom ini wajib diisi.";
     }
     setExtraErrors(errors);
@@ -124,17 +105,13 @@ export default function RegisterPage({
         donation: Number(donation) || 0,
         extra_data: extraData,
       };
-      const res = await api.post<ApiResponse<Registration>>(
-        "/api/v1/registrations",
-        body,
-        { idempotencyKey: regIdem.keyFor(body) },
-      );
+      const res = await api.post<ApiResponse<Registration>>("/api/v1/registrations", body, {
+        idempotencyKey: regIdem.keyFor(body),
+      });
       regIdem.reset();
       setResult(res.data);
     } catch (err) {
-      setServerError(
-        err instanceof ApiError ? err.message : "Pendaftaran gagal. Coba lagi.",
-      );
+      setServerError(err instanceof ApiError ? err.message : "Pendaftaran gagal. Coba lagi.");
     } finally {
       setSubmitting(false);
     }
@@ -169,9 +146,7 @@ export default function RegisterPage({
             : "Pendaftaran berhasil! Simpan nomor registrasi Anda."}
         </Alert>
         <div style={card}>
-          <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>
-            Nomor Registrasi
-          </div>
+          <div style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Nomor Registrasi</div>
           <div
             style={{
               fontFamily: "var(--font-mono)",
@@ -190,38 +165,24 @@ export default function RegisterPage({
               flexWrap: "wrap",
             }}
           >
-            {isPaid ? (
-              <Badge variant="ok">E-Tiket Aktif</Badge>
-            ) : (
-              <Badge variant="warn">Menunggu Pembayaran</Badge>
-            )}
-            {result.is_complimentary && (
-              <Badge variant="sprint">Complimentary</Badge>
-            )}
-            {result.age_class && (
-              <Badge variant="sprint">Kelas {result.age_class}</Badge>
-            )}
+            {isPaid ? <Badge variant="ok">E-Tiket Aktif</Badge> : <Badge variant="warn">Menunggu Pembayaran</Badge>}
+            {result.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
+            {result.age_class && <Badge variant="sprint">Kelas {result.age_class}</Badge>}
           </div>
           <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
             {isPaid
               ? "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
-              : "Langkah berikutnya: pembayaran. Rincian biaya (Layanan Platform, Fee Midtrans, Sub Total) dihitung server setelah Anda memilih metode."}
+              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Fee Midtrans, Sub Total) dihitung server setelah Anda memilih metode."}
           </p>
         </div>
         {isPaid ? (
-          <Link
-            href={`/ticket/${result.registration_number}`}
-            style={{ display: "block", marginTop: 16 }}
-          >
+          <Link href={`/ticket/${result.registration_number}`} style={{ display: "block", marginTop: 16 }}>
             <Button variant="primary" size="md" style={{ width: "100%" }}>
               Lihat E-Tiket
             </Button>
           </Link>
         ) : (
-          <Link
-            href={`/pay/${result.registration_number}`}
-            style={{ display: "block", marginTop: 16 }}
-          >
+          <Link href={`/pay/${result.registration_number}`} style={{ display: "block", marginTop: 16 }}>
             <Button variant="primary" size="md" style={{ width: "100%" }}>
               Lanjut ke Pembayaran
             </Button>
@@ -251,11 +212,7 @@ export default function RegisterPage({
       >
         Pendaftaran
       </h1>
-      <p
-        style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}
-      >
-        Langkah {step} dari 3
-      </p>
+      <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>Langkah {step} dari 3</p>
 
       {serverError && (
         <Alert variant="danger" className="mb-4">
@@ -268,9 +225,7 @@ export default function RegisterPage({
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="field">
             <label className="field-label">
-              {detail.event.event_type === "running"
-                ? "Kategori Jarak"
-                : "Kategori"}
+              {detail.event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
             </label>
             <select
               className="field-input"
@@ -280,17 +235,9 @@ export default function RegisterPage({
                 setTicketId(null);
               }}
             >
-              <option value="">
-                {detail.event.event_type === "running"
-                  ? "Pilih jarak"
-                  : "Pilih kategori"}
-              </option>
+              <option value="">{detail.event.event_type === "running" ? "Pilih jarak" : "Pilih kategori"}</option>
               {detail.categories.map((d) => (
-                <option
-                  key={d.id}
-                  value={d.id}
-                  disabled={d.quota_remaining <= 0}
-                >
+                <option key={d.id} value={d.id} disabled={d.quota_remaining <= 0}>
                   {d.name}
                 </option>
               ))}
@@ -307,22 +254,12 @@ export default function RegisterPage({
               >
                 <option value="">Pilih tiket</option>
                 {ticketsForDistance.map((t) => {
-                  const expired =
-                    !!t.sale_end && new Date(t.sale_end).getTime() < now;
-                  const notStarted =
-                    !!t.sale_start && new Date(t.sale_start).getTime() > now;
+                  const expired = !!t.sale_end && new Date(t.sale_end).getTime() < now;
+                  const notStarted = !!t.sale_start && new Date(t.sale_start).getTime() > now;
                   const soldOut = t.quota_remaining <= 0;
-                  const note = expired
-                    ? "(berakhir)"
-                    : notStarted
-                      ? "(belum dibuka)"
-                      : "";
+                  const note = expired ? "(berakhir)" : notStarted ? "(belum dibuka)" : "";
                   return (
-                    <option
-                      key={t.id}
-                      value={t.id}
-                      disabled={soldOut || expired || notStarted}
-                    >
+                    <option key={t.id} value={t.id} disabled={soldOut || expired || notStarted}>
                       {t.name} — {formatRupiah(t.price)} {note}
                     </option>
                   );
@@ -331,12 +268,7 @@ export default function RegisterPage({
             </div>
           )}
 
-          <Button
-            variant="primary"
-            size="md"
-            disabled={!ticketId}
-            onClick={() => setStep(2)}
-          >
+          <Button variant="primary" size="md" disabled={!ticketId} onClick={() => setStep(2)}>
             Lanjut
           </Button>
         </div>
@@ -345,26 +277,9 @@ export default function RegisterPage({
       {/* Step 2: participant data */}
       {step === 2 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <LabeledInput
-            label="Nama Lengkap"
-            value={name}
-            onChange={setName}
-            required
-          />
-          <LabeledInput
-            label="Email"
-            type="email"
-            value={email}
-            onChange={setEmail}
-            required
-          />
-          <LabeledInput
-            label="No. HP"
-            type="tel"
-            value={phone}
-            onChange={setPhone}
-            required
-          />
+          <LabeledInput label="Nama Lengkap" value={name} onChange={setName} required />
+          <LabeledInput label="Email" type="email" value={email} onChange={setEmail} required />
+          <LabeledInput label="No. HP" type="tel" value={phone} onChange={setPhone} required />
           <LabeledInput
             label="Tanggal Lahir"
             type="date"
@@ -375,51 +290,45 @@ export default function RegisterPage({
           />
           <div className="field">
             <label className="field-label">Jenis Kelamin</label>
-            <select
-              className="field-input"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              required
-            >
+            <select className="field-input" value={gender} onChange={(e) => setGender(e.target.value)} required>
               <option value="">Pilih</option>
               <option value="male">Laki-laki</option>
               <option value="female">Perempuan</option>
             </select>
           </div>
 
-          {detail.registration_fields &&
-            detail.registration_fields.length > 0 && (
-              <>
-                <hr
-                  style={{
-                    border: "none",
-                    borderTop: "1px solid var(--color-line)",
-                    margin: "4px 0",
+          {detail.registration_fields && detail.registration_fields.length > 0 && (
+            <>
+              <hr
+                style={{
+                  border: "none",
+                  borderTop: "1px solid var(--color-line)",
+                  margin: "4px 0",
+                }}
+              />
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--color-ink-2)",
+                }}
+              >
+                Data Tambahan
+              </p>
+              {detail.registration_fields.map((f) => (
+                <DynamicField
+                  key={f.id}
+                  field={f}
+                  value={extraData[f.id] ?? ""}
+                  error={extraErrors[f.id]}
+                  onChange={(v) => {
+                    setExtraData((prev) => ({ ...prev, [f.id]: v }));
+                    setExtraErrors((prev) => ({ ...prev, [f.id]: "" }));
                   }}
                 />
-                <p
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "var(--color-ink-2)",
-                  }}
-                >
-                  Data Tambahan
-                </p>
-                {detail.registration_fields.map((f) => (
-                  <DynamicField
-                    key={f.id}
-                    field={f}
-                    value={extraData[f.id] ?? ""}
-                    error={extraErrors[f.id]}
-                    onChange={(v) => {
-                      setExtraData((prev) => ({ ...prev, [f.id]: v }));
-                      setExtraErrors((prev) => ({ ...prev, [f.id]: "" }));
-                    }}
-                  />
-                ))}
-              </>
-            )}
+              ))}
+            </>
+          )}
 
           <div style={{ display: "flex", gap: 8 }}>
             <Button
@@ -459,31 +368,19 @@ export default function RegisterPage({
               value={formatNumberInput(donation)}
               onChange={(e) => setDonation(parseNumberInput(e.target.value))}
             />
-            <span className="field-hint">
-              Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)
-            </span>
+            <span className="field-hint">Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)</span>
           </div>
 
           <div style={card}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>
             <Row label="Event" value={detail.event.name} />
             <Row
-              label={
-                detail.event.event_type === "running" ? "Jarak" : "Kategori"
-              }
+              label={detail.event.event_type === "running" ? "Jarak" : "Kategori"}
               value={selectedDistance?.name ?? "-"}
             />
             <Row label="Tiket" value={selectedTicket?.name ?? "-"} />
-            <Row
-              label="Harga tiket"
-              value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"}
-              mono
-            />
-            <Row
-              label="Donasi"
-              value={formatRupiah(Number(donation) || 0)}
-              mono
-            />
+            <Row label="Harga tiket" value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"} mono />
+            <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />
             <p
               style={{
                 fontSize: 12,
@@ -499,13 +396,7 @@ export default function RegisterPage({
             <Button variant="ghost" size="md" onClick={() => setStep(2)}>
               Kembali
             </Button>
-            <Button
-              variant="primary"
-              size="md"
-              style={{ flex: 1 }}
-              disabled={submitting}
-              onClick={handleSubmit}
-            >
+            <Button variant="primary" size="md" style={{ flex: 1 }} disabled={submitting} onClick={handleSubmit}>
               {submitting ? "Mendaftar…" : "Daftar Sekarang"}
             </Button>
           </div>
@@ -528,15 +419,7 @@ const card: React.CSSProperties = {
   backgroundColor: "var(--color-surface)",
 };
 
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div
       style={{
@@ -547,9 +430,7 @@ function Row({
       }}
     >
       <span style={{ color: "var(--color-ink-3)" }}>{label}</span>
-      <span style={mono ? { fontFamily: "var(--font-mono)" } : undefined}>
-        {value}
-      </span>
+      <span style={mono ? { fontFamily: "var(--font-mono)" } : undefined}>{value}</span>
     </div>
   );
 }
@@ -580,13 +461,7 @@ function LabeledInput({
         value={value}
         min={min}
         required={required}
-        onChange={(e) =>
-          onChange(
-            type === "number"
-              ? normalizeNumberInput(e.target.value)
-              : e.target.value,
-          )
-        }
+        onChange={(e) => onChange(type === "number" ? normalizeNumberInput(e.target.value) : e.target.value)}
       />
       {hint && <span className="field-hint">{hint}</span>}
     </div>
@@ -703,11 +578,7 @@ function DynamicField({
             cursor: "pointer",
           }}
         >
-          <input
-            type="checkbox"
-            checked={value === "true"}
-            onChange={(e) => onChange(String(e.target.checked))}
-          />
+          <input type="checkbox" checked={value === "true"} onChange={(e) => onChange(String(e.target.checked))} />
           <span className="field-label" style={{ marginBottom: 0 }}>
             {field.label}
             {field.required ? " *" : ""}
@@ -732,11 +603,7 @@ function DynamicField({
         placeholder={field.placeholder}
         required={field.required}
         onChange={(e) =>
-          onChange(
-            field.field_type === "number"
-              ? normalizeNumberInput(e.target.value)
-              : e.target.value,
-          )
+          onChange(field.field_type === "number" ? normalizeNumberInput(e.target.value) : e.target.value)
         }
       />
       {error && <span className="field-error">{error}</span>}
