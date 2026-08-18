@@ -3356,12 +3356,16 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Complimentary participants. */
+                /** @description Complimentary participants, including whether each invitation has already been registered. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ComplimentaryPerson"][];
+                        };
+                    };
                 };
             };
         };
@@ -3413,6 +3417,13 @@ export interface paths {
             responses: {
                 /** @description Complimentary participant removed. */
                 204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description The complimentary participant has already registered and cannot be removed. */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -3956,6 +3967,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ComplimentaryPerson: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            event_id: string;
+            name: string;
+            /** Format: email */
+            email: string;
+            phone: string;
+            note: string;
+            /** Format: date-time */
+            created_at: string;
+            /** @description True after this complimentary invitation has been used for a registration. */
+            registered: boolean;
+        };
         HealthResponse: {
             /** @example ok */
             status: string;

@@ -1725,20 +1725,24 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
                   </div>
                 )}
               </div>
-              <button
-                type="button"
-                onClick={() => remove(p.id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--color-danger)",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  flexShrink: 0,
-                }}
-              >
-                Hapus
-              </button>
+              {p.registered ? (
+                <Badge variant="ok">Sudah mendaftar</Badge>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => remove(p.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--color-danger)",
+                    cursor: "pointer",
+                    fontSize: 14,
+                    flexShrink: 0,
+                  }}
+                >
+                  Hapus
+                </button>
+              )}
             </li>
           ))}
         </ul>

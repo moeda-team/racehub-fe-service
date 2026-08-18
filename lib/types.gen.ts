@@ -219,6 +219,7 @@ export interface ComplimentaryPerson {
   phone: string;
   note: string;
   created_at: string;
+  registered: boolean;
 }
 
 export interface MarketplaceFilter {

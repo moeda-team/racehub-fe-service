@@ -34,6 +34,8 @@ const MESSAGES: Record<string, string> = {
     "Kategori masih digunakan oleh kategori tiket lain",
   "email already on complimentary list for this event":
     "Email sudah ada di daftar tiket komplimen untuk event ini",
+  "complimentary participant has already registered":
+    "Peserta gratis sudah mendaftar dan tidak dapat dihapus",
   "email already registered": "Email sudah terdaftar",
   "event is finished and cannot be modified":
     "Event sudah selesai dan tidak dapat diubah",
