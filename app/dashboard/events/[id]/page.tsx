@@ -46,7 +46,7 @@ type Tab = "detail" | "kategori" | "peserta" | "keuangan" | "refund" | "komunika
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
   { id: "kategori", label: "Kategori" },
-  { id: "peserta", label: "Peserta & BIB" },
+  { id: "peserta", label: "Peserta" },
   { id: "keuangan", label: "Keuangan" },
   { id: "komunikasi", label: "Komunikasi" },
 ];
@@ -228,7 +228,9 @@ export default function EditEventPage({
               transition: "color 0.15s",
             }}
           >
-            {t.label}
+            {t.id === "peserta" && event.event_type === "running"
+              ? "Peserta & BIB"
+              : t.label}
           </button>
         ))}
       </div>
@@ -344,7 +346,9 @@ export default function EditEventPage({
               eventId={eventId}
               onChanged={load}
             />
-            <RPCAccessCard eventId={eventId} />
+            {event.event_type === "running" && (
+              <RPCAccessCard eventId={eventId} />
+            )}
             <div
               style={{
                 padding: 28,
@@ -378,7 +382,7 @@ export default function EditEventPage({
               </p>
               <ComplimentaryManager eventId={eventId} />
             </div>
-            <div
+            {event.event_type === "running" && <div
               style={{
                 padding: 28,
                 border: "1px solid var(--color-line)",
@@ -402,7 +406,7 @@ export default function EditEventPage({
                 hasCloseDate={!!event.registration_close_date}
                 categories={detail.categories}
               />
-            </div>
+            </div>}
             <div
               style={{
                 padding: 28,
@@ -422,7 +426,10 @@ export default function EditEventPage({
               >
                 Daftar Peserta
               </h2>
-              <ParticipantsCard eventId={eventId} />
+              <ParticipantsCard
+                eventId={eventId}
+                isRunning={event.event_type === "running"}
+              />
             </div>
           </div>
         )}
@@ -1048,7 +1055,7 @@ function BibCard({
 }
 
 // ParticipantsCard renders the participant table + CSV export.
-function ParticipantsCard({ eventId }: { eventId: string }) {
+function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -1122,7 +1129,7 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
     }
   }
 
-  const cols: Column<ParticipantRow>[] = [
+  const runningCols: Column<ParticipantRow>[] = isRunning ? [
     {
       key: "bib",
       header: "BIB",
@@ -1160,6 +1167,14 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
           <span style={{ color: "var(--color-ink-3)" }}>—</span>
         ),
     },
+  ] : [];
+  const cols: Column<ParticipantRow>[] = [
+    ...runningCols.slice(0, 1),
+    { key: "reg", header: "No. Reg", render: (r) => r.registration_number, mono: true },
+    { key: "name", header: "Nama", render: (r) => r.name },
+    { key: "distance", header: "Kategori", render: (r) => r.category_name },
+    { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
+    ...runningCols.slice(5),
   ];
 
   return (
@@ -1177,14 +1192,14 @@ function ParticipantsCard({ eventId }: { eventId: string }) {
           {rows ? `${rows.length} peserta ditampilkan` : "Memuat…"}
         </span>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button
+          {isRunning && <Button
             variant="secondary"
             size="sm"
             disabled={rpcExporting}
             onClick={exportRPCCsv}
           >
             {rpcExporting ? "Mengekspor…" : "Download Rekap RPC"}
-          </Button>
+          </Button>}
           <Button
             variant="secondary"
             size="sm"
@@ -1926,6 +1941,37 @@ function DistanceManager({
   const [quota, setQuota] = useState("0");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editQuota, setEditQuota] = useState("0");
+
+  function startEdit(category: Category) {
+    setEditingId(category.id);
+    setEditName(category.name);
+    setEditQuota(String(category.quota));
+    setError(null);
+  }
+
+  async function saveEdit() {
+    if (!editingId || !editName.trim()) {
+      setError("Nama kategori wajib diisi.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.put(`/api/v1/events/${eventId}/categories/${editingId}`, {
+        name: editName.trim(),
+        quota: Number(editQuota) || 0,
+      });
+      setEditingId(null);
+      await onChanged();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Gagal memperbarui kategori.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function add() {
     if (!name.trim()) {
@@ -2012,7 +2058,15 @@ function DistanceManager({
                 borderRadius: "var(--radius-sm)",
               }}
             >
-              <span style={{ fontSize: 15 }}>{d.name}</span>
+              {editingId === d.id ? (
+                <div style={{ display: "flex", gap: 8, flex: 1, flexWrap: "wrap" }}>
+                  <input className="field-input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ flex: "1 1 180px" }} />
+                  <input className="field-input" inputMode="numeric" value={formatNumberInput(editQuota)} onChange={(e) => setEditQuota(parseNumberInput(e.target.value))} style={{ width: 100 }} aria-label="Kuota kategori" />
+                  <Button variant="secondary" size="sm" disabled={busy} onClick={saveEdit}>Simpan</Button>
+                  <Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditingId(null)}>Batal</Button>
+                </div>
+              ) : <span style={{ fontSize: 15 }}>{d.name}</span>}
+              {editingId !== d.id && (
               <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span
                   style={{
@@ -2023,6 +2077,7 @@ function DistanceManager({
                 >
                   {formatNumber(d.quota_used)}/{formatNumber(d.quota)}
                 </span>
+                <button type="button" onClick={() => startEdit(d)} style={{ background: "none", border: "none", color: "var(--color-sprint)", cursor: "pointer", fontSize: 14 }}>Edit</button>
                 <button
                   type="button"
                   onClick={() => remove(d.id)}
@@ -2037,6 +2092,7 @@ function DistanceManager({
                   Hapus
                 </button>
               </span>
+              )}
             </li>
           ))}
         </ul>
@@ -2794,6 +2850,11 @@ function TicketManager({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPrice, setEditPrice] = useState("0");
+  const [editQuota, setEditQuota] = useState("0");
+  const [editDistanceId, setEditDistanceId] = useState("");
+  const [editSaleStart, setEditSaleStart] = useState("");
   const [editSaleEnd, setEditSaleEnd] = useState("");
 
   const distanceName = (id: string) =>
@@ -2831,16 +2892,31 @@ function TicketManager({
     }
   }
 
-  async function saveSaleEnd(t: TicketCategory) {
+  function startTicketEdit(t: TicketCategory) {
+    setEditingId(t.id);
+    setEditName(t.name);
+    setEditPrice(String(t.price));
+    setEditQuota(String(t.quota));
+    setEditDistanceId(t.category_id);
+    setEditSaleStart(toLocalInput(t.sale_start));
+    setEditSaleEnd(toLocalInput(t.sale_end));
+    setError(null);
+  }
+
+  async function saveTicket(t: TicketCategory) {
+    if (!editName.trim() || !editDistanceId) {
+      setError("Nama tiket dan kategori wajib diisi.");
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
       await api.put(`/api/v1/events/${eventId}/tickets/${t.id}`, {
-        name: t.name,
-        price: t.price,
-        quota: t.quota,
-        category_id: t.category_id,
-        sale_start: t.sale_start ?? "",
+        name: editName.trim(),
+        price: Number(editPrice) || 0,
+        quota: Number(editQuota) || 0,
+        category_id: editDistanceId,
+        sale_start: toRFC3339(editSaleStart),
         sale_end: toRFC3339(editSaleEnd),
       });
       setEditingId(null);
@@ -2849,7 +2925,7 @@ function TicketManager({
       setError(
         err instanceof ApiError
           ? err.message
-          : "Gagal mengubah tanggal berakhir tiket.",
+          : "Gagal memperbarui tiket.",
       );
     } finally {
       setBusy(false);
@@ -2921,7 +2997,17 @@ function TicketManager({
                 borderRadius: "var(--radius-sm)",
               }}
             >
-              <div
+              {editingId === t.id ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+                  <input className="field-input" value={editName} onChange={(e) => setEditName(e.target.value)} aria-label="Nama tiket" />
+                  <select className="field-input" value={editDistanceId} onChange={(e) => setEditDistanceId(e.target.value)} aria-label="Kategori tiket">{distances.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select>
+                  <input className="field-input" inputMode="numeric" value={formatNumberInput(editPrice)} onChange={(e) => setEditPrice(parseNumberInput(e.target.value))} aria-label="Harga tiket" />
+                  <input className="field-input" inputMode="numeric" value={formatNumberInput(editQuota)} onChange={(e) => setEditQuota(parseNumberInput(e.target.value))} aria-label="Kuota tiket" />
+                  <input className="field-input" type="datetime-local" value={editSaleStart} onChange={(e) => setEditSaleStart(e.target.value)} aria-label="Mulai penjualan" />
+                  <input className="field-input" type="datetime-local" value={editSaleEnd} onChange={(e) => setEditSaleEnd(e.target.value)} aria-label="Akhir penjualan" />
+                  <div style={{ display: "flex", gap: 8 }}><Button variant="secondary" size="sm" disabled={busy} onClick={() => saveTicket(t)}>Simpan</Button><Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditingId(null)}>Batal</Button></div>
+                </div>
+              ) : <><div
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -2959,6 +3045,13 @@ function TicketManager({
                   </span>
                   <button
                     type="button"
+                    onClick={() => startTicketEdit(t)}
+                    style={{ background: "none", border: "none", color: "var(--color-sprint)", cursor: "pointer", fontSize: 14 }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => remove(t.id)}
                     style={{
                       background: "none",
@@ -2982,58 +3075,15 @@ function TicketManager({
                   color: "var(--color-ink-3)",
                 }}
               >
-                {editingId === t.id ? (
-                  <>
-                    <input
-                      className="field-input"
-                      type="datetime-local"
-                      value={editSaleEnd}
-                      onChange={(e) => setEditSaleEnd(e.target.value)}
-                      style={{ maxWidth: 220 }}
-                    />
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={busy}
-                      onClick={() => saveSaleEnd(t)}
-                    >
-                      Simpan
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingId(null)}
-                    >
-                      Batal
-                    </Button>
-                  </>
-                ) : (
-                  <>
+                <>
                     <span>
                       {t.sale_end
                         ? `Berlaku s.d. ${formatDateTime(t.sale_end)}`
                         : "Tanpa batas waktu penjualan"}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingId(t.id);
-                        setEditSaleEnd(toLocalInput(t.sale_end));
-                      }}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--color-ink-2)",
-                        cursor: "pointer",
-                        fontSize: 13,
-                        textDecoration: "underline",
-                      }}
-                    >
-                      Ubah
-                    </button>
                   </>
-                )}
               </div>
+              </>}
             </li>
           ))}
         </ul>

@@ -493,7 +493,7 @@ export default function EventForm({
   const [eventDate, setEventDate] = useState(
     toLocalInput(initial?.event_date ?? ""),
   );
-  const [eventType, setEventType] = useState(initial?.event_type ?? "running");
+  const [eventType, setEventType] = useState(initial?.event_type ?? "custom");
   const [masterAgeThreshold, setMasterAgeThreshold] = useState(
     String(initial?.master_age_threshold ?? 40),
   );
@@ -626,7 +626,7 @@ export default function EventForm({
 
       <LabeledInput
         label="Nama Event"
-        placeholder="Mis. RaceHub Run 2026"
+        placeholder="Mis. Festival Kreatif 2026"
         value={name}
         onChange={(e) => setName(e.target.value)}
         error={errors.name}
@@ -732,7 +732,11 @@ export default function EventForm({
         type="datetime-local"
         value={regClose}
         onChange={(e) => setRegClose(e.target.value)}
-        hint="Nomor BIB hanya bisa digenerate setelah waktu ini. Kosong → pakai tanggal event."
+        hint={
+          eventType === "running"
+            ? "Nomor BIB hanya bisa dibuat setelah waktu ini. Kosong → pakai tanggal event."
+            : "Pendaftaran peserta ditutup setelah waktu ini. Kosong → pakai tanggal event."
+        }
       />
 
       <div style={toggleRow}>
