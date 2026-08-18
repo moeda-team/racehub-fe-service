@@ -88,6 +88,37 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
     return Object.keys(errors).length === 0;
   }
 
+  function showRegistrationError(err: unknown) {
+    if (!(err instanceof ApiError)) {
+      setServerError("Pendaftaran gagal. Coba lagi.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const invalidAnswer = err.code.match(/^register: invalid (.+) answer: invalid input$/);
+    const requiredAnswer = err.code.match(/^register: (.+) is required: invalid input$/);
+    const fieldLabel = invalidAnswer?.[1] ?? requiredAnswer?.[1];
+    const field = fieldLabel
+      ? detail?.registration_fields.find((candidate) => candidate.label === fieldLabel)
+      : undefined;
+
+    if (field) {
+      setExtraErrors((previous) => ({
+        ...previous,
+        [field.id]: invalidAnswer
+          ? `Format ${field.label} tidak valid. Periksa kembali data yang Anda masukkan.`
+          : "Kolom ini wajib diisi.",
+      }));
+      setServerError(`Periksa kembali bagian Data Tambahan: ${field.label}.`);
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setServerError(err.message);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleSubmit() {
     if (!detail || !ticketId || !distanceId) return;
     setServerError(null);
@@ -111,7 +142,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       regIdem.reset();
       setResult(res.data);
     } catch (err) {
-      setServerError(err instanceof ApiError ? err.message : "Pendaftaran gagal. Coba lagi.");
+      showRegistrationError(err);
     } finally {
       setSubmitting(false);
     }
