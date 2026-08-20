@@ -2543,7 +2543,7 @@ const dot: React.CSSProperties = {
 
 // --- Banner upload ---
 
-const BANNER_MAX_BYTES = 5 * 1024 * 1024; // keep in sync with backend maxBannerBytes
+const BANNER_MAX_BYTES = 10 * 1024 * 1024; // UX guard; backend enforces UPLOAD_MAX_BYTES
 const BANNER_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const BANNER_MAX_WIDTH = 1600; // downscale target; banners render at ~1200px wide
 
@@ -2614,7 +2614,7 @@ function BannerUploader({
     const compressed = await compressBanner(f);
     if (compressed.size > BANNER_MAX_BYTES) {
       setError(
-        `Ukuran file ${formatMB(compressed.size)} (setelah kompresi) masih melebihi batas 5 MB.`,
+        `Ukuran file ${formatMB(compressed.size)} (setelah kompresi) masih melebihi batas 10 MB.`,
       );
       return;
     }
@@ -2781,7 +2781,7 @@ function BannerUploader({
             textShadow: shownImage ? "0 1px 3px rgba(0,0,0,0.6)" : undefined,
           }}
         >
-          JPG / PNG / WebP · maks 5 MB · saran 1200×400 px (rasio 3:1)
+          JPG / PNG / WebP · maks 10 MB · saran 1200×400 px (rasio 3:1)
         </span>
       </div>
 

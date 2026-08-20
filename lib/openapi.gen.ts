@@ -1068,9 +1068,10 @@ export interface paths {
         put?: never;
         /**
          * Upload event banner image
-         * @description Uploads the event banner to Cloudflare R2 and saves its public URL on
-         *     the event (banner_url). Owner only; finished/cancelled events are locked.
-         *     Accepted types: image/jpeg, image/png, image/webp. Max 5 MB.
+         * @description Uploads the event banner to private MinIO storage and saves its backend
+         *     media-proxy URL on the event (banner_url). Owner only; finished/cancelled
+         *     events are locked. Accepted types: image/jpeg, image/png, image/webp.
+         *     Maximum size is 10 MiB by default and is controlled by UPLOAD_MAX_BYTES.
          */
         post: {
             parameters: {
@@ -1101,7 +1102,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Missing file, unsupported image type, or file too large (max 5 MB). */
+                /** @description Missing, empty, malformed, or unsupported image file. */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -1122,11 +1123,110 @@ export interface paths {
                         "application/json": components["schemas"]["ErrorResponse"];
                     };
                 };
+                /** @description File exceeds the configured upload limit. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
             };
         };
         delete?: never;
         options?: never;
         head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/events/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an event banner
+         * @description Streams an immutable event banner from private MinIO storage. Public; no authentication required.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    filename: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Banner image bytes. */
+                200: {
+                    headers: {
+                        "Cache-Control"?: string;
+                        ETag?: string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "image/jpeg": string;
+                        "image/png": string;
+                        "image/webp": string;
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description Object storage is temporarily unavailable. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read event banner metadata
+         * @description Returns the same headers as GET without streaming the image body.
+         */
+        head: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    filename: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Banner metadata. */
+                200: {
+                    headers: {
+                        "Content-Type"?: string;
+                        "Content-Length"?: number;
+                        "Cache-Control"?: string;
+                        ETag?: string;
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                /** @description Object storage is temporarily unavailable. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         patch?: never;
         trace?: never;
     };
@@ -4050,7 +4150,7 @@ export interface components {
              */
             registration_close_date?: string | null;
             donation_enabled?: boolean;
-            /** @description Banner image URL (Cloudflare R2). Null when no banner uploaded. */
+            /** @description Same-origin backend media URL for a private MinIO object. Legacy absolute R2 URLs remain valid until migrated. Null when no banner is uploaded. */
             banner_url?: string | null;
             /**
              * @description Card header color ("#rrggbb") used when banner_url is null. Defaults to "#F5471D".

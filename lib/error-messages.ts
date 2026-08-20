@@ -16,8 +16,12 @@
  */
 const MESSAGES: Record<string, string> = {
   // Fixed strings (internal/handler/*.go writeError literals)
-  "file too large or invalid multipart body (max 5 MB)":
-    "File terlalu besar atau tidak valid (maks. 5 MB)",
+  "file too large (max 10485760 bytes)":
+    "File terlalu besar (maks. 10 MB)",
+	"invalid multipart body": "Data unggahan tidak valid.",
+	"banner file must not be empty": "File banner tidak boleh kosong.",
+	"unsupported image type (jpeg/png/webp only)":
+		"Format banner harus JPG, PNG, atau WebP.",
   "invalid category_id": "ID kategori tidak valid",
   "invalid event_id": "ID event tidak valid",
   "invalid payment method": "Metode pembayaran tidak valid",

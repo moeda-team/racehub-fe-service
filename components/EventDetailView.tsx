@@ -42,7 +42,7 @@ export default function EventDetailView({
   return (
     <>
       {event.banner_url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- R2 host is dynamic; next/image needs static remotePatterns
+        // eslint-disable-next-line @next/next/no-img-element -- banner URLs may be legacy absolute URLs or the backend media proxy
         <img
           src={event.banner_url}
           alt={`Banner ${event.name}`}
