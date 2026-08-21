@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatRupiah, formatDate } from "@/lib/format";
 import type { PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
+import Alert from "@/components/ui/Alert";
 import RichText from "@/components/ui/RichText";
 import Button from "@/components/ui/Button";
 
@@ -93,6 +94,13 @@ export default function EventDetailView({
           <Badge variant="flame">Donasi Tersedia</Badge>
         )}
       </div>
+
+      {isComingSoon && (
+        <Alert variant="warn" className="mb-6">
+          Pendaftaran belum dibuka. Pantau halaman ini untuk informasi
+          pembukaan.
+        </Alert>
+      )}
 
       {event.description && (
         <div style={{ marginBottom: 24 }}>

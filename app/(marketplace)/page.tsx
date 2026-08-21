@@ -97,8 +97,8 @@ export default function MarketplacePage() {
         Temukan Event
       </h1>
       <p style={{ color: "var(--color-ink-3)", marginBottom: 24 }}>
-        Daftar langsung tanpa ribet. Semua event telah disetujui penyelenggara
-        &amp; admin.
+        Temukan event yang sudah membuka pendaftaran dan event pilihan yang
+        segera hadir.
       </p>
 
       {/* Filter bar */}

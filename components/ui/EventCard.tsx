@@ -41,15 +41,15 @@ export default function EventCard({
   const content = (
     <>
       <div className="evcard-top" style={topStyle}>
-        {comingSoon && (
-          <div style={{ position: "absolute", top: 12, right: 12 }}>
-            <Badge variant="warn">Segera Hadir</Badge>
-          </div>
-        )}
         <div className="evcard-top-when">{date}</div>
         <div className="evcard-top-ttl">{title}</div>
       </div>
       <div className="evcard-body">
+        {comingSoon && (
+          <div className="evcard-coming-soon-ribbon">
+            <Badge variant="warn">Segera Hadir</Badge>
+          </div>
+        )}
         <div className="evcard-meta">📍 {location}</div>
         <div className="evcard-pills">
           {distances.map((d) => (
@@ -57,10 +57,17 @@ export default function EventCard({
           ))}
         </div>
         <div className="evcard-foot">
-          <div>
-            <div className="evcard-price-k">Mulai dari</div>
-            <div className="evcard-price-v">{price}</div>
-          </div>
+          {!comingSoon && (
+            <div>
+              <div className="evcard-price-k">Mulai dari</div>
+              <div className="evcard-price-v">{price}</div>
+            </div>
+          )}
+          {comingSoon && (
+            <div className="evcard-coming-soon-status">
+              Pendaftaran segera dibuka
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -68,11 +75,19 @@ export default function EventCard({
 
   if (href) {
     return (
-      <a href={href} className={`evcard block ${className}`}>
+      <a
+        href={href}
+        className={`evcard block ${comingSoon ? "evcard-coming-soon" : ""} ${className}`}
+        aria-label={`${title}${comingSoon ? ", Segera Hadir" : ""}`}
+      >
         {content}
       </a>
     );
   }
 
-  return <div className={`evcard ${className}`}>{content}</div>;
+  return (
+    <div className={`evcard ${comingSoon ? "evcard-coming-soon" : ""} ${className}`}>
+      {content}
+    </div>
+  );
 }

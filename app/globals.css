@@ -381,6 +381,39 @@ body {
   flex-direction: column;
 }
 
+.evcard-coming-soon {
+  border: 2px solid var(--color-warn);
+  box-shadow: 0 8px 24px rgba(169, 101, 10, 0.18);
+}
+
+.evcard-coming-soon .evcard-body {
+  background: linear-gradient(
+    180deg,
+    var(--color-warn-tint) 0,
+    var(--color-surface) 72px
+  );
+}
+
+.evcard-coming-soon-ribbon {
+  align-self: flex-start;
+  margin-bottom: 10px;
+}
+
+.evcard-coming-soon-ribbon .badge {
+  padding: 6px 11px;
+  border: 1px solid rgba(169, 101, 10, 0.35);
+  font-size: 12px;
+}
+
+.evcard-coming-soon-status {
+  max-width: none;
+  color: var(--color-warn);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+}
+
 .evcard-top {
   height: 118px;
   background:
@@ -1236,6 +1269,9 @@ body {
   }
   .evcard:hover {
     transform: translateY(-3px);
+  }
+  .evcard-coming-soon:hover {
+    box-shadow: 0 12px 30px rgba(169, 101, 10, 0.24);
   }
 
   .stat {
