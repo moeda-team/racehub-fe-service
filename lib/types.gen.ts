@@ -52,7 +52,12 @@ export interface WalletResponse {
 
 // === Event ===
 
-export type EventStatus = "draft" | "published" | "cancelled" | "finished";
+export type EventStatus =
+  | "draft"
+  | "coming_soon"
+  | "published"
+  | "cancelled"
+  | "finished";
 
 export type EventType =
   "running" | "concert" | "seminar" | "workshop" | "cycling" | "custom";
@@ -94,7 +99,7 @@ export interface PublicEvent {
   description: string;
   location: string;
   event_date: string | null;
-  status: "published";
+  status: "coming_soon" | "published";
   event_type: string;
   master_age_threshold: number;
   refund_cutoff_date: string | null;

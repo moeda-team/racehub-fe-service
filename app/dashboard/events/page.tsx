@@ -21,6 +21,7 @@ type PagedEvents = {
 const STATUS_FILTERS: { label: string; value: EventStatus | "all" }[] = [
   { label: "Semua", value: "all" },
   { label: "Draft", value: "draft" },
+  { label: "Segera Hadir", value: "coming_soon" },
   { label: "Terbit", value: "published" },
   { label: "Selesai", value: "finished" },
   { label: "Dibatalkan", value: "cancelled" },

@@ -593,8 +593,9 @@ export interface paths {
         /**
          * Transition event status
          * @description Changes the event status following the state machine.
-         *     Valid transitions: draft->cancelled, published->cancelled, published->finished.
-         *     draft->published is blocked (requires admin approval, Phase 2).
+         *     Valid transitions: draft->coming_soon/published/cancelled,
+         *     coming_soon->draft/published/cancelled, and
+         *     published->cancelled/finished.
          */
         patch: {
             parameters: {
@@ -609,7 +610,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        status: "draft" | "published" | "cancelled" | "finished";
+                        status: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
                     };
                 };
             };
@@ -1438,7 +1439,7 @@ export interface paths {
             parameters: {
                 query?: {
                     /** @description Filter by status (omit for all statuses). */
-                    status?: "draft" | "published" | "cancelled" | "finished";
+                    status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
                     page?: number;
                     page_size?: number;
                 };
@@ -4138,7 +4139,7 @@ export interface components {
             /** Format: date-time */
             event_date?: string;
             /** @enum {string} */
-            status?: "draft" | "published" | "cancelled" | "finished";
+            status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
             is_running_event?: boolean;
             /** @default 40 */
             master_age_threshold: number;
@@ -4185,7 +4186,7 @@ export interface components {
             /** Format: date-time */
             event_date?: string | null;
             /** @enum {string} */
-            status?: "published";
+            status?: "coming_soon" | "published";
             is_running_event?: boolean;
             master_age_threshold?: number;
             /** Format: date-time */

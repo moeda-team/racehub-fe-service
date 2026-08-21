@@ -20,6 +20,7 @@ export default function EventDetailView({
   interactive?: boolean;
 }) {
   const { event, categories, ticket_categories } = detail;
+  const isComingSoon = event.status === "coming_soon";
   // Snapshot waktu saat render pertama — server tetap memvalidasi ulang periode penjualan.
   const [now] = useState(() => Date.now());
 
@@ -33,9 +34,9 @@ export default function EventDetailView({
       variant="primary"
       size="lg"
       style={{ width: "100%" }}
-      disabled={!interactive}
+      disabled={!interactive || isComingSoon}
     >
-      Daftar Sekarang
+      {isComingSoon ? "Pendaftaran Belum Dibuka" : "Daftar Sekarang"}
     </Button>
   );
 
@@ -84,6 +85,7 @@ export default function EventDetailView({
       <div
         style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}
       >
+        {isComingSoon && <Badge variant="warn">Segera Hadir</Badge>}
         {event.event_type === "running" && (
           <Badge variant="sprint">Event Lari</Badge>
         )}
@@ -98,7 +100,7 @@ export default function EventDetailView({
         </div>
       )}
 
-      {event.donation_enabled && interactive && (
+      {event.donation_enabled && interactive && !isComingSoon && (
         <Link href={`/donate/${event.id}`} style={{ display: "block", margin: "0 0 24px" }}>
           <Button variant="secondary" size="md" style={{ width: "100%" }}>Donasi tanpa mendaftar</Button>
         </Link>
@@ -277,7 +279,11 @@ export default function EventDetailView({
         )}
       </section>
 
-      {interactive ? <Link href={`/register/${event.id}`}>{cta}</Link> : cta}
+      {interactive && !isComingSoon ? (
+        <Link href={`/register/${event.id}`}>{cta}</Link>
+      ) : (
+        cta
+      )}
     </>
   );
 }

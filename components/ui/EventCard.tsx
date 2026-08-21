@@ -1,4 +1,5 @@
 import Pill from "./Pill";
+import Badge from "./Badge";
 
 interface EventCardProps {
   title: string;
@@ -10,6 +11,7 @@ interface EventCardProps {
   color?: string;
   href?: string;
   className?: string;
+  comingSoon?: boolean;
 }
 
 export default function EventCard({
@@ -22,6 +24,7 @@ export default function EventCard({
   color,
   href,
   className = "",
+  comingSoon = false,
 }: EventCardProps) {
   // Header priority: banner image → organizer color → default flame gradient
   // (.evcard-top CSS). A dark scrim keeps text readable over images.
@@ -38,6 +41,11 @@ export default function EventCard({
   const content = (
     <>
       <div className="evcard-top" style={topStyle}>
+        {comingSoon && (
+          <div style={{ position: "absolute", top: 12, right: 12 }}>
+            <Badge variant="warn">Segera Hadir</Badge>
+          </div>
+        )}
         <div className="evcard-top-when">{date}</div>
         <div className="evcard-top-ttl">{title}</div>
       </div>

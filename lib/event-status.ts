@@ -15,6 +15,8 @@ export function eventStatusDisplay(status: EventStatus): StatusDisplay {
   switch (status) {
     case "draft":
       return { label: "Draft", variant: "neutral" };
+    case "coming_soon":
+      return { label: "Segera Hadir", variant: "warn" };
     case "published":
       return { label: "Terbit", variant: "ok" };
     case "cancelled":

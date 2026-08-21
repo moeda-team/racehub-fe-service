@@ -1855,6 +1855,7 @@ function StatusSection({
   }
 
   const isDraft = event.status === "draft";
+  const isComingSoon = event.status === "coming_soon";
   const isPublished = event.status === "published";
   const terminal = event.status === "cancelled" || event.status === "finished";
 
@@ -1896,6 +1897,31 @@ function StatusSection({
         )}
         {isDraft && (
           <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={() =>
+              transition(
+                "coming_soon",
+                "Tampilkan event sebagai Segera Hadir? Detail event dan tiket akan terlihat, tetapi pendaftaran belum dibuka.",
+              )
+            }
+          >
+            Set Segera Hadir
+          </Button>
+        )}
+        {isComingSoon && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={() => transition("draft")}
+          >
+            Kembalikan ke Draft
+          </Button>
+        )}
+        {(isDraft || isComingSoon) && (
+          <Button
             variant="primary"
             size="sm"
             disabled={busy}
@@ -1909,7 +1935,7 @@ function StatusSection({
             Publikasikan
           </Button>
         )}
-        {(isDraft || isPublished) && (
+        {(isDraft || isComingSoon || isPublished) && (
           <Button
             variant="danger"
             size="sm"

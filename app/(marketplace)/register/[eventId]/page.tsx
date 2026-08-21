@@ -166,6 +166,19 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
     );
   }
 
+  if (detail.event.status === "coming_soon") {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-12">
+        <Link href={`/events/${detail.event.id}`} style={back}>
+          ← {detail.event.name}
+        </Link>
+        <Alert variant="info">
+          Event ini segera hadir. Pendaftaran belum dibuka.
+        </Alert>
+      </main>
+    );
+  }
+
   // Success screen.
   if (result) {
     const isPaid = result.status === "paid";

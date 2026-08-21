@@ -201,6 +201,7 @@ export default function MarketplacePage() {
                 price={ev.min_price > 0 ? formatRupiah(ev.min_price) : "Gratis"}
                 bannerUrl={ev.banner_url}
                 color={ev.color || undefined}
+                comingSoon={ev.status === "coming_soon"}
               />
             ))}
           </div>

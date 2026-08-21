@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import type { ApiResponse, PaymentMethod, StandaloneDonation } from "@/lib/types.gen";
+import type { ApiResponse, PaymentMethod, PublicEventDetail, StandaloneDonation } from "@/lib/types.gen";
 import { formatNumberInput, formatRupiah, parseNumberInput } from "@/lib/format";
 import { PAYMENT_METHOD_OPTIONS, paymentMethodLabel } from "@/lib/paymentMethods";
 import Alert from "@/components/ui/Alert";
@@ -19,6 +19,27 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [eventDetail, setEventDetail] = useState<PublicEventDetail | null>(null);
+  const [checkingEvent, setCheckingEvent] = useState(true);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<PublicEventDetail>>(
+          `/api/v1/events/${eventId}`,
+          { auth: false },
+        );
+        if (!cancelled) setEventDetail(res.data);
+      } catch {
+        if (!cancelled) setEventDetail(null);
+      } finally {
+        if (!cancelled) setCheckingEvent(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -66,6 +87,35 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
     }, 4000);
     return () => window.clearInterval(interval);
   }, [result]);
+
+  if (!result && checkingEvent) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-12">
+        <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>
+      </main>
+    );
+  }
+
+  if (
+    !result &&
+    (!eventDetail ||
+      eventDetail.event.status === "coming_soon" ||
+      !eventDetail.event.donation_enabled)
+  ) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-10">
+        <Link href={`/events/${eventId}`} style={{ color: "var(--color-sprint)", fontSize: 14 }}>
+          ← Kembali ke event
+        </Link>
+        <Alert variant="info" className="mt-4">
+          {eventDetail?.event.status === "coming_soon"
+            ? "Event ini segera hadir. Donasi belum dibuka."
+            : "Donasi tidak tersedia untuk event ini."}
+        </Alert>
+      </main>
+    );
+  }
+
   return (
     <main className="max-w-xl mx-auto px-4 py-10">
       <Link href={`/events/${eventId}`} style={{ color: "var(--color-sprint)", fontSize: 14 }}>
