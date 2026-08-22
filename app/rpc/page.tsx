@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -12,6 +12,8 @@ import type {
 } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import ParticipantDetailModal from "@/components/rpc/ParticipantDetailModal";
+import BarcodeScanner from "@/components/rpc/BarcodeScanner";
 
 // Field RPC / check-in module (F6, FR-602..605). Built for one-handed phone use
 // at a busy desk: high contrast, large targets, manual search is the PRIMARY
@@ -193,6 +195,7 @@ function CheckinPanel({
   const [loading, setLoading] = useState(true);
   const [flash, setFlash] = useState<string | null>(null);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<CheckinParticipant | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -251,6 +254,7 @@ function CheckinPanel({
         },
       );
       applyMarked(res.data);
+      setSelected(res.data);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Gagal menandai check-in.");
     } finally {
@@ -268,7 +272,7 @@ function CheckinPanel({
           stage,
         },
       );
-      applyMarked(res.data);
+      setSelected(res.data);
     } catch (e) {
       setErr(
         e instanceof ApiError ? e.message : "QR tidak valid untuk event ini.",
@@ -293,7 +297,7 @@ function CheckinPanel({
         />
       </label>
 
-      <QrScanner onToken={markByToken} />
+      <BarcodeScanner onToken={markByToken} />
 
       {flash && (
         <div
@@ -327,9 +331,8 @@ function CheckinPanel({
           <ParticipantCard
             key={p.id}
             p={p}
-            stage={stage}
             marking={markingId === p.id}
-            onMark={() => mark(p)}
+            onOpen={() => setSelected(p)}
           />
         ))}
       </div>
@@ -338,23 +341,20 @@ function CheckinPanel({
           Tidak ada peserta yang cocok.
         </p>
       )}
+      {selected && <ParticipantDetailModal participant={selected} stage={stage} marking={markingId === selected.id} onClose={() => setSelected(null)} onClaim={() => mark(selected)} />}
     </div>
   );
 }
 
 function ParticipantCard({
   p,
-  stage,
   marking,
-  onMark,
+  onOpen,
 }: {
   p: CheckinParticipant;
-  stage: CheckinStage;
   marking: boolean;
-  onMark: () => void;
+  onOpen: () => void;
 }) {
-  const done = stage === "rpc" ? p.rpc_status !== "" : p.raceday_status !== "";
-  const disabled = done || marking;
   return (
     <div
       style={{
@@ -405,13 +405,13 @@ function ParticipantCard({
       </div>
       <Button
         type="button"
-        onClick={onMark}
-        disabled={disabled}
-        variant={done ? "secondary" : "primary"}
+        onClick={onOpen}
+        disabled={marking}
+        variant="secondary"
         size="md"
         style={{ minHeight: 56, minWidth: 112, flexShrink: 0, borderRadius: "var(--radius-md)", fontWeight: 800 }}
       >
-        {done ? "✓ OK" : marking ? "Menandai…" : `Tandai ${stageLabel(stage)}`}
+        {marking ? "Memproses…" : "Lihat informasi"}
       </Button>
     </div>
   );
@@ -433,184 +433,6 @@ function StatusPill({ on, label }: { on: boolean; label: string }) {
       {on ? "✓ " : ""}
       {label}
     </span>
-  );
-}
-
-// QrScanner: secondary check-in input. Uses the native BarcodeDetector
-// API for camera scanning where supported (Chrome/Android), with a manual token
-// paste fallback everywhere else — no extra dependency.
-function QrScanner({ onToken }: { onToken: (token: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [manual, setManual] = useState("");
-  const [camErr, setCamErr] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const rafRef = useRef<number | null>(null);
-
-  const supported =
-    typeof window !== "undefined" && "BarcodeDetector" in window;
-
-  const stop = useCallback(() => {
-    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-  }, []);
-
-  useEffect(() => () => stop(), [stop]);
-
-  const startCamera = useCallback(async () => {
-    setCamErr(null);
-    setOpen(true);
-    if (!supported) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      // BarcodeDetector is experimental; typed loosely to avoid a hard dep.
-      const Detector = (
-        window as unknown as {
-          BarcodeDetector: new (o: { formats: string[] }) => {
-            detect: (s: CanvasImageSource) => Promise<{ rawValue: string }[]>;
-          };
-        }
-      ).BarcodeDetector;
-      const detector = new Detector({ formats: ["qr_code"] });
-      const tick = async () => {
-        if (!videoRef.current) return;
-        try {
-          const codes = await detector.detect(videoRef.current);
-          if (codes.length > 0 && codes[0].rawValue) {
-            stop();
-            setOpen(false);
-            onToken(codes[0].rawValue);
-            return;
-          }
-        } catch {
-          /* transient frame errors are ignored */
-        }
-        rafRef.current = requestAnimationFrame(tick);
-      };
-      rafRef.current = requestAnimationFrame(tick);
-    } catch {
-      setCamErr(
-        "Tidak bisa mengakses kamera. Masukkan token QR manual di bawah.",
-      );
-    }
-  }, [supported, onToken, stop]);
-
-  return (
-    <div style={{ marginTop: 12 }}>
-      {!open ? (
-        <button
-          type="button"
-          onClick={startCamera}
-          style={{
-            width: "100%",
-            minHeight: 48,
-            borderRadius: "var(--radius-md)",
-            border: "1px dashed var(--color-ink-2)",
-            background: "transparent",
-            color: "var(--color-ink-4)",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          📷 Scan QR (sekunder)
-        </button>
-      ) : (
-        <div
-          style={{
-            background: "var(--color-panel)",
-            borderRadius: "var(--radius-md)",
-            padding: 12,
-          }}
-        >
-          {supported && (
-            <video
-              ref={videoRef}
-              muted
-              playsInline
-              style={{
-                width: "100%",
-                borderRadius: "var(--radius-sm)",
-                background: "#000",
-                aspectRatio: "1 / 1",
-                objectFit: "cover",
-              }}
-            />
-          )}
-          {camErr && (
-            <p
-              style={{
-                color: "var(--color-danger)",
-                fontSize: 13,
-                margin: "8px 0",
-              }}
-            >
-              {camErr}
-            </p>
-          )}
-          {!supported && (
-            <p
-              style={{
-                color: "var(--color-ink-3)",
-                fontSize: 13,
-                marginBottom: 8,
-              }}
-            >
-              Kamera scan tidak didukung di perangkat ini. Tempel token QR
-              e-tiket:
-            </p>
-          )}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (manual.trim()) {
-                onToken(manual.trim());
-                setManual("");
-                stop();
-                setOpen(false);
-              }
-            }}
-            style={{ display: "flex", gap: 8, marginTop: 8 }}
-          >
-            <input
-              value={manual}
-              onChange={(e) => setManual(e.target.value)}
-              placeholder="Token QR e-tiket"
-              style={{ ...fieldStyle, flex: 1, marginBottom: 0 }}
-            />
-            <Button type="submit" variant="secondary" size="md">
-              Cek
-            </Button>
-          </form>
-          <button
-            type="button"
-            onClick={() => {
-              stop();
-              setOpen(false);
-            }}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-ink-3)",
-              fontSize: 13,
-              marginTop: 10,
-              cursor: "pointer",
-            }}
-          >
-            Tutup
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
 

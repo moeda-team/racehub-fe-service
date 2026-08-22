@@ -569,6 +569,7 @@ export interface CheckinParticipant {
   category_id: string;
   rpc_status: string; // "" | "collected"
   raceday_status: string; // "" | "checked_in"
+  custom_answers: Array<{ label: string; value: string }>;
 }
 
 export interface RPCAccessSession {

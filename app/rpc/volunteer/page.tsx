@@ -10,6 +10,8 @@ import type {
 } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
+import ParticipantDetailModal from "@/components/rpc/ParticipantDetailModal";
+import BarcodeScanner from "@/components/rpc/BarcodeScanner";
 
 // This page intentionally has no organizer session. The volunteer code stays
 // only in component state and is sent only to narrowly scoped RPC endpoints.
@@ -22,6 +24,7 @@ export default function VolunteerRPCPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<CheckinParticipant | null>(null);
 
   const options = {
     auth: false,
@@ -81,10 +84,26 @@ export default function VolunteerRPCPage() {
       setParticipants((current) =>
         current.map((item) => (item.id === participant.id ? response.data : item)),
       );
+      setSelected(response.data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Pengambilan racepack gagal ditandai.");
     } finally {
       setMarkingId(null);
+    }
+  }
+
+  async function previewByToken(token: string) {
+    if (!session) return;
+    setError(null);
+    try {
+      const response = await api.post<ApiResponse<CheckinParticipant>>(
+        `/api/v1/events/${session.event_id}/checkin/scan`,
+        { qr_token: token, stage },
+        options,
+      );
+      setSelected(response.data);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Barcode tidak valid untuk event ini.");
     }
   }
 
@@ -155,10 +174,10 @@ export default function VolunteerRPCPage() {
           style={inputStyle}
         />
       </label>
+      <BarcodeScanner onToken={previewByToken} />
 
-      <div style={participantListStyle}>
+      <div style={{ ...participantListStyle, marginTop: 12 }}>
         {visibleParticipants.map((participant) => {
-          const done = stage === "rpc" ? participant.rpc_status !== "" : participant.raceday_status !== "";
           return (
             <article key={participant.id} style={participantStyle}>
               <div style={{ minWidth: 0 }}>
@@ -178,13 +197,13 @@ export default function VolunteerRPCPage() {
               </div>
               <Button
                 type="button"
-                onClick={() => collect(participant)}
-                variant={done ? "secondary" : "primary"}
+                onClick={() => setSelected(participant)}
+                variant="secondary"
                 size="md"
-                disabled={done || markingId === participant.id}
+                disabled={markingId === participant.id}
                 style={markButtonStyle}
               >
-                {done ? "✓ OK" : markingId === participant.id ? "Menandai…" : `Tandai ${stage === "rpc" ? "Racepack" : "Hari-H"}`}
+                {markingId === participant.id ? "Memproses…" : "Lihat informasi"}
               </Button>
             </article>
           );
@@ -193,6 +212,7 @@ export default function VolunteerRPCPage() {
       {visibleParticipants.length === 0 && (
         <p style={descriptionStyle}>Tidak ada peserta yang cocok.</p>
       )}
+      {selected && <ParticipantDetailModal participant={selected} stage={stage} marking={markingId === selected.id} onClose={() => setSelected(null)} onClaim={() => collect(selected)} />}
     </main>
   );
 }

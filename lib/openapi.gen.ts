@@ -3123,7 +3123,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Mark a stage from a scanned QR token (FR-604) */
+        /**
+         * Preview a participant from a scanned QR token (FR-604)
+         * @description Resolves the paid participant without changing RPC or race-day status. The operator must explicitly claim through the check-in endpoint after reviewing participant details.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -3139,7 +3142,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Participant after marking the stage. */
+                /** @description Participant details without a status mutation. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4766,7 +4769,7 @@ export interface components {
              */
             strategy: "all" | "category" | "gender" | "category_gender";
         };
-        /** @description Field-facing participant projection. No PII beyond name. */
+        /** @description Field-facing participant projection including labeled custom registration answers needed to verify the racepack. */
         CheckinParticipant: {
             /** Format: uuid */
             id?: string;
@@ -4782,6 +4785,10 @@ export interface components {
             rpc_status?: string;
             /** @description Empty or 'checked_in' (FR-603). */
             raceday_status?: string;
+            custom_answers?: {
+                label: string;
+                value: string;
+            }[];
         };
         RPCAccessSession: {
             /** Format: uuid */
