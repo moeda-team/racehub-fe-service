@@ -6,7 +6,6 @@ import { formatDate, formatRupiah, formatNumber } from "@/lib/format";
 import type { PublicEvent } from "@/lib/types.gen";
 import EventCard from "@/components/ui/EventCard";
 import Alert from "@/components/ui/Alert";
-import ButtonLink from "@/components/ui/ButtonLink";
 import { Eyebrow } from "@/components/ui/Layout";
 import { CalendarDays, CircleCheck, MapPin, PersonStanding, RotateCcw } from "lucide-react";
 
@@ -89,59 +88,15 @@ export default function MarketplacePage() {
 
   return (
     <main className="lk-container marketplace-page rh-reveal">
-      <section className="market-hero">
-        <div className="market-hero-copy">
-          <Eyebrow>Event, dibuat lebih berkesan</Eyebrow>
-          <h1>
-            Temukan momen yang <span>layak dikenang.</span>
-          </h1>
-          <p>
-            Jelajahi event pilihan, daftar dengan tenang, dan simpan tiketmu
-            dalam satu pengalaman yang hangat dan transparan.
-          </p>
-          <div className="market-hero-actions">
-            <a href="#events" className="btn btn-primary btn-lg">Jelajahi Event</a>
-            <ButtonLink href="/login" variant="ghost" size="lg">Kelola Event</ButtonLink>
-          </div>
-        </div>
-        <div className="market-hero-preview" aria-label="Event pilihan">
-          {events[0] ? (
-            <EventCard
-              href={`/events/${events[0].id}`}
-              title={events[0].name}
-              location={events[0].location || "Lokasi belum diatur"}
-              date={formatDate(events[0].event_date)}
-              distances={events[0].event_type === "running" ? ["Event Lari"] : []}
-              price={events[0].min_price > 0 ? formatRupiah(events[0].min_price) : "Gratis"}
-              bannerUrl={events[0].banner_url}
-              color={events[0].color || undefined}
-              comingSoon={events[0].status === "coming_soon"}
-            />
-          ) : (
-            <div className="market-hero-empty">
-              <Eyebrow>Event / Preview</Eyebrow>
-              <strong>{isLoading ? "Menyiapkan event pilihan…" : "Event pilihan berikutnya akan hadir di sini."}</strong>
-            </div>
-          )}
-        </div>
-      </section>
-
       <section id="events" className="market-catalog">
-      <Eyebrow>Event / Discovery</Eyebrow>
-      <h1
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 32,
-          fontWeight: 700,
-          marginBottom: 4,
-        }}
-      >
-        Event Pilihan
-      </h1>
-      <p style={{ color: "var(--color-ink-3)", marginBottom: 24 }}>
-        Temukan event yang sudah membuka pendaftaran dan event pilihan yang
-        segera hadir.
-      </p>
+      <header className="event-catalog-intro">
+        <Eyebrow>Katalog Event</Eyebrow>
+        <h1>Temukan Event</h1>
+        <p>
+          Telusuri event yang sudah membuka pendaftaran, sedang berlangsung,
+          atau yang sudah selesai — semua tercatat rapi di sini.
+        </p>
+      </header>
 
       {/* Filter bar */}
       <div
