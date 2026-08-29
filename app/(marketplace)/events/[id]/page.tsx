@@ -55,7 +55,7 @@ export default function EventDetailPage({
     return (
       <main className="max-w-3xl mx-auto px-4 py-12">
         <Link
-          href="/"
+          href="/jelajahi-event"
           style={{
             fontSize: 13,
             color: "var(--color-ink-3)",
@@ -73,7 +73,7 @@ export default function EventDetailPage({
   return (
     <main key="event-detail" className="max-w-3xl mx-auto px-4 py-8 rh-reveal">
       <Link
-        href="/"
+        href="/jelajahi-event"
         style={{
           fontSize: 13,
           color: "var(--color-ink-3)",

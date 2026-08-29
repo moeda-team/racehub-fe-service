@@ -14,13 +14,14 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@fontsource/hanken-grotesk": "^5.3.0",
-    "@fontsource/saira": "^5.3.0",
-    "@fontsource/spline-sans-mono": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@tiptap/extension-table": "^3.27.1",
     "@tiptap/react": "^3.27.1",
     "@tiptap/starter-kit": "^3.27.1",
     "isomorphic-dompurify": "^3.18.0",
+    "lucide-react": "^1.35.0",
     "next": "16.2.9",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",

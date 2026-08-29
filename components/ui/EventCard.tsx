@@ -1,5 +1,8 @@
 import Pill from "./Pill";
 import Badge from "./Badge";
+import TicketCard from "./TicketCard";
+import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 interface EventCardProps {
   title: string;
@@ -30,7 +33,7 @@ export default function EventCard({
   // (.evcard-top CSS). A dark scrim keeps text readable over images.
   const topStyle: React.CSSProperties | undefined = bannerUrl
     ? {
-        background: `linear-gradient(180deg, rgba(0,0,0,0.30), rgba(0,0,0,0.45)), url(${bannerUrl}) center/cover no-repeat`,
+        background: `linear-gradient(180deg, rgba(7,19,24,0.70), rgba(7,19,24,0.90)), url(${bannerUrl}) center/cover no-repeat`,
       }
     : color
       ? {
@@ -39,7 +42,11 @@ export default function EventCard({
       : undefined;
 
   const content = (
-    <>
+    <TicketCard
+      className={`evcard ${comingSoon ? "evcard-coming-soon" : ""} ${className}`}
+      perforated
+      notchPosition="69%"
+    >
       <div className="evcard-top" style={topStyle}>
         <div className="evcard-top-when">{date}</div>
         <div className="evcard-top-ttl">{title}</div>
@@ -50,7 +57,7 @@ export default function EventCard({
             <Badge variant="warn">Segera Hadir</Badge>
           </div>
         )}
-        <div className="evcard-meta">📍 {location}</div>
+        <div className="evcard-meta"><MapPin size={14} aria-hidden /> {location}</div>
         <div className="evcard-pills">
           {distances.map((d) => (
             <Pill key={d}>{d}</Pill>
@@ -70,24 +77,22 @@ export default function EventCard({
           )}
         </div>
       </div>
-    </>
+    </TicketCard>
   );
 
   if (href) {
     return (
-      <a
+      <Link
         href={href}
-        className={`evcard block ${comingSoon ? "evcard-coming-soon" : ""} ${className}`}
+        className="block"
         aria-label={`${title}${comingSoon ? ", Segera Hadir" : ""}`}
       >
         {content}
-      </a>
+      </Link>
     );
   }
 
   return (
-    <div className={`evcard ${comingSoon ? "evcard-coming-soon" : ""} ${className}`}>
-      {content}
-    </div>
+    content
   );
 }

@@ -158,7 +158,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   if (loadError || !detail) {
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Link href="/" style={back}>
+        <Link href="/jelajahi-event" style={back}>
           ← Kembali ke marketplace
         </Link>
         <Alert variant="danger">{loadError ?? "Event tidak ditemukan."}</Alert>
@@ -232,7 +232,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             </Button>
           </Link>
         )}
-        <Link href="/" style={{ display: "block", marginTop: 8 }}>
+        <Link href="/jelajahi-event" style={{ display: "block", marginTop: 8 }}>
           <Button variant="secondary" size="md" style={{ width: "100%" }}>
             Kembali ke Marketplace
           </Button>

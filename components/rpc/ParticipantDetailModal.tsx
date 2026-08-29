@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { CheckinParticipant, CheckinStage } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
+import { X } from "lucide-react";
 
 export default function ParticipantDetailModal({ participant, stage, marking, onClose, onClaim }: {
   participant: CheckinParticipant;
@@ -28,7 +29,7 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
             <p style={eyebrowStyle}>INFORMASI PESERTA</p>
             <h2 id="participant-detail-title" style={titleStyle}>{participant.name}</h2>
           </div>
-          <button type="button" aria-label="Tutup modal" disabled={marking} onClick={onClose} style={closeStyle}>×</button>
+          <button type="button" aria-label="Tutup modal" disabled={marking} onClick={onClose} style={closeStyle}><X size={20} aria-hidden /></button>
         </div>
 
         <dl style={detailGridStyle}>
@@ -67,9 +68,9 @@ function Detail({ label, value, mono = false }: { label: string; value: string; 
 }
 
 const backdropStyle: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" };
-const modalStyle: React.CSSProperties = { width: "min(100%, 520px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 20, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", boxShadow: "0 24px 70px rgba(0,0,0,.35)" };
+const modalStyle: React.CSSProperties = { width: "min(100%, 520px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 20, borderRadius: "var(--radius-lg)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" };
 const headerStyle: React.CSSProperties = { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 };
-const eyebrowStyle: React.CSSProperties = { margin: "0 0 4px", color: "var(--color-flame)", fontSize: 11, fontWeight: 800, letterSpacing: ".08em" };
+const eyebrowStyle: React.CSSProperties = { margin: "0 0 4px", color: "var(--color-gold-deep)", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: ".12em" };
 const titleStyle: React.CSSProperties = { margin: 0, fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.2 };
 const closeStyle: React.CSSProperties = { width: 40, height: 40, flexShrink: 0, border: "1px solid var(--color-line)", borderRadius: 999, background: "transparent", color: "var(--color-ink-2)", fontSize: 26, cursor: "pointer" };
 const detailGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, margin: "18px 0 0" };

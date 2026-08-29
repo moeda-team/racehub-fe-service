@@ -9,8 +9,9 @@ import { eventStatusDisplay } from "@/lib/event-status";
 import type { ApiResponse, Event } from "@/lib/types.gen";
 import StatCard from "@/components/ui/StatCard";
 import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import ButtonLink from "@/components/ui/ButtonLink";
+import { PageHeader } from "@/components/ui/Layout";
 
 export default function DashboardPage() {
   const { wallet, getWallet } = useAuth();
@@ -40,29 +41,12 @@ export default function DashboardPage() {
 
   return (
     <div className="rh-reveal">
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 24,
-        }}
-      >
-        <h1
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: 28,
-            fontWeight: 700,
-          }}
-        >
-          Dashboard
-        </h1>
-        <Link href="/dashboard/events/new">
-          <Button variant="primary" size="md">
-            + Buat Event
-          </Button>
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow="Organizer / Overview"
+        title="Dashboard"
+        description="Pantau event dan saldo platform dalam satu tempat."
+        actions={<ButtonLink href="/dashboard/events/new">Buat Event</ButtonLink>}
+      />
 
       {error && (
         <Alert variant="danger" className="mb-4">

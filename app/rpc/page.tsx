@@ -53,7 +53,7 @@ export default function RpcPage() {
 
   if (isLoading || !isAuthenticated) {
     return (
-      <div style={{ minHeight: "100vh", background: "var(--color-ink)" }} />
+      <div style={{ minHeight: "100vh", background: "var(--color-navy-deep)" }} />
     );
   }
 
@@ -62,8 +62,8 @@ export default function RpcPage() {
       className="rh-reveal"
       style={{
         minHeight: "100vh",
-        background: "var(--color-ink)",
-        color: "white",
+        background: "var(--color-navy-deep)",
+        color: "var(--color-text-on-dark)",
         padding: "16px 16px 48px",
         maxWidth: 560,
         margin: "0 auto",
@@ -168,10 +168,10 @@ function StageButton({
         minHeight: 56,
         borderRadius: "var(--radius-md)",
         border: active
-          ? "2px solid var(--color-flame)"
+          ? "2px solid var(--color-gold)"
           : "1px solid var(--color-ink-2)",
-        background: active ? "var(--color-flame)" : "transparent",
-        color: active ? "white" : "var(--color-ink-4)",
+        background: active ? "var(--color-gold)" : "transparent",
+        color: active ? "var(--color-navy-deep)" : "var(--color-text-on-dark-muted)",
         fontSize: 15,
         fontWeight: 700,
         cursor: "pointer",

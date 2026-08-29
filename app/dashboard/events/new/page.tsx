@@ -102,7 +102,7 @@ function NewEventPreview({
   const name = values?.name || "Nama Event";
   const location = values?.location || "Lokasi belum diatur";
   const isRunning = (values?.event_type ?? "running") === "running";
-  const color = values?.color || "#F5471D";
+  const color = values?.color || "#16303A";
   const previewDetail: PublicEventDetail = {
     event: {
       // This is a local-only preview; the server assigns the real ID on save.
@@ -134,7 +134,7 @@ function NewEventPreview({
     borderRadius: 999,
     cursor: "pointer",
     backgroundColor: active ? "var(--color-ink)" : "var(--color-surface)",
-    color: active ? "#fff" : "var(--color-ink-2)",
+    color: active ? "var(--color-navy-deep)" : "var(--color-ink-2)",
   });
 
   return (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/lib/adminAuth";
 import { Brand } from "@/components/Brand";
+import { LogOut, Menu, X } from "lucide-react";
 
 const navItems = [
   { href: "/admin/overview", label: "Overview" },
@@ -52,37 +53,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (isLoginPage) {
     return (
-      <main
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          padding: "24px 16px",
-        }}
-      >
+      <main className="auth-shell">
         <Link
           href="/"
-          style={{
-            color: "var(--color-ink)",
-            marginBottom: 32,
-            display: "flex",
-            textDecoration: "none",
-          }}
+          className="auth-brand"
         >
           <Brand context="Admin Panel" size="lg" />
         </Link>
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 400,
-            backgroundColor: "var(--color-surface)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-line)",
-            padding: "32px 24px",
-          }}
-        >
+        <div className="auth-card">
           {children}
         </div>
       </main>
@@ -167,47 +145,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 }
 
 function HamburgerIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      {open ? (
-        <>
-          <line x1="4" y1="4" x2="16" y2="16" />
-          <line x1="16" y1="4" x2="4" y2="16" />
-        </>
-      ) : (
-        <>
-          <line x1="3" y1="6" x2="17" y2="6" />
-          <line x1="3" y1="10" x2="17" y2="10" />
-          <line x1="3" y1="14" x2="17" y2="14" />
-        </>
-      )}
-    </svg>
-  );
+  return open ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />;
 }
 
 function LogoutIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="m16 17 5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
-  );
+  return <LogOut size={16} aria-hidden />;
 }

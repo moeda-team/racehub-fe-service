@@ -5,6 +5,7 @@ import { adminApi } from "@/lib/admin";
 import { formatRupiah } from "@/lib/format";
 import type { ApiResponse, PlatformRevenue } from "@/lib/types.gen";
 import type { AdminEventPage } from "@/lib/types.gen";
+import { PageHeader } from "@/components/ui/Layout";
 
 export default function AdminOverviewPage() {
   const [events, setEvents] = useState<{
@@ -62,21 +63,7 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="rh-reveal">
-      <h1
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 28,
-          fontWeight: 700,
-          marginBottom: 4,
-        }}
-      >
-        Overview
-      </h1>
-      <p
-        style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 28 }}
-      >
-        Ringkasan platform RaceHub
-      </p>
+      <PageHeader eyebrow="Admin / Overview" title="Overview" description="Ringkasan operasional platform LowkeyThings." />
 
       <div
         style={{

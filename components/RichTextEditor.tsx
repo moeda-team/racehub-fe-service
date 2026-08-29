@@ -41,10 +41,10 @@ function ToolbarButton({
         borderRadius: "var(--radius-xs)",
         cursor: "pointer",
         backgroundColor: active
-          ? "var(--color-flame-tint, #FFEAE2)"
+          ? "var(--color-gold-soft)"
           : "var(--color-surface)",
         color: active
-          ? "var(--color-flame-700, #CE3611)"
+          ? "var(--color-gold-deep)"
           : "var(--color-ink-2)",
       }}
     >

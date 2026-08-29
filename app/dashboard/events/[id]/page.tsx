@@ -22,6 +22,7 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { confirm } from "@/components/ui/ConfirmDialog";
 import DataTable, { Column } from "@/components/ui/DataTable";
+import { CircleCheck, Image as ImageIcon, TriangleAlert } from "lucide-react";
 import type {
   ApiResponse,
   BibGenerationStrategy,
@@ -646,7 +647,7 @@ function RegistrationStatusCard({
     >
       <div>
         <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
-          {isClosed ? "✓ Pendaftaran ditutup" : "⚠ Pendaftaran masih terbuka"}
+          {isClosed ? <><CircleCheck size={16} aria-hidden /> Pendaftaran ditutup</> : <><TriangleAlert size={16} aria-hidden /> Pendaftaran masih terbuka</>}
         </div>
         <div style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           {isClosed && closeDate
@@ -2249,7 +2250,7 @@ function CardPreview({
     borderRadius: 999,
     cursor: "pointer",
     backgroundColor: active ? "var(--color-ink)" : "var(--color-surface)",
-    color: active ? "#fff" : "var(--color-ink-2)",
+    color: active ? "var(--color-navy-deep)" : "var(--color-ink-2)",
   });
 
   return (
@@ -2770,7 +2771,7 @@ function BannerUploader({
               ? "1px solid var(--color-line)"
               : "2px dashed var(--color-line)",
           background: shownImage
-            ? `linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35)), url(${shownImage}) center/cover no-repeat`
+            ? `linear-gradient(180deg, rgba(7,19,24,0.64), rgba(7,19,24,0.84)), url(${shownImage}) center/cover no-repeat`
             : event.color
               ? `linear-gradient(135deg, ${event.color}22, ${event.color}44)`
               : "var(--color-paper)",
@@ -2783,9 +2784,7 @@ function BannerUploader({
           padding: 16,
         }}
       >
-        <span style={{ fontSize: 28, lineHeight: 1 }} aria-hidden>
-          🖼️
-        </span>
+        <ImageIcon size={28} aria-hidden />
         <span
           style={{
             fontSize: 15,

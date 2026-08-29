@@ -509,7 +509,7 @@ export default function EventForm({
   const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(
     initial?.refund_donation_on_cancel ?? false,
   );
-  const [color, setColor] = useState(initial?.color || "#F5471D");
+  const [color, setColor] = useState(initial?.color || "#16303A");
 
   // Registration field builder state
   const [regFields, setRegFields] = useState<FieldDraft[]>([]);

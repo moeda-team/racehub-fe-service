@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import type { OrganizerProfile } from "@/lib/types.gen";
 import { Brand } from "@/components/Brand";
+import { ChevronUp, LogOut, Menu, User, X } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -258,83 +259,17 @@ function initials(name: string): string {
 }
 
 function HamburgerIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      {open ? (
-        <>
-          <line x1="4" y1="4" x2="16" y2="16" />
-          <line x1="16" y1="4" x2="4" y2="16" />
-        </>
-      ) : (
-        <>
-          <line x1="3" y1="6" x2="17" y2="6" />
-          <line x1="3" y1="10" x2="17" y2="10" />
-          <line x1="3" y1="14" x2="17" y2="14" />
-        </>
-      )}
-    </svg>
-  );
+  return open ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />;
 }
 
 function ChevronIcon() {
-  return (
-    <svg
-      className="profile-caret"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m18 15-6-6-6 6" />
-    </svg>
-  );
+  return <ChevronUp className="profile-caret" size={16} aria-hidden />;
 }
 
 function UserIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
+  return <User size={16} aria-hidden />;
 }
 
 function LogoutIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="m16 17 5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
-  );
+  return <LogOut size={16} aria-hidden />;
 }

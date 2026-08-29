@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
+import { Camera, X } from "lucide-react";
 
 const formats = ["qr_code", "code_128", "code_39", "ean_13", "ean_8"];
 
@@ -65,7 +66,7 @@ export default function BarcodeScanner({ onToken }: { onToken: (token: string) =
     <div style={{ marginTop: 12 }}>
       {!open ? (
         <button type="button" onClick={startCamera} style={scanButtonStyle}>
-          📷 Scan barcode / QR
+          <Camera size={18} aria-hidden /> Scan barcode / QR
         </button>
       ) : (
         <div style={panelStyle}>
@@ -83,7 +84,7 @@ export default function BarcodeScanner({ onToken }: { onToken: (token: string) =
             <input value={manual} onChange={(event) => setManual(event.target.value)} placeholder="Token barcode / QR" style={{ ...inputStyle, flex: 1 }} />
             <Button type="submit" variant="secondary" size="md">Cek</Button>
           </form>
-          <button type="button" onClick={() => { stop(); setOpen(false); }} style={closeStyle}>Tutup</button>
+          <button type="button" onClick={() => { stop(); setOpen(false); }} style={closeStyle}><X size={16} aria-hidden /> Tutup</button>
         </div>
       )}
     </div>

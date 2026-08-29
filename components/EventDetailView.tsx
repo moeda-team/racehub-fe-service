@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { formatRupiah, formatDate } from "@/lib/format";
 import type { PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
 import Alert from "@/components/ui/Alert";
 import RichText from "@/components/ui/RichText";
 import Button from "@/components/ui/Button";
+import ButtonLink from "@/components/ui/ButtonLink";
+import Card from "@/components/ui/Card";
+import TicketCard from "@/components/ui/TicketCard";
 
 // EventDetailView is the shared body of the public event-detail page
 // (app/(marketplace)/events/[id]) — also rendered inside the organizer
@@ -109,9 +111,7 @@ export default function EventDetailView({
       )}
 
       {event.donation_enabled && interactive && !isComingSoon && (
-        <Link href={`/donate/${event.id}`} style={{ display: "block", margin: "0 0 24px" }}>
-          <Button variant="secondary" size="md" style={{ width: "100%" }}>Donasi tanpa mendaftar</Button>
-        </Link>
+        <ButtonLink href={`/donate/${event.id}`} variant="secondary" size="md" style={{ width: "100%", margin: "0 0 24px" }}>Donasi tanpa mendaftar</ButtonLink>
       )}
 
       <section style={{ marginBottom: 24 }}>
@@ -139,13 +139,13 @@ export default function EventDetailView({
           >
             {categories.map((d) => {
               return (
-                <div
+                <Card
                   key={d.id}
                   style={{
                     padding: "12px 14px",
                     border: "1px solid var(--color-line)",
                     borderRadius: "var(--radius-md)",
-                    backgroundColor: "var(--color-surface)",
+                    backgroundColor: "var(--color-panel)",
                   }}
                 >
                   <div
@@ -158,7 +158,7 @@ export default function EventDetailView({
                   >
                     {d.name}
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -198,7 +198,7 @@ export default function EventDetailView({
                         width: 4,
                         height: 16,
                         borderRadius: 2,
-                        backgroundColor: "var(--color-flame, #F5471D)",
+                        backgroundColor: "var(--color-gold)",
                       }}
                       aria-hidden
                     />
@@ -220,8 +220,10 @@ export default function EventDetailView({
                       const expired =
                         !!t.sale_end && new Date(t.sale_end).getTime() < now;
                       return (
-                        <div
+                        <TicketCard
                           key={t.id}
+                          perforated
+                          notchPosition="72%"
                           style={{
                             display: "flex",
                             alignItems: "center",
@@ -231,7 +233,7 @@ export default function EventDetailView({
                             padding: "14px 16px",
                             border: "1px solid var(--color-line)",
                             borderRadius: "var(--radius-md)",
-                            backgroundColor: "var(--color-surface)",
+                            backgroundColor: "var(--color-panel)",
                             opacity: expired ? 0.6 : 1,
                           }}
                         >
@@ -276,7 +278,7 @@ export default function EventDetailView({
                           >
                             {t.price > 0 ? formatRupiah(t.price) : "Gratis"}
                           </div>
-                        </div>
+                        </TicketCard>
                       );
                     })}
                   </div>
@@ -288,7 +290,7 @@ export default function EventDetailView({
       </section>
 
       {interactive && !isComingSoon ? (
-        <Link href={`/register/${event.id}`}>{cta}</Link>
+        <ButtonLink href={`/register/${event.id}`} variant="primary" size="lg" style={{ width: "100%" }}>Daftar Sekarang</ButtonLink>
       ) : (
         cta
       )}

@@ -143,7 +143,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   if (loadError || !reg) {
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Link href="/" style={back}>
+        <Link href="/jelajahi-event" style={back}>
           ← Kembali ke marketplace
         </Link>
         <Alert variant="danger">{loadError ?? "Pendaftaran tidak ditemukan."}</Alert>
@@ -187,7 +187,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   if (reg.status === "expired") {
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Link href="/" style={back}>
+        <Link href="/jelajahi-event" style={back}>
           ← Kembali ke marketplace
         </Link>
         <Alert variant="danger">Batas waktu pembayaran telah berakhir. Pendaftaran ini tidak dapat dibayar lagi.</Alert>
@@ -548,13 +548,13 @@ function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string
                 alignItems: "center",
                 padding: "10px 20px",
                 borderRadius: "var(--radius-pill)",
-                background: "var(--color-flame)",
-                color: "#fff",
+                background: "var(--color-gold)",
+                color: "var(--color-navy-deep)",
                 fontFamily: "var(--font-body)",
                 fontWeight: 600,
                 fontSize: 14,
                 textDecoration: "none",
-                boxShadow: "var(--shadow-sh-flame)",
+                boxShadow: "none",
               }}
             >
               Buka di GoPay

@@ -327,7 +327,7 @@ export default function DashboardRefundPage() {
                             cursor: "pointer",
                             backgroundColor:
                               selectedReg?.id === reg.id
-                                ? "color-mix(in srgb, var(--color-primary, #2456E6) 10%, transparent)"
+                                ? "var(--color-info-tint)"
                                 : undefined,
                             borderBottom: "1px solid var(--color-line)",
                           }}

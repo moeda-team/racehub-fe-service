@@ -241,7 +241,7 @@ const input: React.CSSProperties = {
   padding: "10px 12px",
   border: "1px solid var(--color-line)",
   borderRadius: "var(--radius-sm)",
-  background: "white",
+  background: "var(--color-paper)",
 };
 const summary: React.CSSProperties = { margin: "16px 0", display: "grid", gap: 8 };
 

@@ -332,7 +332,7 @@ export default function EventListPage() {
                           page === item
                             ? "var(--color-flame)"
                             : "var(--color-surface)",
-                        color: page === item ? "#fff" : "var(--color-ink-2)",
+                        color: page === item ? "var(--color-navy-deep)" : "var(--color-ink-2)",
                         fontWeight: page === item ? 600 : 400,
                       }}
                     >

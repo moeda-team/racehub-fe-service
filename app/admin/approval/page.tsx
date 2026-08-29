@@ -7,6 +7,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import type { ApiResponse, Event, RegistrationSummary } from "@/lib/types.gen";
+import { CalendarDays, Check, MapPin, X } from "lucide-react";
 
 const REG_STATUS: Record<string, string> = {
   pending_payment: "Pending",
@@ -188,11 +189,8 @@ export default function AdminApprovalPage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <span>
-                      📅 {ev.event_date ? formatDate(ev.event_date) : "—"}
-                    </span>
-                    <span>📍 {ev.location || "—"}</span>
-                    <span>📍 {ev.location || "—"}</span>
+                    <span><CalendarDays size={14} aria-hidden /> {ev.event_date ? formatDate(ev.event_date) : "—"}</span>
+                    <span><MapPin size={14} aria-hidden /> {ev.location || "—"}</span>
                   </div>
                   {ev.description && (
                     <p
@@ -220,7 +218,7 @@ export default function AdminApprovalPage() {
                         approve(ev.id);
                       }}
                     >
-                      {busy === ev.id ? "…" : "✓ Approve"}
+                      {busy === ev.id ? "…" : <><Check size={15} aria-hidden /> Approve</>}
                     </Button>
                     <Button
                       variant="danger"
@@ -231,7 +229,7 @@ export default function AdminApprovalPage() {
                         reject(ev.id);
                       }}
                     >
-                      {busy === ev.id ? "…" : "✕ Tolak"}
+                      {busy === ev.id ? "…" : <><X size={15} aria-hidden /> Tolak</>}
                     </Button>
                   </div>
                 ) : (

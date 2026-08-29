@@ -98,10 +98,10 @@ export default function AdminEventsPage() {
                 borderRadius: "var(--radius-pill)",
                 border: "1px solid",
                 borderColor:
-                  filter === f ? "var(--color-flame)" : "var(--color-line-2)",
+                  filter === f ? "var(--color-gold)" : "var(--color-line-2)",
                 background:
-                  filter === f ? "var(--color-flame)" : "var(--color-surface)",
-                color: filter === f ? "#fff" : "var(--color-ink-2)",
+                  filter === f ? "var(--color-gold)" : "var(--color-surface)",
+                color: filter === f ? "var(--color-navy-deep)" : "var(--color-ink-2)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",

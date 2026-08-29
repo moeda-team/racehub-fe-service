@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { CircleCheck, CircleX, Info, TriangleAlert } from "lucide-react";
 
 type AlertVariant = "success" | "warn" | "danger" | "info";
 
@@ -15,11 +16,11 @@ const variantClass: Record<AlertVariant, string> = {
   info: "alert-info",
 };
 
-const variantIcon: Record<AlertVariant, string> = {
-  success: "✓",
-  warn: "!",
-  danger: "×",
-  info: "i",
+const variantIcon: Record<AlertVariant, typeof Info> = {
+  success: CircleCheck,
+  warn: TriangleAlert,
+  danger: CircleX,
+  info: Info,
 };
 
 /* Bright semantic color for the icon circle background — distinct from the
@@ -28,7 +29,7 @@ const variantIconBg: Record<AlertVariant, string> = {
   success: "var(--color-ok)",
   warn: "var(--color-warn)",
   danger: "var(--color-danger)",
-  info: "var(--color-sprint)",
+  info: "var(--color-info)",
 };
 
 export default function Alert({
@@ -36,6 +37,7 @@ export default function Alert({
   children,
   className = "",
 }: AlertProps) {
+  const Icon = variantIcon[variant];
   return (
     <div className={`alert ${variantClass[variant]} ${className}`} role="alert">
       <span
@@ -55,7 +57,7 @@ export default function Alert({
           marginTop: 1,
         }}
       >
-        {variantIcon[variant]}
+        <Icon size={13} strokeWidth={2.5} aria-hidden />
       </span>
       <span>{children}</span>
     </div>

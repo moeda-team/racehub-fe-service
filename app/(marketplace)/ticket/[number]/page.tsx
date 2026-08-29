@@ -101,7 +101,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
   if (error || !ticket) {
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
-        <Link href="/" style={back}>
+        <Link href="/jelajahi-event" style={back}>
           ← Kembali ke marketplace
         </Link>
         <Alert variant="danger">{error ?? "E-tiket tidak ditemukan."}</Alert>
@@ -114,7 +114,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
 
   return (
     <main className="max-w-xl mx-auto px-4 py-8">
-      <Link href="/" style={back}>
+      <Link href="/jelajahi-event" style={back}>
         ← Marketplace
       </Link>
       <h1

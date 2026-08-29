@@ -4,6 +4,7 @@ import React, { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { createRoot, Root } from "react-dom/client";
 import Button from "@/components/ui/Button";
+import { CircleAlert, Info } from "lucide-react";
 
 interface ConfirmDialogProps {
   title: ReactNode;
@@ -71,58 +72,15 @@ function ConfirmDialog({
                 borderRadius: "50%",
                 backgroundColor:
                   variant === "danger"
-                    ? "rgba(220, 38, 38, 0.1)"
-                    : "rgba(59, 130, 246, 0.1)",
+                    ? "var(--color-danger-tint)"
+                    : "var(--color-info-tint)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
               }}
             >
-              {variant === "danger" ? (
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 22 22"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M11 3.5L19.5 18H2.5L11 3.5Z"
-                    stroke="#DC2626"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M11 9v4.5M11 15.5v.5"
-                    stroke="#DC2626"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 22 22"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="8.5"
-                    stroke="#3B82F6"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M11 7v5M11 14v.5"
-                    stroke="#3B82F6"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
+              {variant === "danger" ? <CircleAlert size={22} color="var(--color-danger)" aria-hidden /> : <Info size={22} color="var(--color-info)" aria-hidden />}
             </div>
             <h2
               id="confirm-dialog-title"

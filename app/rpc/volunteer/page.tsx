@@ -239,11 +239,11 @@ function StatusPill({ done, label }: { done: boolean; label: string }) {
 
 const pageStyle: React.CSSProperties = {
   minHeight: "100vh", maxWidth: 560, margin: "0 auto", padding: "16px 16px 48px",
-  background: "var(--color-ink)", color: "white",
+  background: "var(--color-navy-deep)", color: "var(--color-text-on-dark)",
 };
 const loginCardStyle: React.CSSProperties = { maxWidth: 440, margin: "10vh auto 0", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)" };
-const eyebrowStyle: React.CSSProperties = { margin: "0 0 6px", color: "var(--color-flame)", fontWeight: 800, fontSize: 12, letterSpacing: "0.08em" };
-const titleStyle: React.CSSProperties = { margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800 };
+const eyebrowStyle: React.CSSProperties = { margin: "0 0 6px", color: "var(--color-gold)", fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 11, letterSpacing: "0.12em" };
+const titleStyle: React.CSSProperties = { margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 600 };
 const descriptionStyle: React.CSSProperties = { color: "var(--color-ink-3)", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" };
 const labelStyle: React.CSSProperties = { display: "grid", gap: 6, fontSize: 14, fontWeight: 700 };
 const headerStyle: React.CSSProperties = { marginBottom: 16 };
@@ -251,7 +251,7 @@ const summaryStyle: React.CSSProperties = { display: "flex", justifyContent: "sp
 const summaryTextStyle: React.CSSProperties = { margin: 0, color: "var(--color-ink-4)", fontSize: 14, lineHeight: 1.5 };
 const stageToggleStyle: React.CSSProperties = { display: "flex", gap: 8, margin: "16px 0" };
 const stageButtonStyle: React.CSSProperties = { flex: 1, minHeight: 56, border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-md)", background: "transparent", color: "var(--color-ink-4)", fontSize: 15, fontWeight: 700, cursor: "pointer" };
-const stageButtonActiveStyle: React.CSSProperties = { border: "2px solid var(--color-flame)", background: "var(--color-flame)", color: "white" };
+const stageButtonActiveStyle: React.CSSProperties = { border: "2px solid var(--color-gold)", background: "var(--color-gold)", color: "var(--color-navy-deep)" };
 const searchLabelStyle: React.CSSProperties = { display: "grid", gap: 6, marginBottom: 12, color: "var(--color-ink-4)", fontSize: 13 };
 const inputStyle: React.CSSProperties = { width: "100%", boxSizing: "border-box", padding: "13px 14px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", color: "var(--color-ink)", fontSize: 16 };
 const participantListStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 10 };
