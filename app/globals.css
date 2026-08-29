@@ -77,6 +77,63 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* === LowkeyThings Brand === */
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: inherit;
+}
+
+.brand-lockup-logo {
+  width: var(--brand-logo-size);
+  height: var(--brand-logo-size);
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.brand-lockup-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-lockup-name {
+  font-family: var(--font-display);
+  font-size: var(--brand-name-size);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.brand-lockup-context {
+  margin-top: 3px;
+  color: var(--color-ink-3);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.brand-lockup-sm {
+  --brand-logo-size: 20px;
+  --brand-name-size: 15px;
+}
+
+.brand-lockup-md {
+  --brand-logo-size: 25px;
+  --brand-name-size: 18px;
+}
+
+.brand-lockup-lg {
+  --brand-logo-size: 34px;
+  --brand-name-size: 24px;
+}
+
 /* === Buttons === */
 
 .btn {
@@ -790,29 +847,9 @@ body {
 .dash-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.02em;
   color: var(--color-ink);
   text-decoration: none;
   margin-bottom: 24px;
-}
-
-.dash-brand-dot {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--color-flame);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: var(--shadow-sh-flame);
-  flex-shrink: 0;
 }
 
 .dash-nav {
@@ -895,8 +932,14 @@ body {
   }
   .dash-brand {
     margin-bottom: 0;
-    font-size: 17px;
     flex-shrink: 0;
+  }
+  .dash-brand .brand-lockup {
+    --brand-logo-size: 22px;
+    --brand-name-size: 16px;
+  }
+  .dash-brand .brand-lockup-context {
+    display: none;
   }
   /* Hide sidebar nav from the topbar */
   .dash-nav {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import type { OrganizerProfile } from "@/lib/types.gen";
+import { Brand } from "@/components/Brand";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -59,8 +60,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="dash-shell">
       <aside className="dash-aside">
         <Link href="/" className="dash-brand">
-          <span className="dash-brand-dot">L</span>
-          LowkeyThings
+          <Brand />
         </Link>
         <nav className="dash-nav">
           {navItems.map((item) => {

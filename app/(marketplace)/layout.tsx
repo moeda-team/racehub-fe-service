@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
+import { Brand } from "@/components/Brand";
 
 export default function MarketplaceLayout({
   children,
@@ -36,34 +37,11 @@ export default function MarketplaceLayout({
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
-              fontFamily: "var(--font-display)",
-              fontWeight: 800,
-              fontSize: 20,
-              letterSpacing: "-0.02em",
               color: "var(--color-ink)",
               textDecoration: "none",
             }}
           >
-            <span
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 7,
-                background: "var(--color-flame)",
-                display: "grid",
-                placeItems: "center",
-                color: "#fff",
-                fontFamily: "var(--font-mono)",
-                fontSize: 13,
-                fontWeight: 600,
-                boxShadow: "var(--shadow-sh-flame)",
-                flexShrink: 0,
-              }}
-            >
-              L
-            </span>
-            LowkeyThings
+            <Brand />
           </Link>
           <nav style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
             <Link
@@ -118,35 +96,15 @@ export default function MarketplaceLayout({
             gap: 24,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 6,
-                background: "var(--color-flame)",
-                display: "grid",
-                placeItems: "center",
-                color: "#fff",
-                fontFamily: "var(--font-mono)",
-                fontSize: 12,
-                fontWeight: 600,
-                flexShrink: 0,
-              }}
-            >
-              L
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 800,
-                fontSize: 16,
-                color: "#fff",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              LowkeyThings
-            </span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              color: "#fff",
+            }}
+          >
+            <Brand size="sm" />
           </div>
           <div style={{ fontSize: 13, lineHeight: 1.7, maxWidth: 420 }}>
             <p style={{ margin: 0 }}>

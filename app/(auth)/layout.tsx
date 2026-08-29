@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import Link from "next/link";
+import { Brand } from "@/components/Brand";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -16,16 +17,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <Link
         href="/"
         style={{
-          fontFamily: "var(--font-display)",
-          fontWeight: 700,
-          fontSize: 28,
-          color: "var(--color-flame)",
+          color: "var(--color-ink)",
           marginBottom: 32,
-          display: "block",
-          textAlign: "center",
+          display: "flex",
+          textDecoration: "none",
         }}
       >
-        LowkeyThings
+        <Brand size="lg" />
       </Link>
       <div
         style={{

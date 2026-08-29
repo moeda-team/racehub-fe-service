@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/lib/adminAuth";
+import { Brand } from "@/components/Brand";
 
 const navItems = [
   { href: "/admin/overview", label: "Overview" },
@@ -61,19 +62,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           padding: "24px 16px",
         }}
       >
-        <span
+        <Link
+          href="/"
           style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 700,
-            fontSize: 28,
             color: "var(--color-ink)",
             marginBottom: 32,
-            display: "block",
-            textAlign: "center",
+            display: "flex",
+            textDecoration: "none",
           }}
         >
-          Admin Panel
-        </span>
+          <Brand context="Admin Panel" size="lg" />
+        </Link>
         <div
           style={{
             width: "100%",
@@ -99,8 +98,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="dash-shell">
       <aside className="dash-aside">
         <Link href="/admin/overview" className="dash-brand">
-          <span className="dash-brand-dot">A</span>
-          Admin Panel
+          <Brand context="Admin Panel" />
         </Link>
         <nav className="dash-nav">
           {navItems.map((item) => {
