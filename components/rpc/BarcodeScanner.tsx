@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
-import { Camera, X } from "lucide-react";
+import { Camera, ChevronRight, X } from "lucide-react";
 
 const formats = ["qr_code", "code_128", "code_39", "ean_13", "ean_8"];
 
@@ -65,8 +65,15 @@ export default function BarcodeScanner({ onToken }: { onToken: (token: string) =
   return (
     <div style={{ marginTop: 12 }}>
       {!open ? (
-        <button type="button" onClick={startCamera} style={scanButtonStyle}>
-          <Camera size={18} aria-hidden /> Scan barcode / QR
+        <button type="button" onClick={startCamera} className="barcode-scan-button">
+          <span className="barcode-scan-icon" aria-hidden>
+            <Camera size={21} strokeWidth={2} />
+          </span>
+          <span className="barcode-scan-copy">
+            <strong>Pindai barcode / QR</strong>
+            <small>Gunakan kamera perangkat</small>
+          </span>
+          <ChevronRight className="barcode-scan-arrow" size={20} aria-hidden />
         </button>
       ) : (
         <div style={panelStyle}>
@@ -91,7 +98,6 @@ export default function BarcodeScanner({ onToken }: { onToken: (token: string) =
   );
 }
 
-const scanButtonStyle: React.CSSProperties = { width: "100%", minHeight: 48, borderRadius: "var(--radius-md)", border: "1px dashed var(--color-ink-2)", background: "transparent", color: "var(--color-ink-4)", fontSize: 14, fontWeight: 700, cursor: "pointer" };
 const panelStyle: React.CSSProperties = { padding: 12, borderRadius: "var(--radius-md)", background: "var(--color-panel)" };
 const videoStyle: React.CSSProperties = { width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "var(--radius-sm)", background: "#000" };
 const errorStyle: React.CSSProperties = { margin: "8px 0", color: "var(--color-danger)", fontSize: 13 };
