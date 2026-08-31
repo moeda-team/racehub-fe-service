@@ -636,7 +636,8 @@ export default function EventForm({
         label="Deskripsi"
         value={description}
         onChange={setDescription}
-        hint="Gunakan toolbar untuk format teks (tebal, judul, daftar). Tampil di halaman detail event."
+        eventId={eventId}
+        hint="Gunakan toolbar untuk format teks, tabel, dan gambar. Tampil di halaman detail event."
       />
       <LabeledInput
         label="Lokasi"

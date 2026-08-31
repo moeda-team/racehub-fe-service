@@ -91,6 +91,10 @@ export interface EventDetail {
   ticket_categories: TicketCategory[];
 }
 
+export interface EventDescriptionImage {
+  url: string;
+}
+
 // === Public marketplace projections (with remaining quota, FR-1003) ===
 
 export interface PublicEvent {

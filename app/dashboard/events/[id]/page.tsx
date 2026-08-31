@@ -21,6 +21,12 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { confirm } from "@/components/ui/ConfirmDialog";
+import {
+  compressEventImage,
+  EVENT_IMAGE_MAX_BYTES,
+  EVENT_IMAGE_TYPES,
+  formatImageSize,
+} from "@/lib/image-upload";
 import DataTable, { Column } from "@/components/ui/DataTable";
 import { CircleCheck, Image as ImageIcon, TriangleAlert } from "lucide-react";
 import type {
@@ -2570,42 +2576,6 @@ const dot: React.CSSProperties = {
 
 // --- Banner upload ---
 
-const BANNER_MAX_BYTES = 10 * 1024 * 1024; // UX guard; backend enforces UPLOAD_MAX_BYTES
-const BANNER_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const BANNER_MAX_WIDTH = 1600; // downscale target; banners render at ~1200px wide
-
-// compressBanner downscales to ≤1600px wide and re-encodes as WebP (q0.82)
-// before upload, so R2 stores small files. Falls back to the original when
-// compression doesn't help (e.g. already-optimized WebP) or the browser can't.
-async function compressBanner(f: File): Promise<File> {
-  try {
-    const bitmap = await createImageBitmap(f);
-    const scale = Math.min(1, BANNER_MAX_WIDTH / bitmap.width);
-    const w = Math.round(bitmap.width * scale);
-    const h = Math.round(bitmap.height * scale);
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return f;
-    ctx.drawImage(bitmap, 0, 0, w, h);
-    bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/webp", 0.82),
-    );
-    if (!blob || blob.size >= f.size) return f;
-    return new File([blob], f.name.replace(/\.\w+$/, "") + ".webp", {
-      type: "image/webp",
-    });
-  } catch {
-    return f;
-  }
-}
-
-function formatMB(bytes: number): string {
-  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
-}
-
 // BannerUploader lets the organizer upload the event banner (stored on R2).
 // Shown at the top of the Detail tab as a large click/drop zone so it can't be
 // missed. When no banner is set, the marketplace card falls back to the event color.
@@ -2634,14 +2604,14 @@ function BannerUploader({
   async function pick(f: File | null) {
     setNotice(null);
     if (!f) return;
-    if (!BANNER_TYPES.includes(f.type)) {
+    if (!EVENT_IMAGE_TYPES.includes(f.type)) {
       setError("Format tidak didukung. Gunakan JPG, PNG, atau WebP.");
       return;
     }
-    const compressed = await compressBanner(f);
-    if (compressed.size > BANNER_MAX_BYTES) {
+    const compressed = await compressEventImage(f);
+    if (compressed.size > EVENT_IMAGE_MAX_BYTES) {
       setError(
-        `Ukuran file ${formatMB(compressed.size)} (setelah kompresi) masih melebihi batas 10 MB.`,
+        `Ukuran file ${formatImageSize(compressed.size)} (setelah kompresi) masih melebihi batas 10 MB.`,
       );
       return;
     }
@@ -2650,7 +2620,7 @@ function BannerUploader({
     setPreviewUrl(URL.createObjectURL(compressed));
     if (compressed !== f) {
       setNotice(
-        `Gambar dikompresi otomatis: ${formatMB(f.size)} → ${formatMB(compressed.size)}.`,
+        `Gambar dikompresi otomatis: ${formatImageSize(f.size)} → ${formatImageSize(compressed.size)}.`,
       );
     }
   }
@@ -2735,7 +2705,7 @@ function BannerUploader({
       <input
         ref={inputRef}
         type="file"
-        accept={BANNER_TYPES.join(",")}
+        accept={EVENT_IMAGE_TYPES.join(",")}
         onChange={(e) => pick(e.target.files?.[0] ?? null)}
         style={{ display: "none" }}
       />

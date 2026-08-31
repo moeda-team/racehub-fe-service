@@ -1141,6 +1141,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/{id}/description-images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload an event description image
+         * @description Uploads an image to private MinIO storage and returns an immutable,
+         *     same-origin media-proxy URL suitable for an img element in the event's
+         *     HTML description. The caller must save that HTML separately through the
+         *     event update endpoint. Owner only; finished/cancelled events are locked.
+         *     Accepted types: image/jpeg, image/png, image/webp. Maximum size is 10 MiB
+         *     by default and is controlled by UPLOAD_MAX_BYTES.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /** Format: binary */
+                        file: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Description image uploaded. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["EventDescriptionImage"];
+                        };
+                    };
+                };
+                /** @description Missing, empty, malformed, or unsupported image file. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Event is locked (finished/cancelled). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description File exceeds the configured upload limit. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/media/events/{filename}": {
         parameters: {
             query?: never;
@@ -1149,8 +1234,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Read an event banner
-         * @description Streams an immutable event banner from private MinIO storage. Public; no authentication required.
+         * Read an event image
+         * @description Streams an immutable event banner or description image from private MinIO storage. Public; no authentication required.
          */
         get: {
             parameters: {
@@ -1163,7 +1248,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Banner image bytes. */
+                /** @description Event image bytes. */
                 200: {
                     headers: {
                         "Cache-Control"?: string;
@@ -1193,7 +1278,7 @@ export interface paths {
         delete?: never;
         options?: never;
         /**
-         * Read event banner metadata
+         * Read event image metadata
          * @description Returns the same headers as GET without streaming the image body.
          */
         head: {
@@ -4137,6 +4222,7 @@ export interface components {
             /** Format: uuid */
             organizer_id?: string;
             name?: string;
+            /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4174,6 +4260,10 @@ export interface components {
             /** Format: date-time */
             updated_at?: string;
         };
+        EventDescriptionImage: {
+            /** @description Immutable same-origin URL under /api/v1/media/events/ for use in sanitized event-description HTML. */
+            url: string;
+        };
         EventDetail: {
             event?: components["schemas"]["Event"];
             categories?: components["schemas"]["Category"][];
@@ -4184,6 +4274,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             name?: string;
+            /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4623,6 +4714,7 @@ export interface components {
         };
         CreateEventRequest: {
             name: string;
+            /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4647,6 +4739,7 @@ export interface components {
         };
         UpdateEventRequest: {
             name: string;
+            /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
             description?: string;
             location?: string;
             /** Format: date-time */
