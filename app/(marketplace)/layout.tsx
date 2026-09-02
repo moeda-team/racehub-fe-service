@@ -36,7 +36,7 @@ export default function MarketplaceLayout({ children }: { children: ReactNode })
             <h2>Kontak</h2>
             <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
             <a href="https://wa.me/6285148351241" target="_blank" rel="noopener noreferrer">
-              6285148351241
+              +6285148351241
             </a>
             <span>Kebumen, Jawa Tengah</span>
           </div>
