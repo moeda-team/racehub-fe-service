@@ -157,21 +157,33 @@ export default function HomePage() {
             <article className="home-vm-card">
               <span>Visi</span>
               <h3>
-                Menjadi platform event terpercaya yang memudahkan siapa saja untuk menemukan dan menyelenggarakan
-                kegiatan di seluruh Indonesia.
+                Menjadi platform event terpercaya yang menghubungkan manusia, komunitas, dan pengalaman melalui
+                ekosistem event yang mudah diakses, seamless, dan berdampak
               </h3>
-              <p>
-                Kami ingin setiap komunitas, kecil maupun besar, punya akses yang sama untuk membuat event mereka
-                ditemukan dan diikuti.
-              </p>
             </article>
             <article className="home-vm-card home-vm-mission">
               <span>Misi</span>
               <ol>
-                <li>Menyediakan sistem pendaftaran event yang cepat, aman, dan mudah digunakan.</li>
-                <li>Membantu penyelenggara mengelola peserta secara efisien dari satu dasbor.</li>
-                <li>Menjaga transparansi informasi event, mulai dari jadwal hingga status pendaftaran.</li>
-                <li>Membangun ekosistem event lokal yang berkelanjutan di berbagai kota.</li>
+                <li>
+                  Menghadirkan proses discovery, pendaftaran, pembayaran, dan pengelolaan event yang simple, cepat,
+                  aman, dan seamless.
+                </li>
+                <li>
+                  Membekali penyelenggara dengan teknologi dan tools yang membantu mereka mengelola peserta, data,
+                  komunikasi, dan operasional event secara lebih efisien.
+                </li>
+                <li>
+                  Mempertemukan penyelenggara, komunitas, brand, dan peserta dalam ekosistem yang terbuka dan saling
+                  terhubung.
+                </li>
+                <li>
+                  Membangun pengalaman event yang transparan dan terpercaya, dari informasi event hingga proses
+                  registrasi dan pembayaran.
+                </li>
+                <li>
+                  Mendorong pertumbuhan event lokal atau nasional di berbagai kota Indonesia agar lebih mudah ditemukan,
+                  diikuti, dan berkembang secara berkelanjutan.
+                </li>
               </ol>
             </article>
           </div>
