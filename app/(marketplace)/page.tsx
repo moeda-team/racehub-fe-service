@@ -132,21 +132,17 @@ export default function HomePage() {
           </div>
           <div className="home-about-copy">
             <p>
-              LowkeyThings adalah platform yang mempertemukan penyelenggara event dan peserta dalam satu tempat — mulai
-              dari pencarian event, pendaftaran, sampai pengelolaan peserta, semuanya dilakukan secara digital dan
-              transparan.
+              LowkeyThings adalah platform event yang mempertemukan ide, pengalaman, dan manusia dalam satu ruang
+              digital. Kami hadir untuk membuat setiap perjalanan event terasa lebih sederhana dari menemukan event yang
+              tepat, melakukan pendaftaran, hingga mengelola pengalaman peserta secara seamless.
             </p>
             <p>
-              Kami percaya event terbaik nggak harus heboh untuk terasa bermakna. Nama “Lowkey” mewakili cara kami
-              bekerja: tenang di belakang layar, memastikan setiap proses berjalan mulus tanpa peserta maupun
-              penyelenggara harus pusing dengan hal teknis.
+              Kami percaya, event yang berkesan tidak selalu harus ramai untuk terasa berarti. Di balik setiap event
+              yang terlihat effortless, ada detail kecil yang dirancang dengan cermat. That’s where we come in. “Lowkey”
+              menggambarkan cara kami bekerja: tenang, thoughtful, dan berada di balik layar, memastikan setiap proses
+              berjalan dengan rapi sehingga penyelenggara dapat fokus menciptakan pengalaman, sementara peserta dapat
+              menikmati momennya. LowkeyThings — we handle the details, you live the moment.
             </p>
-            <div className="home-tags">
-              <span>Pendaftaran Online</span>
-              <span>Manajemen Peserta</span>
-              <span>Pembayaran Aman</span>
-              <span>Untuk Komunitas & EO</span>
-            </div>
           </div>
         </div>
       </section>
