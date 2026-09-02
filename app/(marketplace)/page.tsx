@@ -48,7 +48,7 @@ export default function HomePage() {
           <div className="home-hero-copy">
             <Eyebrow>Platform Event Indonesia</Eyebrow>
             <h1>Event yang pas,<br /><em>tanpa ribet.</em></h1>
-            <p>LowkeyThings membantu kamu menemukan, mendaftar, dan mengelola event — mulai dari lari komunitas, workshop, sampai bazar lokal. Cepat, transparan, tanpa drama.</p>
+            <p>LowkeyThings - Small Things, Big Moments. Kami percaya bahwa setiap pengalaman besar selalu berawal dari sesuatu yang sederhana. Sebuah ide, sebuah pertemuan, sebuah komunitas, atau sebuah langkah kecil. LowkeyThings hadir untuk membantu mengubah hal-hal sederhana tersebut menjadi momen yang lebih mudah dibuat, dibagikan, dan dikenang.</p>
             <div className="home-hero-actions">
               <ButtonLink href="/jelajahi-event" size="lg">Jelajahi Event</ButtonLink>
               <ButtonLink href="/hubungi-kami" variant="ghost" size="lg">Hubungi Kami</ButtonLink>
