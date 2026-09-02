@@ -167,13 +167,13 @@ function NewEventPreview({
           Pratinjau
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
-          <button type="button" style={modeButton(mode === "card")} aria-pressed={mode === "card"} onClick={() => onModeChange("card")}> 
+          <button type="button" style={modeButton(mode === "card")} aria-pressed={mode === "card"} onClick={() => onModeChange("card")}>
             Kartu
           </button>
-          <button type="button" style={modeButton(mode === "detail")} aria-pressed={mode === "detail"} onClick={() => onModeChange("detail")}> 
+          <button type="button" style={modeButton(mode === "detail")} aria-pressed={mode === "detail"} onClick={() => onModeChange("detail")}>
             Halaman Detail
           </button>
-          <button type="button" style={modeButton(mode === "register")} aria-pressed={mode === "register"} onClick={() => onModeChange("register")}> 
+          <button type="button" style={modeButton(mode === "register")} aria-pressed={mode === "register"} onClick={() => onModeChange("register")}>
             Pendaftaran
           </button>
         </div>
