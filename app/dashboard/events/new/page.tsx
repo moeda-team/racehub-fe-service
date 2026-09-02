@@ -130,11 +130,11 @@ function NewEventPreview({
     padding: "4px 12px",
     fontSize: 12,
     fontWeight: 600,
-    border: "1px solid var(--color-line)",
+    border: active ? "1px solid var(--color-gold-deep)" : "1px solid var(--color-line)",
     borderRadius: 999,
     cursor: "pointer",
-    backgroundColor: active ? "var(--color-ink)" : "var(--color-surface)",
-    color: active ? "var(--color-navy-deep)" : "var(--color-ink-2)",
+    backgroundColor: active ? "var(--color-navy)" : "var(--color-surface)",
+    color: active ? "var(--color-gold-soft)" : "var(--color-ink-2)",
   });
 
   return (
@@ -167,13 +167,13 @@ function NewEventPreview({
           Pratinjau
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
-          <button type="button" style={modeButton(mode === "card")} onClick={() => onModeChange("card")}>
+          <button type="button" style={modeButton(mode === "card")} aria-pressed={mode === "card"} onClick={() => onModeChange("card")}> 
             Kartu
           </button>
-          <button type="button" style={modeButton(mode === "detail")} onClick={() => onModeChange("detail")}>
+          <button type="button" style={modeButton(mode === "detail")} aria-pressed={mode === "detail"} onClick={() => onModeChange("detail")}> 
             Halaman Detail
           </button>
-          <button type="button" style={modeButton(mode === "register")} onClick={() => onModeChange("register")}>
+          <button type="button" style={modeButton(mode === "register")} aria-pressed={mode === "register"} onClick={() => onModeChange("register")}> 
             Pendaftaran
           </button>
         </div>

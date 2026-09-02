@@ -2252,11 +2252,11 @@ function CardPreview({
     padding: "4px 12px",
     fontSize: 12,
     fontWeight: 600,
-    border: "1px solid var(--color-line)",
+    border: active ? "1px solid var(--color-gold-deep)" : "1px solid var(--color-line)",
     borderRadius: 999,
     cursor: "pointer",
-    backgroundColor: active ? "var(--color-ink)" : "var(--color-surface)",
-    color: active ? "var(--color-navy-deep)" : "var(--color-ink-2)",
+    backgroundColor: active ? "var(--color-navy)" : "var(--color-surface)",
+    color: active ? "var(--color-gold-soft)" : "var(--color-ink-2)",
   });
 
   return (
@@ -2292,6 +2292,7 @@ function CardPreview({
           <button
             type="button"
             style={modeBtn(mode === "card")}
+            aria-pressed={mode === "card"}
             onClick={() => setMode("card")}
           >
             Kartu
@@ -2299,6 +2300,7 @@ function CardPreview({
           <button
             type="button"
             style={modeBtn(mode === "detail")}
+            aria-pressed={mode === "detail"}
             onClick={() => setMode("detail")}
           >
             Halaman Detail
@@ -2306,6 +2308,7 @@ function CardPreview({
           <button
             type="button"
             style={modeBtn(mode === "register")}
+            aria-pressed={mode === "register"}
             onClick={() => setMode("register")}
           >
             Pendaftaran
