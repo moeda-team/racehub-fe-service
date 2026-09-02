@@ -221,8 +221,8 @@ export default function HomePage() {
           <div className="home-cta">
             <div>
               <Eyebrow>Tagline Kami</Eyebrow>
-              <h2>“Temukan, daftar, dan kelola event dengan cepat dan transparan.”</h2>
-              <p>Itu janji LowkeyThings ke setiap peserta dan penyelenggara event.</p>
+              <h2>Small Things. Big Moments.</h2>
+              <p>Kami bekerja quietly behind the scenes, agar setiap momen di depan layar terasa lebih berarti</p>
             </div>
             <ButtonLink href="/jelajahi-event" size="lg">
               Lihat Event Sekarang
