@@ -31,6 +31,9 @@ export default function MarketplaceLayout({ children }: { children: ReactNode })
             <Link href="/">Home Page</Link>
             <Link href="/jelajahi-event">Event</Link>
             <Link href="/hubungi-kami">Hubungi Kami</Link>
+            <Link href="/faq">FAQ</Link>
+            <Link href="/refund-policy">Refund Policy</Link>
+            <Link href="/terms-conditions">Syarat & Ketentuan</Link>
           </div>
           <div className="market-footer-column">
             <h2>Kontak</h2>

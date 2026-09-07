@@ -3,7 +3,6 @@ import { Eyebrow } from "@/components/ui/Layout";
 
 const supportEmail = "event.lowkeythings@gmail.com";
 const address = "Kutowinangun RT 002 RW 003, Kec. Kutowinangun, Kab. Kebumen, Jawa Tengah, 54393";
-const mapQuery = encodeURIComponent(address);
 
 export default function ContactPage() {
   return (
@@ -71,27 +70,6 @@ export default function ContactPage() {
           </form>
         </div>
 
-        <aside className="contact-map" aria-label="Lokasi LowkeyThings">
-          <iframe
-            className="contact-map-frame"
-            title="Peta lokasi LowkeyThings di Kutowinangun, Kebumen"
-            src={`https://maps.google.com/maps?q=${mapQuery}&z=15&output=embed`}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-          <div className="contact-map-label">
-            <strong>LowkeyThings</strong>
-            <span>{address}</span>
-          </div>
-          <a
-            className="contact-map-link"
-            href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Buka peta lebih besar <span aria-hidden>↗</span>
-          </a>
-        </aside>
       </section>
     </main>
   );

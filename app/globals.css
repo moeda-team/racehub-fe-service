@@ -331,6 +331,29 @@ p { line-height: 1.65; }
 .market-nav-links a { padding: 9px 18px; border-radius: var(--radius-pill); color: #aeb9b6; font-size: 13.5px; font-weight: 600; text-decoration: none; transition: 200ms ease; }
 .market-nav-links a:hover { color: var(--color-gold-soft); }
 .market-nav-links .market-nav-active { background: var(--color-gold); color: var(--color-navy-deep); }
+.information-page { max-width: 860px; padding-block: clamp(36px, 6vw, 72px); overflow-wrap: anywhere; }
+.information-header { padding-bottom: 28px; border-bottom: 1px solid var(--color-line); }
+.information-header h1 { margin: 12px 0 20px; font-family: var(--font-display); font-size: clamp(30px, 5vw, 48px); line-height: 1.2; }
+.information-header > p, .information-content, .information-contact { color: var(--color-ink-2); line-height: 1.8; }
+.information-date { font-size: 13px; }
+.information-content { padding-block: 20px; }
+.information-content section { margin-block: 32px; }
+.information-content h2, .information-contact h2 { color: var(--color-ink); font-family: var(--font-display); font-size: clamp(21px, 3vw, 27px); line-height: 1.4; margin-bottom: 16px; }
+.information-content p { margin-block: 16px; }
+.information-content ul { list-style: disc; padding-left: 24px; }
+.information-content li + li { margin-top: 12px; }
+.information-content a:not(.btn), .information-contact a { color: var(--color-info); text-decoration: underline; text-underline-offset: 3px; }
+.information-question { border-bottom: 1px solid var(--color-line); }
+.information-question summary { padding-block: 18px; cursor: pointer; font-weight: 600; color: var(--color-ink); }
+.information-question[open] summary { color: var(--color-info); }
+.information-question p { margin: 0 0 20px; }
+.information-note { padding: 20px; border-left: 3px solid var(--color-gold); background: var(--color-panel); border-radius: var(--radius-xs); }
+.information-estimates { margin-block: 28px; }
+.information-estimates > div { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-block: 16px; border-bottom: 1px solid var(--color-line); }
+.information-estimates dt { flex: 1 1 240px; font-weight: 600; }
+.information-estimates dd { flex: 1 1 240px; margin: 0; }
+.information-contact { margin-top: 24px; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); }
+.information-contact > a { display: block; padding-block: 8px; }
 .market-footer { border-top: 1px solid var(--color-navy-line); background: var(--color-navy-deep); color: var(--color-text-on-dark-muted); }
 .market-footer-inner { display: grid; grid-template-columns: minmax(220px, 1.8fr) repeat(2, minmax(120px, 1fr)); gap: 32px; padding-block: 52px 34px; }
 .market-footer-brand { color: var(--color-gold-soft); }
@@ -462,7 +485,7 @@ p { line-height: 1.65; }
 .contact-header .lk-eyebrow { color: #b98d3f; }
 .contact-header h1 { margin: 12px 0 0; font-size: clamp(36px, 5vw, 40px); line-height: 1.1; }
 .contact-header > p { max-width: 540px; margin: 12px 0 0; color: var(--color-ink-3); font-size: 15px; line-height: 1.65; }
-.contact-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; gap: 40px; padding-top: 28px; }
+.contact-grid { padding-top: 28px; }
 .contact-list { display: flex; flex-direction: column; gap: 16px; }
 .contact-item { display: flex; align-items: flex-start; gap: 16px; padding: 20px; border: 1px solid var(--color-line); border-radius: 16px; background: var(--color-panel); }
 .contact-item-icon { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border-radius: 11px; background: var(--color-navy); color: var(--color-gold); }
@@ -477,14 +500,7 @@ p { line-height: 1.65; }
 .contact-message-field { margin-top: 14px; }
 .contact-form textarea { min-height: 112px; resize: vertical; }
 .contact-form .btn { width: 100%; margin-top: 18px; }
-.contact-map { position: relative; height: 100%; min-height: 340px; overflow: hidden; border: 1px solid var(--color-navy-line); border-radius: 20px; background: var(--color-navy); }
-.contact-map-frame { display: block; width: 100%; height: 100%; min-height: 340px; border: 0; filter: saturate(.78) sepia(.12); }
-.contact-map-label { position: absolute; right: 18px; bottom: 18px; left: 18px; max-width: 330px; padding: 12px 16px; border: 1px solid var(--color-navy-line); border-radius: 12px; background: var(--color-navy-soft); color: #d9e0de; font-size: 13px; line-height: 1.5; }
-.contact-map-label strong { display: block; margin-bottom: 3px; color: var(--color-gold-soft); font-family: var(--font-display); font-size: 14px; }
-.contact-map-link { position: absolute; top: 14px; right: 14px; padding: 7px 10px; border: 1px solid var(--color-navy-line); border-radius: var(--radius-pill); background: rgba(7, 19, 24, .88); color: var(--color-gold-soft); font-family: var(--font-mono); font-size: 10px; text-decoration: none; }
-.contact-map-link:hover { background: var(--color-navy-deep); color: #fff; }
-@media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr; } .contact-map, .contact-map-frame { min-height: 360px; } }
-@media (max-width: 600px) { .contact-header { padding-block: 44px 12px; } .contact-grid { gap: 28px; padding-top: 20px; } .contact-form { padding: 22px 18px; } .contact-form-row { grid-template-columns: 1fr; } .contact-map, .contact-map-frame { min-height: 300px; } .contact-map-label { right: 12px; bottom: 12px; left: 12px; } .contact-map-link { top: 10px; right: 10px; } }
+@media (max-width: 600px) { .contact-header { padding-block: 44px 12px; } .contact-grid { padding-top: 20px; } .contact-form { padding: 22px 18px; } .contact-form-row { grid-template-columns: 1fr; } }
 .event-catalog-intro { max-width: 620px; margin: 4px 0 48px; padding: 0; border: 0; }
 .event-catalog-intro .lk-eyebrow { color: var(--color-gold-deep); }
 .event-catalog-intro h1 { margin: 12px 0 0; color: var(--color-ink); font-family: var(--font-display); font-size: clamp(36px, 5vw, 40px); font-weight: 600; letter-spacing: -.01em; line-height: 1.1; }
