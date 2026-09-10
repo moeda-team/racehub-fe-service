@@ -197,24 +197,6 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
             date={ticket.issued_at ? formatDate(ticket.issued_at) : undefined}
             qrToken={ticket.qr_token}
           />
-          <div style={card}>
-            <div style={{ fontWeight: 600, marginBottom: 6 }}>Butuh membatalkan pendaftaran?</div>
-            <p
-              style={{
-                fontSize: 13,
-                color: "var(--color-ink-3)",
-                margin: "0 0 14px",
-              }}
-            >
-              Ajukan refund sebelum batas waktu yang ditetapkan penyelenggara. Pengajuan akan ditinjau oleh
-              penyelenggara.
-            </p>
-            <Link href={`/refund/${number}`}>
-              <Button variant="secondary" size="sm">
-                Ajukan Refund
-              </Button>
-            </Link>
-          </div>
         </>
       )}
 
@@ -224,7 +206,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
           <Row label="Harga Tiket" value={formatRupiah(inv.price)} mono />
           <Row label="Donasi" value={formatRupiah(inv.donation)} mono />
           <Row label="Platform" value={formatRupiah(inv.fee_platform)} mono />
-          <Row label={`Fee Admin · ${inv.payment_method_label}`} value={formatRupiah(inv.fee_midtrans)} mono />
+          <Row label={`Biaya Payment Gateway`} value={formatRupiah(inv.fee_midtrans)} mono />
           <hr
             style={{
               border: 0,

@@ -2126,7 +2126,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Fee breakdown (ordered Harga → Donasi → Fee Platform → Fee Midtrans → Sub Total). */
+                /** @description Fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -2178,7 +2178,7 @@ export interface paths {
         put?: never;
         /**
          * Create a payment with the locked method
-         * @description Charges the registration via Midtrans Core API with the chosen method
+         * @description Charges the registration via iPaymu Direct Payment with the chosen channel
          *     (FR-506/508). The amount is the server-computed Sub Total. Returns the
          *     provider transaction id plus payment instructions (VA number / QR).
          *     Blocked when a pending payment already exists for the registration
@@ -2218,10 +2218,7 @@ export interface paths {
                     };
                 };
                 404: components["responses"]["NotFound"];
-                /**
-                 * @description Registration already paid, has a pending payment, or its status
-                 *     (expired/cancelled/refunded) does not allow a new charge.
-                 */
+                /** @description Registration already paid, has a pending payment, or its status does not allow a new charge. */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2238,6 +2235,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/payments/methods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List configured iPaymu payment channels
+         * @description Returns RaceHub's configured VA and QRIS iPaymu channels.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Active checkout methods */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["PaymentMethodOption"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payments/notification": {
         parameters: {
             query?: never;
@@ -2248,8 +2286,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Midtrans payment notification webhook
-         * @description Receives Midtrans notifications. The signature is verified BEFORE any
+         * iPaymu payment notification webhook
+         * @description Receives iPaymu notifications (JSON or form encoded). The X-Signature is verified BEFORE any
          *     mutation (NFR-205) and deliveries are deduped on (transaction_id,
          *     status) (NFR-302). On settlement, issues the e-ticket and credits the
          *     organizer wallet exactly-once, then sends the e-ticket email
@@ -2264,7 +2302,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["MidtransNotification"];
+                    "application/json": components["schemas"]["IPaymuNotification"];
                 };
             };
             responses: {
@@ -4462,13 +4500,10 @@ export interface components {
         PaymentQuoteRequest: {
             /** Format: uuid */
             registration_id: string;
-            /**
-             * @description Method chosen first (FR-508)
-             * @enum {string}
-             */
-            payment_method: "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
+            /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
+            payment_method: string;
         };
-        /** @description Fee breakdown (display only). All rupiah int64. Bank/VA Midtrans fees are deducted from ticket revenue, while QRIS and other non-bank fees are paid by the buyer. */
+        /** @description Fee breakdown (display only). All rupiah int64. iPaymu buyer-paid gateway fees are included in sub_total. */
         PaymentQuoteResponse: {
             /** Format: uuid */
             registration_id?: string;
@@ -4479,7 +4514,7 @@ export interface components {
             price?: number;
             /**
              * Format: int64
-             * @description Donasi (excluded from Midtrans fee basis, FR-505)
+             * @description Donation is excluded from the gateway fee basis.
              */
             donation?: number;
             /**
@@ -4489,14 +4524,14 @@ export interface components {
             fee_platform?: number;
             /**
              * Format: int64
-             * @description Fee Midtrans, per method. It is informational only for bank/VA methods.
+             * @description Gateway fee (legacy field name retained for API compatibility).
              */
             fee_midtrans?: number;
-            /** @description Whether fee_midtrans is included in sub_total and must be shown to the buyer. False for bank/VA methods. */
+            /** @description Always true for iPaymu buyer-fee checkout. */
             fee_midtrans_charged_to_buyer?: boolean;
             /**
              * Format: int64
-             * @description Amount charged to the buyer. Bank/VA excludes fee_midtrans; QRIS and other non-bank methods include it.
+             * @description Final amount charged to the buyer, including gateway fee.
              */
             sub_total?: number;
             payment_method?: string;
@@ -4505,13 +4540,13 @@ export interface components {
         PaymentChargeRequest: {
             /** Format: uuid */
             registration_id: string;
-            /** @enum {string} */
-            payment_method: "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
+            /** @description Live iPaymu channel id. */
+            payment_method: string;
         };
         PaymentChargeResponse: {
             /** Format: uuid */
             registration_id?: string;
-            /** @description Midtrans order id */
+            /** @description RaceHub iPaymu reference id */
             transaction_id?: string;
             /** @enum {string} */
             status?: "pending" | "settlement" | "expired" | "cancelled" | "denied";
@@ -4530,16 +4565,19 @@ export interface components {
             qr_string?: string;
             /** @description GoPay only: gojek:// deeplink to open GoPay app on mobile */
             deeplink_url?: string;
+            /** @description iPaymu hosted payment or instruction URL. */
+            payment_url?: string;
             quote?: components["schemas"]["PaymentQuoteResponse"];
         };
-        /** @description Raw Midtrans Core API notification. Signature verified before mutation (NFR-205). */
-        MidtransNotification: {
-            order_id?: string;
+        PaymentMethodOption: {
+            id?: string;
+            label?: string;
+        };
+        /** @description Raw iPaymu callback. The X-Signature header is verified before mutation (NFR-205). */
+        IPaymuNotification: {
+            reference_id?: string;
             status_code?: string;
-            gross_amount?: string;
-            signature_key?: string;
-            transaction_status?: string;
-            fraud_status?: string;
+            status?: string;
         };
         NotificationResult: {
             transaction_id?: string;

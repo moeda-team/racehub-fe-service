@@ -361,15 +361,13 @@ export interface PaymentQuoteResponse {
   original_fee_platform?: number;
 }
 
-export type PaymentMethod =
-  | "va_bca"
-  | "va_bni"
-  | "va_bri"
-  | "va_mandiri"
-  | "va_permata"
-  | "gopay"
-  | "card"
-  | "qris";
+// iPaymu channel identifiers are supplied by the backend's live catalog.
+export type PaymentMethod = string;
+
+export interface PaymentMethodOption {
+  id: string;
+  label: string;
+}
 
 export interface PaymentChargeRequest {
   registration_id: string;
@@ -386,6 +384,7 @@ export interface PaymentChargeResponse {
   bill_key?: string;
   qr_string?: string;
   deeplink_url?: string;
+	payment_url?: string;
   quote: PaymentQuoteResponse;
 }
 

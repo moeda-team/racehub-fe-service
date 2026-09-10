@@ -3,9 +3,8 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import type { ApiResponse, PaymentMethod, PublicEventDetail, StandaloneDonation } from "@/lib/types.gen";
+import type { ApiResponse, PaymentMethod, PaymentMethodOption, PublicEventDetail, StandaloneDonation } from "@/lib/types.gen";
 import { formatNumberInput, formatRupiah, parseNumberInput } from "@/lib/format";
-import { PAYMENT_METHOD_OPTIONS, paymentMethodLabel } from "@/lib/paymentMethods";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 
@@ -14,7 +13,9 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
   const [amount, setAmount] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [method, setMethod] = useState<PaymentMethod>("qris");
+  const [phone, setPhone] = useState("");
+  const [method, setMethod] = useState<PaymentMethod>("");
+  const [methodOptions, setMethodOptions] = useState<PaymentMethodOption[]>([]);
   const [result, setResult] = useState<StandaloneDonation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,11 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
       cancelled = true;
     };
   }, [eventId]);
+  useEffect(() => {
+    api.get<ApiResponse<PaymentMethodOption[]>>("/api/v1/payments/methods", { auth: false })
+      .then((res) => { setMethodOptions(res.data ?? []); if (res.data?.[0]) setMethod(res.data[0].id); })
+      .catch(() => setError("Metode pembayaran sedang tidak tersedia."));
+  }, []);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -52,7 +58,7 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
     try {
       const res = await api.post<ApiResponse<StandaloneDonation>>(
         "/api/v1/donations/charge",
-        { event_id: eventId, amount: value, donor_name: name, donor_email: email, payment_method: method },
+        { event_id: eventId, amount: value, donor_name: name, donor_email: email, donor_phone: phone, payment_method: method },
         { auth: false },
       );
       setResult(res.data);
@@ -143,7 +149,7 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
           </h2>
           <dl style={summary}>
             <SummaryRow label="Nominal donasi" value={formatRupiah(result.amount)} />
-            <SummaryRow label="Metode pembayaran" value={paymentMethodLabel(result.method)} />
+            <SummaryRow label="Metode pembayaran" value={result.method} />
             {result.donor_name && <SummaryRow label="Nama donatur" value={result.donor_name} />}
             {result.donor_email && <SummaryRow label="Email konfirmasi" value={result.donor_email} />}
             <SummaryRow label="ID transaksi" value={result.transaction_id} mono />
@@ -169,6 +175,11 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
                   </Button>
                 </a>
               )}
+			  {result.deeplink_url && (
+				<a href={result.deeplink_url} target="_blank" rel="noreferrer">
+				  <Button type="button" variant="primary">Lanjutkan ke iPaymu</Button>
+				</a>
+			  )}
               {result.expires_at && (
                 <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
                   Selesaikan sebelum {new Date(result.expires_at).toLocaleString("id-ID")}.
@@ -208,11 +219,15 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
             Email untuk konfirmasi (opsional)
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={input} />
           </label>
+		  <label style={label}>
+			Nomor telepon
+			<input inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required style={input} />
+		  </label>
           <label style={label}>
             Metode pembayaran
             <select value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)} style={input}>
-              {PAYMENT_METHOD_OPTIONS.map((m) => (
-                <option key={m.value} value={m.value}>
+              {methodOptions.map((m) => (
+                <option key={m.id} value={m.id}>
                   {m.label}
                 </option>
               ))}

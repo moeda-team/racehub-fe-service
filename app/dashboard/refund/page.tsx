@@ -230,7 +230,7 @@ export default function DashboardRefundPage() {
         style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}
       >
         Nominal refund dihitung server:{" "}
-        <code>total − fee Midtrans − donasi</code>. Donasi tidak dikembalikan
+        <code>total − biaya payment gateway − donasi</code>. Donasi tidak dikembalikan
         dan tetap disalurkan.
       </p>
 

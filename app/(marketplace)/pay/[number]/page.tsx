@@ -5,12 +5,12 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
-import { PAYMENT_METHOD_OPTIONS } from "@/lib/paymentMethods";
 import type {
   ApiResponse,
   PaymentChargeResponse,
   PaymentMethod,
   PaymentQuoteResponse,
+	PaymentMethodOption,
   Registration,
 } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
@@ -46,6 +46,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   const [loading, setLoading] = useState(true);
 
   const [method, setMethod] = useState<PaymentMethod | "">("");
+  const [methodOptions, setMethodOptions] = useState<PaymentMethodOption[]>([]);
   const [quote, setQuote] = useState<PaymentQuoteResponse | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [charge, setCharge] = useState<PaymentChargeResponse | null>(null);
@@ -80,6 +81,12 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
       cancelled = true;
     };
   }, [loadRegistration]);
+
+  useEffect(() => {
+    api.get<ApiResponse<PaymentMethodOption[]>>("/api/v1/payments/methods")
+      .then((res) => setMethodOptions(res.data ?? []))
+      .catch(() => setError("Metode pembayaran sedang tidak tersedia."));
+  }, []);
 
   // Poll for settlement once a charge is created (webhook updates status).
   useEffect(() => {
@@ -219,7 +226,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         ...(quote.fee_midtrans_charged_to_buyer
           ? [
               {
-                label: `Fee Midtrans · ${quote.payment_method_label}`,
+                label: "Biaya Payment Gateway",
                 value: formatRupiah(quote.fee_midtrans),
               },
             ]
@@ -283,7 +290,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         <>
           <PaymentBreakdown
             method={method}
-            methodOptions={PAYMENT_METHOD_OPTIONS}
+            methodOptions={methodOptions.map((item) => ({ value: item.id, label: item.label }))}
             onMethodChange={handleMethodChange}
             lines={lines}
             total={quote ? formatRupiah(quote.sub_total) : "—"}
@@ -295,7 +302,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
               margin: "10px 0 16px",
             }}
           >
-            ⛁ Pilih metode dulu agar Fee Midtrans dihitung tepat sesuai tarif. Donasi bebas biaya admin &amp; tidak
+            ⛁ Pilih metode dulu agar biaya payment gateway dihitung tepat sesuai tarif. Donasi bebas biaya admin &amp; tidak
             dapat dikembalikan.
           </p>
           <Button
@@ -322,6 +329,11 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           {charge.biller_code && <Row label="Kode Biller (Mandiri)" value={charge.biller_code} mono />}
           {charge.bill_key && <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />}
           {charge.qr_string && <QrDisplay value={charge.qr_string} deeplinkUrl={charge.deeplink_url} />}
+		  {(charge.payment_url ?? charge.deeplink_url) && (
+			<a href={charge.payment_url ?? charge.deeplink_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 12 }}>
+			  <Button variant="primary" size="md" style={{ width: "100%" }}>Lanjutkan ke iPaymu</Button>
+			</a>
+		  )}
           {charge.expires_at && reg.status === "pending_payment" && <PaymentCountdown expiresAt={charge.expires_at} />}
           <hr
             style={{
@@ -347,7 +359,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           />
           {charge.quote.fee_midtrans_charged_to_buyer && (
             <Row
-              label={`Fee Midtrans · ${charge.quote.payment_method_label}`}
+              label="Biaya Payment Gateway"
               value={formatRupiah(charge.quote.fee_midtrans)}
               mono
             />
@@ -458,7 +470,7 @@ function formatPaymentDate(value: string): string {
   }).format(date);
 }
 
-// QR rendering for QRIS/GoPay. Midtrans returns either a raw QRIS payload
+// QR rendering for QRIS. iPaymu may return either a raw payload
 // (encode it client-side) or a ready-made QR image URL (e.g. GoPay
 // generate-qr-code). A URL must be shown as <img>, never re-encoded — its
 // pixels already are the payment QR.

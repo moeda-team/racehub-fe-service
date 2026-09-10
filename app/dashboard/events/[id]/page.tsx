@@ -384,7 +384,7 @@ export default function EditEventPage({
                 }}
               >
                 Email yang terdaftar di sini akan mendapat tiket gratis (harga =
-                0, fee platform = 0) saat mendaftar. Donasi dan fee Midtrans
+                0, fee platform = 0) saat mendaftar. Donasi dan biaya payment gateway
                 tetap berlaku jika peserta memilih berdonasi.
               </p>
               <ComplimentaryManager eventId={eventId} />

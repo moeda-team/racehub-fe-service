@@ -216,7 +216,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
             {isPaid
               ? "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
-              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Fee Midtrans, Sub Total) dihitung server setelah Anda memilih metode."}
+              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Biaya Payment Gateway, Sub Total) dihitung server setelah Anda memilih metode."}
           </p>
         </div>
         {isPaid ? (
