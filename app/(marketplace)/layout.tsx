@@ -4,7 +4,7 @@ import { Brand } from "@/components/Brand";
 import { MarketplaceNav } from "@/components/MarketplaceNav";
 import { Container } from "@/components/ui/Layout";
 
-const supportEmail = "event.lowkeythings@gmail.com";
+const supportEmail = "admin@lowkeythings.my.id";
 
 export default function MarketplaceLayout({ children }: { children: ReactNode }) {
   return (
