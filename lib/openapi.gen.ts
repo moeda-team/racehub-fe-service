@@ -2067,29 +2067,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Submit a personal refund request for organizer review */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["PersonalRefundRequest"];
-                };
-            };
-            responses: {
-                /** @description Refund requested */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4971,12 +4949,6 @@ export interface components {
         };
         StandaloneDonationEnvelope: {
             data?: components["schemas"]["StandaloneDonation"];
-        };
-        PersonalRefundRequest: {
-            reason?: string;
-            bank_account?: string;
-            /** @description When true, donation is included in the 75% personal-refund basis. */
-            refund_donation?: boolean;
         };
         EmailCampaignRequest: {
             subject: string;

@@ -50,7 +50,6 @@ export default function RefundPolicyPage() {
         <div><dt>Estimasi Dana Kembali</dt><dd>7–14 hari kerja setelah disetujui</dd></div>
         <div><dt>Metode Pengembalian</dt><dd>Sama dengan metode pembayaran awal</dd></div>
       </dl>
-      <a className="btn btn-primary" href="mailto:event.lowkeythings@gmail.com?subject=Pengajuan%20Refund">Ajukan Refund</a>
     </InformationPage>
   );
 }

@@ -25,7 +25,7 @@ const groups = [
     ["Apa yang harus saya lakukan saat hari-H event?", "Tunjukkan e-tiket (dalam bentuk QR code/kode registrasi) melalui perangkat digital atau hasil cetak kepada petugas check-in di lokasi event."],
   ] },
   { title: "Pembatalan & Refund", items: [
-    ["Bagaimana jika saya ingin membatalkan pesanan?", <>Silakan merujuk pada <Link href="/refund-policy">Kebijakan Pengembalian Dana (Refund Policy)</Link> kami. Pengajuan pembatalan/refund dapat dikirimkan melalui email resmi dengan menyertakan bukti pemesanan.</>],
+    ["Bagaimana jika saya ingin membatalkan pesanan?", <>Silakan merujuk pada <Link href="/refund-policy">Kebijakan Pengembalian Dana (Refund Policy)</Link> kami untuk ketentuan pengembalian dana.</>],
     ["Bagaimana jika event dibatalkan atau ditunda oleh penyelenggara?", <>Jika event dibatalkan atau ditunda oleh penyelenggara, peserta berhak atas pengembalian dana penuh atau penukaran tiket ke jadwal baru, sesuai dengan penjelasan pada <Link href="/refund-policy">Kebijakan Pengembalian Dana</Link>.</>],
   ] },
   { title: "Lainnya", items: [

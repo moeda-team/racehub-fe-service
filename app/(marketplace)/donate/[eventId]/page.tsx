@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
 import type { ApiResponse, PaymentMethod, PaymentMethodOption, PublicEventDetail, StandaloneDonation } from "@/lib/types.gen";
 import { formatNumberInput, formatRupiah, parseNumberInput } from "@/lib/format";
@@ -168,13 +169,7 @@ export default function DonatePage({ params }: { params: Promise<{ eventId: stri
                   Kode biller: <code>{result.biller_code}</code> · Kunci bayar: <code>{result.bill_key}</code>
                 </p>
               )}
-              {result.qr_string && (
-                <a href={result.qr_string} target="_blank" rel="noreferrer">
-                  <Button type="button" variant="primary">
-                    Buka QR pembayaran
-                  </Button>
-                </a>
-              )}
+			  {result.qr_string && <DonationQrDisplay value={result.qr_string} />}
 			  {result.deeplink_url && (
 				<a href={result.deeplink_url} target="_blank" rel="noreferrer">
 				  <Button type="button" variant="primary">Lanjutkan ke iPaymu</Button>
@@ -267,6 +262,25 @@ function SummaryRow({ label, value, mono = false }: { label: string; value: stri
       <dd style={{ margin: 0, textAlign: "right", fontWeight: 600, ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}>
         {value}
       </dd>
+    </div>
+  );
+}
+
+function DonationQrDisplay({ value }: { value: string }) {
+  const isImageURL = /^https?:\/\//i.test(value);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, margin: "16px 0" }}>
+      <span style={{ alignSelf: "flex-start", color: "var(--color-ink-3)", fontSize: 14 }}>
+        Kode QR — pindai untuk membayar
+      </span>
+      <div style={{ background: "#fff", padding: 12, borderRadius: "var(--radius-md)" }}>
+        {isImageURL ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt="Kode QR pembayaran" width={280} height={280} style={{ display: "block", maxWidth: "100%", height: "auto" }} />
+        ) : (
+          <QRCodeSVG value={value} size={280} level="M" style={{ display: "block", maxWidth: "100%", height: "auto" }} />
+        )}
+      </div>
     </div>
   );
 }
