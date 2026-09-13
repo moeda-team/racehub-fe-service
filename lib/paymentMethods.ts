@@ -14,3 +14,13 @@ export const PAYMENT_METHOD_OPTIONS: { value: PaymentMethod; label: string }[] =
 export function paymentMethodLabel(method: PaymentMethod): string {
   return PAYMENT_METHOD_OPTIONS.find((item) => item.value === method)?.label ?? method;
 }
+
+export function normalizePaymentMethodLabel(method: string, label?: string): string {
+  if (method.startsWith("qris:") || method === "qris" || label === "QR Dynamic Nobu") {
+    return "QRIS";
+  }
+  if (method === "va:bag" || label === "VA BAG" || label === "BAG") {
+    return "Bank Artha Graha";
+  }
+  return label ?? paymentMethodLabel(method);
+}
