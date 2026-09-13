@@ -5,12 +5,13 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
+import { normalizePaymentMethodLabel } from "@/lib/paymentMethods";
 import type {
   ApiResponse,
   PaymentChargeResponse,
   PaymentMethod,
   PaymentQuoteResponse,
-	PaymentMethodOption,
+  PaymentMethodOption,
   Registration,
 } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
@@ -290,7 +291,10 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         <>
           <PaymentBreakdown
             method={method}
-            methodOptions={methodOptions.map((item) => ({ value: item.id, label: item.label }))}
+            methodOptions={methodOptions.map((item) => ({
+              value: item.id,
+              label: normalizePaymentMethodLabel(item.id, item.label),
+            }))}
             onMethodChange={handleMethodChange}
             lines={lines}
             total={quote ? formatRupiah(quote.sub_total) : "—"}
@@ -323,7 +327,10 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
               Instruksi pembayaran sebelumnya dipulihkan. Gunakan transaksi ini untuk menyelesaikan pembayaran.
             </Alert>
           )}
-          <Row label="Metode" value={charge.quote.payment_method_label} />
+          <Row
+            label="Metode"
+            value={normalizePaymentMethodLabel(charge.quote.payment_method, charge.quote.payment_method_label)}
+          />
           {charge.expires_at && <Row label="Batas Pembayaran" value={formatPaymentDate(charge.expires_at)} />}
           {charge.va_number && <Row label="Nomor Virtual Account" value={charge.va_number} mono />}
           {charge.biller_code && <Row label="Kode Biller (Mandiri)" value={charge.biller_code} mono />}
