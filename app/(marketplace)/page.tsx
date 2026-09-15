@@ -1,15 +1,29 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { BarChart3, Bell, CreditCard, Search, Ticket, Users } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
 import EventCard from "@/components/ui/EventCard";
 import { Eyebrow } from "@/components/ui/Layout";
-import { api } from "@/lib/api";
 import { formatDate, formatRupiah } from "@/lib/format";
 import type { PublicEvent } from "@/lib/types.gen";
 
-type PagedEvents = { data: PublicEvent[] };
+type PagedEvents = { data?: PublicEvent[] };
+
+const backendBase = (process.env.BACKEND_API_URL ?? "http://localhost:3001").replace(/\/$/, "");
+
+// The featured card is public, non-transactional data. Rendering it on the
+// server removes a client-side request and lets visitors see it in the first
+// paint, while the short revalidation window keeps the catalogue fresh.
+async function getFeaturedEvent(): Promise<PublicEvent | null> {
+  try {
+    const response = await fetch(`${backendBase}/api/v1/events?page=1&page_size=1`, {
+      next: { revalidate: 60 },
+    });
+    if (!response.ok) return null;
+    const payload = (await response.json()) as PagedEvents;
+    return payload.data?.[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 const services = [
   {
@@ -50,28 +64,8 @@ const services = [
   },
 ];
 
-export default function HomePage() {
-  const [featuredEvent, setFeaturedEvent] = useState<PublicEvent | null>(null);
-  const [isLoadingEvent, setIsLoadingEvent] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const response = await api.get<PagedEvents>("/api/v1/events?page=1&page_size=1", { auth: false });
-        if (!cancelled) setFeaturedEvent(response.data?.[0] ?? null);
-      } catch {
-        if (!cancelled) setFeaturedEvent(null);
-      } finally {
-        if (!cancelled) setIsLoadingEvent(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export default async function HomePage() {
+  const featuredEvent = await getFeaturedEvent();
 
   return (
     <main className="home-page rh-reveal">
@@ -116,7 +110,7 @@ export default function HomePage() {
               <div className="market-hero-empty">
                 <Eyebrow>Event / Preview</Eyebrow>
                 <strong>
-                  {isLoadingEvent ? "Menyiapkan event pilihan…" : "Event pilihan berikutnya akan hadir di sini."}
+                  Event pilihan berikutnya akan hadir di sini.
                 </strong>
               </div>
             )}

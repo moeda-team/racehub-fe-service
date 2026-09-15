@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/lib/adminAuth";
+import { AdminAuthProvider } from "@/lib/adminAuth";
 import { Brand } from "@/components/Brand";
 import { LogOut, Menu, X } from "lucide-react";
 
@@ -16,6 +17,14 @@ const navItems = [
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <AdminAuthProvider>
+      <AdminShell>{children}</AdminShell>
+    </AdminAuthProvider>
+  );
+}
+
+function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";

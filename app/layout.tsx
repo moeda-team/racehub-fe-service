@@ -10,8 +10,6 @@ import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/jetbrains-mono/600.css";
 import "@fontsource/jetbrains-mono/700.css";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth";
-import { AdminAuthProvider } from "@/lib/adminAuth";
 
 export const metadata: Metadata = {
   title: "LowkeyThings — Platform Event Indonesia",
@@ -38,9 +36,7 @@ export default function RootLayout({
           color: "var(--color-ink)",
         }}
       >
-        <AuthProvider>
-          <AdminAuthProvider>{children}</AdminAuthProvider>
-        </AuthProvider>
+        {children}
       </body>
     </html>
   );
