@@ -6,11 +6,35 @@ import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
 import type { ApiResponse, PaymentMethod, PaymentMethodOption, PublicEventDetail, StandaloneDonation } from "@/lib/types.gen";
 import { formatNumberInput, formatRupiah, parseNumberInput } from "@/lib/format";
+import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 
 export default function DonatePage({ params }: { params: Promise<{ eventId: string }> }) {
   const { eventId } = use(params);
+
+  if (!PUBLIC_DONATIONS_ENABLED) {
+    return <DonationUnavailable eventId={eventId} />;
+  }
+
+  return <DonationCheckout eventId={eventId} />;
+}
+
+function DonationUnavailable({ eventId }: { eventId: string }) {
+  return (
+    <main className="max-w-xl mx-auto px-4 py-10">
+      <Link href={`/events/${eventId}`} style={{ color: "var(--color-sprint)", fontSize: 14 }}>
+        ← Kembali ke event
+      </Link>
+      <Alert variant="info" className="mt-4">
+        Donasi saat ini tidak tersedia.
+      </Alert>
+    </main>
+  );
+}
+
+// Retained behind PUBLIC_DONATIONS_ENABLED for a future reactivation.
+function DonationCheckout({ eventId }: { eventId: string }) {
   const [amount, setAmount] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

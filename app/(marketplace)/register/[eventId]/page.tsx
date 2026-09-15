@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
+import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
 import type {
   ApiResponse,
   CreateRegistrationRequest,
@@ -133,7 +134,9 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
         phone: phone.trim(),
         birth_date: birthDate,
         gender,
-        donation: Number(donation) || 0,
+        // Marketplace donations are temporarily disabled. Keep the request
+        // field explicit because the backend contract still expects it.
+        donation: 0,
         extra_data: extraData,
       };
       const res = await api.post<ApiResponse<Registration>>("/api/v1/registrations", body, {
@@ -403,17 +406,19 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       {/* Step 3: donation + review */}
       {step === 3 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div className="field">
-            <label className="field-label">Donasi (opsional)</label>
-            <input
-              className="field-input"
-              type="text"
-              inputMode="numeric"
-              value={formatNumberInput(donation)}
-              onChange={(e) => setDonation(parseNumberInput(e.target.value))}
-            />
-            <span className="field-hint">Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)</span>
-          </div>
+          {PUBLIC_DONATIONS_ENABLED && (
+            <div className="field">
+              <label className="field-label">Donasi (opsional)</label>
+              <input
+                className="field-input"
+                type="text"
+                inputMode="numeric"
+                value={formatNumberInput(donation)}
+                onChange={(e) => setDonation(parseNumberInput(e.target.value))}
+              />
+              <span className="field-hint">Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)</span>
+            </div>
+          )}
 
           <div style={card}>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>
@@ -424,7 +429,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             />
             <Row label="Tiket" value={selectedTicket?.name ?? "-"} />
             <Row label="Harga tiket" value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"} mono />
-            <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />
+            {PUBLIC_DONATIONS_ENABLED && <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />}
             <p
               style={{
                 fontSize: 12,

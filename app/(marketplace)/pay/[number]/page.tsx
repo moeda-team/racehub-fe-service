@@ -218,7 +218,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           value: formatRupiah(quote.price),
           original: quote.original_price != null ? formatRupiah(quote.original_price) : undefined,
         },
-        { label: "Donasi", value: formatRupiah(quote.donation) },
+        ...(quote.donation > 0 ? [{ label: "Donasi", value: formatRupiah(quote.donation) }] : []),
         {
           label: "Platform",
           value: formatRupiah(quote.fee_platform),
@@ -306,8 +306,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
               margin: "10px 0 16px",
             }}
           >
-            ⛁ Pilih metode dulu agar biaya payment gateway dihitung tepat sesuai tarif. Donasi bebas biaya admin &amp; tidak
-            dapat dikembalikan.
+            ⛁ Pilih metode dulu agar biaya payment gateway dihitung tepat sesuai tarif.
           </p>
           <Button
             variant="primary"
@@ -355,7 +354,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             original={charge.quote.original_price != null ? formatRupiah(charge.quote.original_price) : undefined}
             mono
           />
-          <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />
+          {charge.quote.donation > 0 && <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />}
           <Row
             label="Platform"
             value={formatRupiah(charge.quote.fee_platform)}

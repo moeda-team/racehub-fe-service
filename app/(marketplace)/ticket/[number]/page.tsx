@@ -204,7 +204,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
         <div style={card}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>Rincian Pembayaran</div>
           <Row label="Harga Tiket" value={formatRupiah(inv.price)} mono />
-          <Row label="Donasi" value={formatRupiah(inv.donation)} mono />
+          {inv.donation > 0 && <Row label="Donasi" value={formatRupiah(inv.donation)} mono />}
           <Row label="Platform" value={formatRupiah(inv.fee_platform)} mono />
           <Row label={`Biaya Payment Gateway`} value={formatRupiah(inv.fee_midtrans)} mono />
           <hr

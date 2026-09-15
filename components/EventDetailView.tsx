@@ -6,6 +6,7 @@ import type { PublicEventDetail } from "@/lib/types.gen";
 import Badge from "@/components/ui/Badge";
 import Alert from "@/components/ui/Alert";
 import RichText from "@/components/ui/RichText";
+import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
 import Button from "@/components/ui/Button";
 import ButtonLink from "@/components/ui/ButtonLink";
 import Card from "@/components/ui/Card";
@@ -92,7 +93,7 @@ export default function EventDetailView({
         {event.event_type === "running" && (
           <Badge variant="sprint">Event Lari</Badge>
         )}
-        {event.donation_enabled && (
+        {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && (
           <Badge variant="flame">Donasi Tersedia</Badge>
         )}
       </div>
@@ -110,7 +111,7 @@ export default function EventDetailView({
         </div>
       )}
 
-      {event.donation_enabled && interactive && !isComingSoon && (
+      {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && interactive && !isComingSoon && (
         <ButtonLink href={`/donate/${event.id}`} variant="secondary" size="md" style={{ width: "100%", margin: "0 0 24px" }}>Donasi tanpa mendaftar</ButtonLink>
       )}
 
