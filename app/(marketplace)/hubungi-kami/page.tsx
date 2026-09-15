@@ -3,7 +3,7 @@ import { Eyebrow } from "@/components/ui/Layout";
 
 const supportEmail = "admin@lowkeythings.my.id";
 const address =
-  "Jebor Bumen Kutowinangun RT 002 RW 003 Desa Kutowinangun, Kec. Kutowinangun, Kab. Kebumen, Jawa Tengah. 54393";
+  "Jebor Bumen Kutowinangun RT 002 RW 003 Desa Kutowinangun, Kecamatan Kutowinangun, Kabupaten Kebumen, Provinsi Jawa Tengah";
 
 export default function ContactPage() {
   return (
