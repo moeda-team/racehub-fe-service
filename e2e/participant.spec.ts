@@ -7,6 +7,20 @@ test("participant can register, pay through the stub webhook, and open an e-tick
   const ticket = event.ticket_categories.find((item) => item.category_id === category.id && item.quota_remaining > 0)!;
   const email = `e2e-participant-${Date.now()}@example.test`;
 
+  await page.goto(`/events/${event.event.id}`);
+  await expect(page.getByText("Donasi Tersedia", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Donasi tanpa mendaftar" })).toHaveCount(0);
+
+  let donationApiRequested = false;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/v1/donations/") || request.url().endsWith("/api/v1/payments/methods")) {
+      donationApiRequested = true;
+    }
+  });
+  await page.goto(`/donate/${event.event.id}`);
+  await expect(page.getByText("Donasi saat ini tidak tersedia.")).toBeVisible();
+  expect(donationApiRequested).toBe(false);
+
   await page.goto(`/register/${event.event.id}`);
   await page.locator("select").first().selectOption(category.id);
   await page.locator(".field", { hasText: "Tiket" }).locator("select").selectOption(ticket.id);
@@ -17,13 +31,19 @@ test("participant can register, pay through the stub webhook, and open an e-tick
   await page.locator(".field", { hasText: "Tanggal Lahir" }).locator("input").fill("1990-01-01");
   await page.locator(".field", { hasText: "Jenis Kelamin" }).locator("select").selectOption("male");
   await page.getByRole("button", { name: "Lanjut" }).click();
+  await expect(page.getByText("Donasi", { exact: true })).toHaveCount(0);
+  const registrationRequest = page.waitForRequest(
+    (request) => request.url().endsWith("/api/v1/registrations") && request.method() === "POST",
+  );
   await page.getByRole("button", { name: "Daftar Sekarang" }).click();
+  expect((await registrationRequest).postDataJSON()).toMatchObject({ donation: 0 });
   await expect(page.getByText("Pendaftaran berhasil")).toBeVisible();
 
   const registrationNumber = (await page.locator("text=/REG-/").first().textContent())!.trim();
   await page.getByRole("button", { name: /lanjut ke pembayaran/i }).click();
   await page.getByRole("button", { name: "VA BCA" }).click();
   await expect(page.getByText("Harga Tiket")).toBeVisible();
+  await expect(page.getByText("Donasi", { exact: true })).toHaveCount(0);
   const chargeResponse = page.waitForResponse((response) => response.url().endsWith("/api/v1/payments/charge") && response.status() === 201);
   await page.getByRole("button", { name: "Bayar Sekarang" }).click();
   const charged = await (await chargeResponse).json() as { data: { transaction_id: string; quote: { sub_total: number } } };
