@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { AuthProvider } from "@/lib/auth";
 import type { OrganizerProfile } from "@/lib/types.gen";
 import { Brand } from "@/components/Brand";
 import { ChevronUp, LogOut, Menu, User, X } from "lucide-react";
@@ -18,6 +19,14 @@ const navItems = [
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </AuthProvider>
+  );
+}
+
+function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, isLoading, profile, logout } = useAuth();
