@@ -41,7 +41,10 @@ export default function MarketplaceLayout({ children }: { children: ReactNode })
             <a href="https://wa.me/6285148351241" target="_blank" rel="noopener noreferrer">
               +6285148351241
             </a>
-            <span>Kebumen, Jawa Tengah</span>
+            <span>
+              Jebor Bumen Kutowinangun RT 002 RW 003 Desa Kutowinangun, Kecamatan Kutowinangun, Kabupaten Kebumen,
+              Provinsi Jawa Tengah
+            </span>
           </div>
           <div className="market-footer-bottom">
             <p>© {new Date().getFullYear()} LowkeyThings</p>
