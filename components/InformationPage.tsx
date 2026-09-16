@@ -35,7 +35,10 @@ export function InformationPage({
         </p>
         <a href="mailto:admin@lowkeythings.my.id">admin@lowkeythings.my.id</a>
         <a href="https://wa.me/6285148351241">WhatsApp: +62 851-4835-1241</a>
-        <p>Kebumen, Jawa Tengah, Indonesia</p>
+        <p>
+          Jebor Bumen Kutowinangun RT 002 RW 003 Desa Kutowinangun, Kecamatan Kutowinangun, Kabupaten Kebumen, Provinsi
+          Jawa Tengah
+        </p>
       </aside>
     </main>
   );
