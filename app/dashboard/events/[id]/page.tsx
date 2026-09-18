@@ -383,9 +383,11 @@ export default function EditEventPage({
                   marginBottom: 20,
                 }}
               >
-                Email yang terdaftar di sini akan mendapat tiket gratis (harga =
-                0, fee platform = 0) saat mendaftar. Donasi dan biaya payment gateway
-                tetap berlaku jika peserta memilih berdonasi.
+                Email yang terdaftar di sini mendapat tiket gratis: harga tiket dan
+                fee platform Rp0. Tanpa donasi, peserta langsung menerima e-tiket
+                tanpa melalui payment gateway. Jika memilih donasi, peserta hanya
+                membayar donasi dan biaya payment gateway; harga tiket serta fee
+                platform tetap Rp0.
               </p>
               <ComplimentaryManager eventId={eventId} />
             </div>

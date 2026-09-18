@@ -68,7 +68,7 @@ export default async function HomePage() {
   const featuredEvent = await getFeaturedEvent();
 
   return (
-    <main className="home-page rh-reveal">
+    <main className="home-page home-justify rh-reveal">
       <section className="home-hero" style={{ paddingBottom: "clamp(40px, 4.45vw, 64px)" }}>
         <div className="lk-container home-hero-grid">
           <div className="home-hero-copy">
@@ -186,7 +186,7 @@ export default async function HomePage() {
 
       <section className="home-section">
         <div className="lk-container">
-          <div className="home-section-head">
+          <div className="home-section-head home-services-head">
             <Eyebrow>Layanan Kami</Eyebrow>
             <h2>Semua yang kamu butuhkan, dalam satu platform.</h2>
             <p>

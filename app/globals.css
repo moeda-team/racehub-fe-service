@@ -357,10 +357,11 @@ p { line-height: 1.65; }
 .market-footer { border-top: 1px solid var(--color-navy-line); background: var(--color-navy-deep); color: var(--color-text-on-dark-muted); }
 .market-footer-inner { display: grid; grid-template-columns: minmax(220px, 1.8fr) repeat(2, minmax(120px, 1fr)); gap: 32px; padding-block: 52px 34px; }
 .market-footer-brand { color: var(--color-gold-soft); }
-.market-footer-intro > p { max-width: 250px; margin: 16px 0 0; font-size: 13px; line-height: 1.7; }
+.market-footer-intro > p { max-width: 250px; margin: 16px 0 0; font-size: 13px; line-height: 1.7; text-align: justify; text-justify: inter-word; }
 .market-footer-column { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; font-size: 13px; line-height: 1.5; }
 .market-footer-column h2 { margin: 4px 0 8px; color: var(--color-gold-soft); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
 .market-footer-column a, .market-footer-column span { color: var(--color-text-on-dark-muted); font-weight: 400; }
+.market-footer-column span { align-self: stretch; text-align: justify; text-justify: inter-word; }
 .market-footer-column a:hover { color: var(--color-gold-soft); }
 .market-footer-bottom { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 24px; margin-top: 16px; padding-top: 20px; border-top: 1px solid var(--color-navy-line); font-family: var(--font-mono); font-size: 10.5px; line-height: 1.5; }
 .market-footer-bottom p { margin: 0; }
@@ -386,6 +387,12 @@ p { line-height: 1.65; }
 
 /* Beranda */
 .home-page { background: var(--color-paper); }
+.home-justify p,
+.home-justify .home-vm-card h3,
+.home-justify .home-vm-mission li {
+  text-align: justify;
+  text-justify: inter-word;
+}
 .home-hero { overflow: hidden; padding-block: 64px; background: var(--color-navy); color: var(--color-text-on-dark); }
 .home-hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 50px; }
 .home-feature-event { min-width: 0; margin-top: -24px; transform: rotate(1.2deg); transition: transform .2s ease; }
@@ -428,6 +435,7 @@ p { line-height: 1.65; }
 .home-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 .home-tags span { padding: 6px 12px; border: 1px solid var(--color-line); border-radius: var(--radius-pill); background: var(--color-panel); color: var(--color-gold-deep); font-family: var(--font-mono); font-size: 11px; }
 .home-section-head { max-width: 620px; margin-bottom: 40px; }
+.home-services-head { max-width: none; }
 .home-section-head > p { margin: 12px 0 0; color: var(--color-ink-soft); font-size: 16px; line-height: 1.6; }
 .home-vm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .home-vm-card { padding: 34px 30px; border: 1px solid var(--color-navy-line); border-radius: 22px; background: var(--color-navy); color: var(--color-text-on-dark); }
@@ -436,7 +444,16 @@ p { line-height: 1.65; }
 .home-vm-card p { margin: 14px 0 0; color: var(--color-text-on-dark-muted); font-size: 15px; line-height: 1.7; }
 .home-vm-mission { border-color: var(--color-line); background: var(--color-panel); color: var(--color-ink); }
 .home-vm-mission > span { color: var(--color-gold-deep); }
-.home-vm-mission ol { margin: 18px 0 0; padding-left: 20px; color: var(--color-ink-soft); font-size: 14.5px; line-height: 1.9; }
+.home-vm-mission ol {
+  margin: 18px 0 0;
+  padding-left: 20px;
+  color: var(--color-ink-soft);
+  font-size: 14.5px;
+  line-height: 1.9;
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+.home-vm-mission li { padding-left: 4px; }
 .home-services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .home-service-card { position: relative; padding: 26px 22px 22px; border: 1px solid var(--color-line); border-radius: var(--radius-lg); background: var(--color-panel); }
 .home-service-card::before, .home-service-card::after { top: 64px; background: var(--color-paper); }
@@ -484,7 +501,7 @@ p { line-height: 1.65; }
 .contact-header { padding-block: 72px 20px; }
 .contact-header .lk-eyebrow { color: #b98d3f; }
 .contact-header h1 { margin: 12px 0 0; font-size: clamp(36px, 5vw, 40px); line-height: 1.1; }
-.contact-header > p { max-width: 540px; margin: 12px 0 0; color: var(--color-ink-3); font-size: 15px; line-height: 1.65; }
+.contact-header > p { max-width: none; margin: 12px 0 0; color: var(--color-ink-3); font-size: 15px; line-height: 1.65; text-align: justify; text-justify: inter-word; }
 .contact-grid { padding-top: 28px; }
 .contact-list { display: flex; flex-direction: column; gap: 16px; }
 .contact-item { display: flex; align-items: flex-start; gap: 16px; padding: 20px; border: 1px solid var(--color-line); border-radius: 16px; background: var(--color-panel); }

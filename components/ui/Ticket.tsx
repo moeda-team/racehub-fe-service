@@ -10,7 +10,7 @@ interface TicketProps {
   ageClass?: string;
   /** Set only for running events; falsy hides the row. */
   gender?: string;
-  date?: string;
+  birthDate?: string;
   /** Opaque token encoded into the QR for check-in. */
   qrToken: string;
   className?: string;
@@ -23,7 +23,7 @@ export default function Ticket({
   distance,
   ageClass,
   gender,
-  date,
+  birthDate,
   qrToken,
   className = "",
 }: TicketProps) {
@@ -73,10 +73,10 @@ export default function Ticket({
               <div className="v">{ageClass}</div>
             </div>
           )}
-          {date && (
+          {birthDate && (
             <div>
-              <div className="k">Tanggal</div>
-              <div className="v">{date}</div>
+              <div className="k">Tanggal Lahir</div>
+              <div className="v">{birthDate}</div>
             </div>
           )}
         </div>

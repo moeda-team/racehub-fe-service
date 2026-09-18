@@ -194,7 +194,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
             distance={ticket.category_name}
             ageClass={ticket.age_class || undefined}
             gender={ticket.gender || undefined}
-            date={ticket.issued_at ? formatDate(ticket.issued_at) : undefined}
+            birthDate={ticket.birth_date ? formatDate(ticket.birth_date) : undefined}
             qrToken={ticket.qr_token}
           />
         </>
