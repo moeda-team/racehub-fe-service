@@ -218,12 +218,17 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           </div>
           <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
             {isPaid
-              ? "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
+              ? result.is_complimentary
+                ? "Harga tiket dan fee platform Rp0. Karena tidak ada donasi, Anda langsung menerima e-tiket tanpa melalui payment gateway."
+                : "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
               : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Biaya Payment Gateway, Sub Total) dihitung server setelah Anda memilih metode."}
           </p>
         </div>
         {isPaid ? (
-          <Link href={`/ticket/${result.registration_number}`} style={{ display: "block", marginTop: 16 }}>
+          <Link
+            href={`/ticket/${result.registration_number}${result.qr_token ? `?token=${result.qr_token}` : ""}`}
+            style={{ display: "block", marginTop: 16 }}
+          >
             <Button variant="primary" size="md" style={{ width: "100%" }}>
               Lihat E-Tiket
             </Button>

@@ -1922,7 +1922,7 @@ export interface paths {
                     };
                 };
                 404: components["responses"]["NotFound"];
-                /** @description Quota exhausted, event not open, or sale period closed. */
+                /** @description Quota exhausted, event not open, sale period closed, or a complimentary invitation already claimed. */
                 409: {
                     headers: {
                         [name: string]: unknown;
