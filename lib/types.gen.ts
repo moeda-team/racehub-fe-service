@@ -201,6 +201,7 @@ export interface Registration {
   pending_payment?: PaymentChargeResponse;
   payment_paid_at?: string;
   payment_expires_at?: string;
+  reservation_expires_at?: string;
 }
 
 export interface StandaloneDonation {
