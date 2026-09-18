@@ -415,6 +415,7 @@ export interface ETicket {
   event_name: string;
   category_name: string;
   gender: string;
+  birth_date: string;
   age_class: "" | "Open" | "Master";
   qr_token: string;
   issued_at: string;

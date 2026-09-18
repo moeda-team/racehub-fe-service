@@ -4593,6 +4593,11 @@ export interface components {
             event_name?: string;
             category_name?: string;
             gender?: string;
+            /**
+             * Format: date
+             * @description Participant date of birth (YYYY-MM-DD).
+             */
+            birth_date?: string;
             /** @enum {string} */
             age_class?: "" | "Open" | "Master";
             /** @description Opaque token encoded into the QR for check-in (FR-604) */
