@@ -161,7 +161,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
 
   const badge = statusBadge(reg.status);
 
-  const paymentDeadline = reg.payment_expires_at ?? charge?.expires_at;
+  const paymentDeadline = reg.reservation_expires_at ?? reg.payment_expires_at ?? charge?.expires_at;
 
   // Already paid → straight to the e-ticket.
   if (reg.status === "paid") {
@@ -285,6 +285,10 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         <Alert variant="danger" className="mb-4">
           {error}
         </Alert>
+      )}
+
+      {!charge && paymentDeadline && reg.status === "pending_payment" && (
+        <PaymentCountdown expiresAt={paymentDeadline} />
       )}
 
       {!charge ? (

@@ -4474,6 +4474,11 @@ export interface components {
              * @description Provider payment deadline of the latest payment, including an expired transaction.
              */
             payment_expires_at?: string;
+            /**
+             * Format: date-time
+             * @description Checkout reservation deadline. Pending registrations release their quota after this time.
+             */
+            reservation_expires_at?: string;
         };
         PaymentQuoteRequest: {
             /** Format: uuid */
