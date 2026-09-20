@@ -6,6 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
+import { isValidEmail } from "@/lib/validation";
 import type {
   ApiResponse,
   CreateRegistrationRequest,
@@ -38,6 +39,15 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const [donation, setDonation] = useState("0");
   const [extraData, setExtraData] = useState<Record<string, string>>({});
   const [extraErrors, setExtraErrors] = useState<Record<string, string>>({});
+
+  function isParticipantDataValid(): boolean {
+    if (!isValidEmail(email.trim())) {
+      setServerError("Masukkan alamat email yang valid.");
+      return false;
+    }
+    setServerError(null);
+    return true;
+  }
 
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -84,6 +94,9 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       const value = extraData[field.id] ?? "";
       const valid = field.field_type === "checkbox" ? value === "true" : value.trim() !== "";
       if (field.required && !valid) errors[field.id] = "Kolom ini wajib diisi.";
+      if (value && field.field_type === "email" && !isValidEmail(value.trim())) {
+        errors[field.id] = "Masukkan alamat email yang valid.";
+      }
     }
     setExtraErrors(errors);
     return Object.keys(errors).length === 0;
@@ -399,7 +412,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
               style={{ flex: 1 }}
               disabled={!name || !email || !phone || !birthDate || !gender}
               onClick={() => {
-                if (validateExtraFields()) setStep(3);
+                if (isParticipantDataValid() && validateExtraFields()) setStep(3);
               }}
             >
               Lanjut
