@@ -10,6 +10,7 @@ import {
   parseNumberInput,
   formatDate,
 } from "@/lib/format";
+import { isValidEmail } from "@/lib/validation";
 import EventCard from "@/components/ui/EventCard";
 import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, {
@@ -1633,6 +1634,10 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
     }
     if (!email.trim()) {
       setAddErr("Email wajib diisi.");
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setAddErr("Masukkan alamat email yang valid.");
       return;
     }
     setAddErr(null);
