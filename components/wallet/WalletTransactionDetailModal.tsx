@@ -103,7 +103,7 @@ function formatDate(value: string) {
 }
 
 const backdrop: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" };
-const modal: React.CSSProperties = { width: "min(100%, 720px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 20, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" };
+const modal: React.CSSProperties = { boxSizing: "border-box", width: "min(100%, 720px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 20, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" };
 const header: React.CSSProperties = { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 };
 const eyebrow: React.CSSProperties = { margin: "0 0 4px", color: "var(--color-flame)", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: ".12em" };
 const title: React.CSSProperties = { margin: 0, fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.2 };
