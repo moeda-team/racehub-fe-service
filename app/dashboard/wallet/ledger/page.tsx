@@ -9,8 +9,10 @@ import type {
   WalletHistoryEntry,
   WalletKind,
   WalletEntryType,
+  WalletTransactionDetail,
 } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
+import WalletTransactionDetailModal from "@/components/wallet/WalletTransactionDetailModal";
 
 const TYPE_LABEL: Record<string, string> = {
   credit: "Pemasukan Tiket",
@@ -50,6 +52,10 @@ export default function LedgerPage() {
   const [walletFilter, setWalletFilter] = useState<WalletKind | "">("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [selectedEntry, setSelectedEntry] = useState<WalletHistoryEntry | null>(null);
+  const [transactionDetail, setTransactionDetail] = useState<WalletTransactionDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +101,30 @@ export default function LedgerPage() {
     () => filtered.reduce((sum, e) => sum + e.amount, 0),
     [filtered],
   );
+
+  async function openDetail(entry: WalletHistoryEntry) {
+    setSelectedEntry(entry);
+    setTransactionDetail(null);
+    setDetailError(null);
+    setDetailLoading(true);
+    try {
+      const res = await api.get<ApiResponse<WalletTransactionDetail>>(
+        `/api/v1/organizers/me/wallet/history/${entry.wallet}/${entry.id}`,
+      );
+      setTransactionDetail(res.data ?? null);
+    } catch {
+      setDetailError("Gagal memuat detail transaksi.");
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  function closeDetail() {
+    setSelectedEntry(null);
+    setTransactionDetail(null);
+    setDetailError(null);
+    setDetailLoading(false);
+  }
 
   return (
     <div className="rh-reveal">
@@ -278,7 +308,17 @@ export default function LedgerPage() {
               {filtered.map((e) => (
                 <tr
                   key={e.id}
-                  style={{ borderBottom: "1px solid var(--color-line)" }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Lihat detail ${TYPE_LABEL[e.type] ?? e.type} ${e.reference_id || e.id}`}
+                  onClick={() => void openDetail(e)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      void openDetail(e);
+                    }
+                  }}
+                  style={{ borderBottom: "1px solid var(--color-line)", cursor: "pointer" }}
                 >
                   <td
                     style={{
@@ -355,6 +395,16 @@ export default function LedgerPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedEntry && (
+        <WalletTransactionDetailModal
+          detail={transactionDetail}
+          loading={detailLoading}
+          error={detailError}
+          onClose={closeDetail}
+          onRetry={() => void openDetail(selectedEntry)}
+        />
       )}
     </div>
   );

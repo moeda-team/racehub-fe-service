@@ -2465,6 +2465,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizers/me/wallet/history/{wallet}/{entryId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a wallet history entry with transaction and customer detail
+         * @description Returns PII only to the authenticated organizer who owns the linked participant transaction. Withdrawals have no customer or payment detail.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    wallet: "organizer" | "donation" | "platform";
+                    entryId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Wallet transaction detail. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["WalletTransactionDetail"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizers/me/wallet/donations": {
         parameters: {
             query?: never;
@@ -4657,6 +4704,39 @@ export interface components {
             bank_account?: string;
             /** Format: date-time */
             created_at?: string;
+        };
+        /** @description Operational participant data, returned only by the authorized detail endpoint. */
+        WalletTransactionCustomer: {
+            name?: string;
+            /** Format: email */
+            email?: string;
+            phone?: string;
+            registration_number?: string;
+            event_name?: string;
+            category_name?: string;
+            ticket_name?: string;
+            registration_status?: string;
+        };
+        /** @description Persisted server-owned payment breakdown. All money values are int64 rupiah. */
+        WalletTransactionPayment: {
+            transaction_id?: string;
+            method?: string;
+            /** Format: int64 */
+            price?: number;
+            /** Format: int64 */
+            donation?: number;
+            /** Format: int64 */
+            fee_platform?: number;
+            /** Format: int64 */
+            fee_midtrans?: number;
+            /** Format: int64 */
+            sub_total?: number;
+            /** Format: date-time */
+            paid_at?: string;
+        };
+        WalletTransactionDetail: components["schemas"]["WalletHistoryEntry"] & {
+            customer?: components["schemas"]["WalletTransactionCustomer"];
+            payment?: components["schemas"]["WalletTransactionPayment"];
         };
         /** @description Per-event split; donation reported separately from ticket revenue (FR-804/1405). */
         DonationReport: {
