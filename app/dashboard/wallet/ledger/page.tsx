@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
 import type {
@@ -9,10 +10,8 @@ import type {
   WalletHistoryEntry,
   WalletKind,
   WalletEntryType,
-  WalletTransactionDetail,
 } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
-import WalletTransactionDetailModal from "@/components/wallet/WalletTransactionDetailModal";
 
 const TYPE_LABEL: Record<string, string> = {
   credit: "Pemasukan Tiket",
@@ -43,6 +42,7 @@ function formatDate(iso: string) {
 }
 
 export default function LedgerPage() {
+  const router = useRouter();
   const [entries, setEntries] = useState<WalletHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,10 +52,6 @@ export default function LedgerPage() {
   const [walletFilter, setWalletFilter] = useState<WalletKind | "">("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [selectedEntry, setSelectedEntry] = useState<WalletHistoryEntry | null>(null);
-  const [transactionDetail, setTransactionDetail] = useState<WalletTransactionDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailError, setDetailError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,30 +97,6 @@ export default function LedgerPage() {
     () => filtered.reduce((sum, e) => sum + e.amount, 0),
     [filtered],
   );
-
-  async function openDetail(entry: WalletHistoryEntry) {
-    setSelectedEntry(entry);
-    setTransactionDetail(null);
-    setDetailError(null);
-    setDetailLoading(true);
-    try {
-      const res = await api.get<ApiResponse<WalletTransactionDetail>>(
-        `/api/v1/organizers/me/wallet/history/${entry.wallet}/${entry.id}`,
-      );
-      setTransactionDetail(res.data ?? null);
-    } catch {
-      setDetailError("Gagal memuat detail transaksi.");
-    } finally {
-      setDetailLoading(false);
-    }
-  }
-
-  function closeDetail() {
-    setSelectedEntry(null);
-    setTransactionDetail(null);
-    setDetailError(null);
-    setDetailLoading(false);
-  }
 
   return (
     <div className="rh-reveal">
@@ -311,11 +283,11 @@ export default function LedgerPage() {
                   role="button"
                   tabIndex={0}
                   aria-label={`Lihat detail ${TYPE_LABEL[e.type] ?? e.type} ${e.reference_id || e.id}`}
-                  onClick={() => void openDetail(e)}
+                  onClick={() => router.push(`/dashboard/wallet/ledger/${e.wallet}/${e.id}`)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      void openDetail(e);
+                      router.push(`/dashboard/wallet/ledger/${e.wallet}/${e.id}`);
                     }
                   }}
                   style={{ borderBottom: "1px solid var(--color-line)", cursor: "pointer" }}
@@ -395,16 +367,6 @@ export default function LedgerPage() {
             </tbody>
           </table>
         </div>
-      )}
-
-      {selectedEntry && (
-        <WalletTransactionDetailModal
-          detail={transactionDetail}
-          loading={detailLoading}
-          error={detailError}
-          onClose={closeDetail}
-          onRetry={() => void openDetail(selectedEntry)}
-        />
       )}
     </div>
   );
