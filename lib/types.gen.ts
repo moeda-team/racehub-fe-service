@@ -454,6 +454,33 @@ export interface WalletHistoryEntry extends LedgerEntry {
   bank_account: string;
 }
 
+export interface WalletTransactionCustomer {
+  name: string;
+  email: string;
+  phone: string;
+  registration_number: string;
+  event_name: string;
+  category_name: string;
+  ticket_name: string;
+  registration_status: string;
+}
+
+export interface WalletTransactionPayment {
+  transaction_id: string;
+  method: string;
+  price: number;
+  donation: number;
+  fee_platform: number;
+  fee_midtrans: number;
+  sub_total: number;
+  paid_at: string;
+}
+
+export interface WalletTransactionDetail extends WalletHistoryEntry {
+  customer?: WalletTransactionCustomer;
+  payment?: WalletTransactionPayment;
+}
+
 export interface DonationReport {
   event_id: string;
   ticket_revenue: number;
