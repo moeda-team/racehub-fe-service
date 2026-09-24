@@ -310,7 +310,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
               margin: "10px 0 16px",
             }}
           >
-            ⛁ Pilih metode dulu agar biaya payment gateway dihitung tepat sesuai tarif.
+            ⛁ Pilih metode dulu untuk melihat estimasi biaya payment gateway. Nominal final mengikuti konfirmasi provider setelah pembayaran dibuat.
           </p>
           <Button
             variant="primary"
@@ -325,6 +325,9 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
       ) : (
         <div style={card}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>Instruksi Pembayaran</div>
+          <Alert variant="info" className="mb-3">
+            Rincian biaya dan total di bawah adalah nominal final dari provider pembayaran.
+          </Alert>
           {resumedPayment && (
             <Alert variant="info" className="mb-3">
               Instruksi pembayaran sebelumnya dipulihkan. Gunakan transaksi ini untuk menyelesaikan pembayaran.

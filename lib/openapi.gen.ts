@@ -4533,7 +4533,7 @@ export interface components {
             /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
             payment_method: string;
         };
-        /** @description Fee breakdown (display only). All rupiah int64. iPaymu buyer-paid gateway fees are included in sub_total. */
+        /** @description Fee breakdown (display only). All rupiah int64. The pre-charge quote is an estimate; a charge response and saved payment use the provider-confirmed buyer fee and total. */
         PaymentQuoteResponse: {
             /** Format: uuid */
             registration_id?: string;
