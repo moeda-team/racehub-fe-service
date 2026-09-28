@@ -4287,6 +4287,8 @@ export interface components {
             name?: string;
             /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
             description?: string;
+            /** @description Organizer-authored HTML displayed above the participant form; consumers must sanitize before rendering. */
+            registration_form_description?: string;
             location?: string;
             /** Format: date-time */
             event_date?: string;
@@ -4339,6 +4341,8 @@ export interface components {
             name?: string;
             /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
             description?: string;
+            /** @description Organizer-authored HTML displayed above the participant form; consumers must sanitize before rendering. */
+            registration_form_description?: string;
             location?: string;
             /** Format: date-time */
             event_date?: string | null;
@@ -4533,7 +4537,7 @@ export interface components {
             /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
             payment_method: string;
         };
-        /** @description Fee breakdown (display only). All rupiah int64. The pre-charge quote is an estimate; a charge response and saved payment use the provider-confirmed buyer fee and total. */
+        /** @description Fee breakdown (display only). All rupiah int64. iPaymu buyer-paid gateway fees are included in sub_total. */
         PaymentQuoteResponse: {
             /** Format: uuid */
             registration_id?: string;
@@ -4822,6 +4826,8 @@ export interface components {
             name: string;
             /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
             description?: string;
+            /** @description Organizer-authored HTML displayed above the participant form. */
+            registration_form_description?: string;
             location?: string;
             /** Format: date-time */
             event_date?: string;
@@ -4847,6 +4853,8 @@ export interface components {
             name: string;
             /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
             description?: string;
+            /** @description Organizer-authored HTML displayed above the participant form. */
+            registration_form_description?: string;
             location?: string;
             /** Format: date-time */
             event_date?: string;

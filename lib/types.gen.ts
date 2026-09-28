@@ -67,6 +67,7 @@ export interface Event {
   organizer_id: string;
   name: string;
   description: string;
+  registration_form_description: string;
   location: string;
   event_date: string;
   status: EventStatus;
@@ -101,6 +102,7 @@ export interface PublicEvent {
   id: string;
   name: string;
   description: string;
+  registration_form_description: string;
   location: string;
   event_date: string | null;
   status: "coming_soon" | "published";
@@ -242,6 +244,7 @@ export interface MarketplaceFilter {
 export interface CreateEventRequest {
   name: string;
   description?: string;
+  registration_form_description?: string;
   location?: string;
   event_date?: string;
   event_type?: string;
@@ -255,6 +258,7 @@ export interface CreateEventRequest {
 export interface UpdateEventRequest {
   name: string;
   description?: string;
+  registration_form_description?: string;
   location?: string;
   event_date?: string;
   event_type?: string;
