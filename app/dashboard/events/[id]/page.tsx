@@ -19,7 +19,6 @@ import EventForm, {
   RegistrationFieldsForm,
 } from "@/components/EventForm";
 import EventDetailView from "@/components/EventDetailView";
-import RichText from "@/components/ui/RichText";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -79,7 +78,6 @@ export default function EditEventPage({
   const [registrationFieldsPreview, setRegistrationFieldsPreview] = useState<
     RegistrationFieldPreview[]
   >([]);
-  const [registrationFormDescriptionPreview, setRegistrationFormDescriptionPreview] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("detail");
 
@@ -121,29 +119,9 @@ export default function EditEventPage({
       donation_enabled: values.donation_enabled,
       refund_donation_on_cancel: values.refund_donation_on_cancel,
       color: values.color,
-      registration_form_description: event.registration_form_description,
     });
     setDetail((prev) => (prev ? { ...prev, event: res.data } : prev));
     setNotice("Perubahan event tersimpan.");
-  }
-
-  async function handleRegistrationFormDescriptionUpdate(description: string) {
-    const res = await api.put<ApiResponse<Event>>(`/api/v1/events/${eventId}`, {
-      name: event.name,
-      description: event.description,
-      registration_form_description: description,
-      location: event.location,
-      event_date: event.event_date,
-      event_type: event.event_type,
-      master_age_threshold: event.master_age_threshold,
-      refund_cutoff_date: event.refund_cutoff_date ?? "",
-      registration_close_date: event.registration_close_date ?? "",
-      donation_enabled: event.donation_enabled,
-      refund_donation_on_cancel: event.refund_donation_on_cancel ?? false,
-      color: event.color,
-    });
-    setDetail((previous) => previous ? { ...previous, event: res.data } : previous);
-    setNotice("Deskripsi form pendaftaran tersimpan.");
   }
 
   if (isLoading) {
@@ -311,7 +289,6 @@ export default function EditEventPage({
               detail={detail}
               live={formPreview}
               registrationFields={registrationFieldsPreview}
-              registrationFormDescription={event.registration_form_description}
               availableModes={["card", "detail"]}
             />
           </div>
@@ -345,9 +322,6 @@ export default function EditEventPage({
               </p>
               <RegistrationFieldsForm
                 eventId={eventId}
-                registrationFormDescription={event.registration_form_description}
-                onSaveDescription={handleRegistrationFormDescriptionUpdate}
-                onDescriptionChange={setRegistrationFormDescriptionPreview}
                 onChange={setRegistrationFieldsPreview}
               />
             </div>
@@ -355,7 +329,6 @@ export default function EditEventPage({
               detail={detail}
               live={formPreview}
               registrationFields={registrationFieldsPreview}
-              registrationFormDescription={registrationFormDescriptionPreview || event.registration_form_description}
               availableModes={["register"]}
             />
           </div>
@@ -2256,13 +2229,11 @@ function CardPreview({
   detail,
   live,
   registrationFields,
-  registrationFormDescription,
   availableModes,
 }: {
   detail: EventDetail;
   live: EventFormValues | null;
   registrationFields: RegistrationFieldPreview[];
-  registrationFormDescription: string;
   availableModes: PreviewMode[];
 }) {
   const [mode, setMode] = useState<PreviewMode>(availableModes[0]);
@@ -2298,7 +2269,6 @@ function CardPreview({
       id: ev.id,
       name,
       description,
-      registration_form_description: registrationFormDescription,
       location,
       event_date: eventDate || null,
       status: "published",
@@ -2506,9 +2476,6 @@ function CardPreview({
             >
               Pendaftaran
             </h2>
-            {registrationFormDescription && (
-              <RichText html={registrationFormDescription} className="mb-5" />
-            )}
             <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
               Langkah 2 dari 3
             </p>
