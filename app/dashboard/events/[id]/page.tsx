@@ -16,6 +16,7 @@ import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, {
   EventFormValues,
   RegistrationFieldPreview,
+  RegistrationFieldsForm,
 } from "@/components/EventForm";
 import EventDetailView from "@/components/EventDetailView";
 import Badge from "@/components/ui/Badge";
@@ -49,10 +50,11 @@ import type {
   TicketCategory,
 } from "@/lib/types.gen";
 
-type Tab = "detail" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
+type Tab = "detail" | "pendaftaran" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
 
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
+  { id: "pendaftaran", label: "Pendaftaran" },
   { id: "kategori", label: "Kategori" },
   { id: "peserta", label: "Peserta" },
   { id: "keuangan", label: "Keuangan" },
@@ -280,13 +282,43 @@ export default function EditEventPage({
                 }}
                 onSubmit={handleUpdate}
                 onChange={setFormPreview}
-                onRegistrationFieldsChange={setRegistrationFieldsPreview}
               />
             </div>
             <CardPreview
               detail={detail}
               live={formPreview}
               registrationFields={registrationFieldsPreview}
+            />
+          </div>
+        )}
+
+        {activeTab === "pendaftaran" && (
+          <div
+            style={{
+              padding: 28,
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-md)",
+              backgroundColor: "var(--color-surface)",
+              maxWidth: 720,
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 18,
+                fontWeight: 600,
+                marginTop: 0,
+                marginBottom: 8,
+              }}
+            >
+              Form Pendaftaran
+            </h2>
+            <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 20 }}>
+              Atur kolom tambahan yang harus diisi peserta saat mendaftar.
+            </p>
+            <RegistrationFieldsForm
+              eventId={eventId}
+              onChange={setRegistrationFieldsPreview}
             />
           </div>
         )}

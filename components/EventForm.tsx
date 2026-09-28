@@ -50,8 +50,6 @@ interface EventFormProps {
   onSubmit: (values: EventFormValues) => Promise<void>;
   // Emits current values on every change — used for the live card preview.
   onChange?: (values: EventFormValues) => void;
-  // Emits registration-field configuration for the registration-page preview.
-  onRegistrationFieldsChange?: (fields: RegistrationFieldPreview[]) => void;
 }
 
 const EVENT_TYPE_OPTIONS = [
@@ -478,6 +476,59 @@ function FieldBuilder({
   );
 }
 
+/** Registration-field configuration is deliberately separate from event details. */
+export function RegistrationFieldsForm({
+  eventId,
+  onChange,
+}: {
+  eventId: string;
+  onChange?: (fields: RegistrationFieldPreview[]) => void;
+}) {
+  const [fields, setFields] = useState<FieldDraft[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<{ data: RegistrationField[] }>(
+        `/api/v1/events/${eventId}/registration-fields`,
+      )
+      .then((res) => {
+        setFields(
+          res.data.map((field) => ({
+            id: field.id,
+            name: field.name,
+            label: field.label,
+            field_type: field.field_type,
+            options: field.options,
+            placeholder: field.placeholder,
+            required: field.required,
+            sort_order: field.sort_order,
+          })),
+        );
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [eventId]);
+
+  useEffect(() => {
+    onChange?.(fields);
+  }, [fields, onChange]);
+
+  if (isLoading) {
+    return <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>Memuat kolom…</p>;
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <FieldBuilder eventId={eventId} fields={fields} onChange={setFields} />
+      <span className="field-hint">
+        Konfigurasi form dikunci setelah pendaftaran pertama agar data dan
+        ekspor peserta tetap konsisten.
+      </span>
+    </div>
+  );
+}
+
 // --- Main EventForm ---
 export default function EventForm({
   eventId,
@@ -485,7 +536,6 @@ export default function EventForm({
   submitLabel,
   onSubmit,
   onChange,
-  onRegistrationFieldsChange,
 }: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
@@ -511,38 +561,9 @@ export default function EventForm({
   );
   const [color, setColor] = useState(initial?.color || "#16303A");
 
-  // Registration field builder state
-  const [regFields, setRegFields] = useState<FieldDraft[]>([]);
-  const [fieldsLoading, setFieldsLoading] = useState(!!eventId);
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Load existing registration fields when editing
-  useEffect(() => {
-    if (!eventId) return;
-    api
-      .get<{ data: RegistrationField[] }>(
-        `/api/v1/events/${eventId}/registration-fields`,
-      )
-      .then((res) => {
-        setRegFields(
-          res.data.map((f) => ({
-            id: f.id,
-            name: f.name,
-            label: f.label,
-            field_type: f.field_type,
-            options: f.options,
-            placeholder: f.placeholder,
-            required: f.required,
-            sort_order: f.sort_order,
-          })),
-        );
-      })
-      .catch(() => {})
-      .finally(() => setFieldsLoading(false));
-  }, [eventId]);
 
   function buildValues(): EventFormValues {
     return {
@@ -581,10 +602,6 @@ export default function EventForm({
     refundDonationOnCancel,
     color,
   ]);
-
-  useEffect(() => {
-    onRegistrationFieldsChange?.(regFields);
-  }, [onRegistrationFieldsChange, regFields]);
 
   function validate(): boolean {
     const next: Record<string, string> = {};
@@ -763,40 +780,6 @@ export default function EventForm({
           <label htmlFor="refund_donation_on_cancel" style={{ fontSize: 14 }}>
             Kembalikan donasi jika event dibatalkan
           </label>
-        </div>
-      )}
-
-      {/* Registration Field Builder — only available after event is saved */}
-      {eventId ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <label className="field-label">Form Pendaftaran</label>
-          {fieldsLoading ? (
-            <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
-              Memuat kolom…
-            </p>
-          ) : (
-            <FieldBuilder
-              eventId={eventId}
-              fields={regFields}
-              onChange={setRegFields}
-            />
-          )}
-          <span className="field-hint">
-            Konfigurasi form dikunci setelah pendaftaran pertama agar data dan
-            ekspor peserta tetap konsisten.
-          </span>
-        </div>
-      ) : (
-        <div
-          style={{
-            border: "1px solid var(--color-line)",
-            borderRadius: "var(--radius-md)",
-            padding: "12px 16px",
-          }}
-        >
-          <p style={{ fontSize: 13, color: "var(--color-ink-2)", margin: 0 }}>
-            Form pendaftaran bisa dikonfigurasi setelah event disimpan.
-          </p>
         </div>
       )}
 
