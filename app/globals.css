@@ -2030,3 +2030,52 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-gold-dee
 .richtext-editor .ProseMirror th.selectedCell {
   background: var(--color-gold-soft);
 }
+
+/* Registration keeps its single-column mobile flow. On wider screens, the
+   event context remains on the left while the active form stays reachable. */
+.register-page {
+  max-width: 576px;
+}
+.register-event-summary {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .register-page {
+    max-width: 1200px;
+  }
+  .register-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 480px);
+    align-items: start;
+    gap: clamp(32px, 6vw, 80px);
+  }
+  .register-event-summary {
+    display: block;
+    padding-top: 40px;
+  }
+  .register-event-summary__eyebrow {
+    margin: 0 0 8px;
+    color: var(--color-ink-3);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .register-event-summary__title {
+    margin: 0 0 8px;
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-size: clamp(30px, 3vw, 44px);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .register-event-summary__location {
+    margin: 0 0 24px;
+    color: var(--color-ink-3);
+    font-size: 15px;
+  }
+  .register-form-panel {
+    position: sticky;
+    top: 96px;
+  }
+}
