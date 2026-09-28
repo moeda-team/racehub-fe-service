@@ -52,6 +52,7 @@ import type {
 } from "@/lib/types.gen";
 
 type Tab = "detail" | "pendaftaran" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
+type PreviewMode = "card" | "detail" | "register";
 
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
@@ -306,6 +307,13 @@ export default function EditEventPage({
                 onChange={setFormPreview}
               />
             </div>
+            <CardPreview
+              detail={detail}
+              live={formPreview}
+              registrationFields={registrationFieldsPreview}
+              registrationFormDescription={event.registration_form_description}
+              availableModes={["card", "detail"]}
+            />
           </div>
         )}
 
@@ -348,6 +356,7 @@ export default function EditEventPage({
               live={formPreview}
               registrationFields={registrationFieldsPreview}
               registrationFormDescription={registrationFormDescriptionPreview || event.registration_form_description}
+              availableModes={["register"]}
             />
           </div>
         )}
@@ -2248,13 +2257,15 @@ function CardPreview({
   live,
   registrationFields,
   registrationFormDescription,
+  availableModes,
 }: {
   detail: EventDetail;
   live: EventFormValues | null;
   registrationFields: RegistrationFieldPreview[];
   registrationFormDescription: string;
+  availableModes: PreviewMode[];
 }) {
-  const [mode, setMode] = useState<"card" | "detail" | "register">("card");
+  const [mode, setMode] = useState<PreviewMode>(availableModes[0]);
   const ev = detail.event;
   const name = live?.name || ev.name || "Nama Event";
   const location =
@@ -2357,9 +2368,10 @@ function CardPreview({
             letterSpacing: "0.06em",
           }}
         >
-          Pratinjau Form Pendaftaran
+          {mode === "register" ? "Pratinjau Form Pendaftaran" : "Pratinjau"}
         </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
+        {availableModes.length > 1 && <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
+          {availableModes.includes("card") && (
           <button
             type="button"
             style={modeBtn(mode === "card")}
@@ -2368,6 +2380,8 @@ function CardPreview({
           >
             Kartu
           </button>
+          )}
+          {availableModes.includes("detail") && (
           <button
             type="button"
             style={modeBtn(mode === "detail")}
@@ -2376,6 +2390,8 @@ function CardPreview({
           >
             Halaman Detail
           </button>
+          )}
+          {availableModes.includes("register") && (
           <button
             type="button"
             style={modeBtn(mode === "register")}
@@ -2384,7 +2400,8 @@ function CardPreview({
           >
             Form Pendaftaran
           </button>
-        </div>
+          )}
+        </div>}
       </div>
 
       {mode === "card" ? (
