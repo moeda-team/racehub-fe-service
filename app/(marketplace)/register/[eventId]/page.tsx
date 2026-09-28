@@ -264,41 +264,30 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   }
 
   return (
-    <main className="register-page mx-auto px-4 py-8">
-      <div className="register-layout">
-        <aside className="register-event-summary" aria-label="Ringkasan event">
-          <p className="register-event-summary__eyebrow">Pendaftaran event</p>
-          <h2 className="register-event-summary__title">{detail.event.name}</h2>
-          {detail.event.location && (
-            <p className="register-event-summary__location">{detail.event.location}</p>
-          )}
-          {detail.event.description && <RichText html={detail.event.description} />}
-        </aside>
+    <main className="max-w-xl mx-auto px-4 py-8">
+      <Link href={`/events/${detail.event.id}`} style={back}>
+        ← {detail.event.name}
+      </Link>
+      <h1
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 26,
+          fontWeight: 700,
+          marginBottom: 4,
+        }}
+      >
+        Pendaftaran
+      </h1>
+      <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>Langkah {step} dari 3</p>
 
-        <div className="register-form-panel">
-          <Link href={`/events/${detail.event.id}`} style={back}>
-            ← {detail.event.name}
-          </Link>
-          <h1
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: 26,
-              fontWeight: 700,
-              marginBottom: 4,
-            }}
-          >
-            Pendaftaran
-          </h1>
-          <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>Langkah {step} dari 3</p>
+      {serverError && (
+        <Alert variant="danger" className="mb-4">
+          {serverError}
+        </Alert>
+      )}
 
-          {serverError && (
-            <Alert variant="danger" className="mb-4">
-              {serverError}
-            </Alert>
-          )}
-
-          {/* Step 1: distance + ticket */}
-          {step === 1 && (
+      {/* Step 1: distance + ticket */}
+      {step === 1 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="field">
             <label className="field-label">
@@ -349,10 +338,10 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             Lanjut
           </Button>
         </div>
-          )}
+      )}
 
-          {/* Step 2: participant data */}
-          {step === 2 && (
+      {/* Step 2: participant data */}
+      {step === 2 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {detail.event.registration_form_description && (
             <RichText html={detail.event.registration_form_description} />
@@ -434,10 +423,10 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             </Button>
           </div>
         </div>
-          )}
+      )}
 
-          {/* Step 3: donation + review */}
-          {step === 3 && (
+      {/* Step 3: donation + review */}
+      {step === 3 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {PUBLIC_DONATIONS_ENABLED && (
             <div className="field">
@@ -483,9 +472,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             </Button>
           </div>
         </div>
-          )}
-        </div>
-      </div>
+      )}
     </main>
   );
 }
