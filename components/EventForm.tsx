@@ -479,22 +479,13 @@ function FieldBuilder({
 /** Registration-field configuration is deliberately separate from event details. */
 export function RegistrationFieldsForm({
   eventId,
-  registrationFormDescription,
-  onSaveDescription,
-  onDescriptionChange,
   onChange,
 }: {
   eventId: string;
-  registrationFormDescription: string;
-  onSaveDescription: (description: string) => Promise<void>;
-  onDescriptionChange?: (description: string) => void;
   onChange?: (fields: RegistrationFieldPreview[]) => void;
 }) {
   const [fields, setFields] = useState<FieldDraft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [description, setDescription] = useState(registrationFormDescription);
-  const [isSavingDescription, setIsSavingDescription] = useState(false);
-  const [descriptionError, setDescriptionError] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -523,42 +514,12 @@ export function RegistrationFieldsForm({
     onChange?.(fields);
   }, [fields, onChange]);
 
-  async function saveDescription() {
-    setDescriptionError(null);
-    setIsSavingDescription(true);
-    try {
-      await onSaveDescription(description);
-    } catch (error) {
-      setDescriptionError(error instanceof Error ? error.message : "Deskripsi form gagal disimpan.");
-    } finally {
-      setIsSavingDescription(false);
-    }
-  }
-
   if (isLoading) {
     return <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>Memuat kolom…</p>;
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <RichTextEditor
-        label="Deskripsi Form Pendaftaran"
-        value={description}
-        onChange={(value) => {
-          setDescription(value);
-          onDescriptionChange?.(value);
-        }}
-        eventId={eventId}
-        hint="Tampil di atas form data peserta. Gunakan toolbar untuk format teks, tabel, dan gambar."
-      />
-      {descriptionError && <Alert variant="danger">{descriptionError}</Alert>}
-      <div>
-        <Button type="button" variant="secondary" size="sm" disabled={isSavingDescription} onClick={saveDescription}>
-          {isSavingDescription ? "Menyimpan…" : "Simpan Deskripsi Form"}
-        </Button>
-      </div>
-      <hr style={{ width: "100%", border: "none", borderTop: "1px solid var(--color-line)", margin: "8px 0" }} />
-      <label className="field-label">Kolom Tambahan</label>
       <FieldBuilder eventId={eventId} fields={fields} onChange={setFields} />
       <span className="field-hint">
         Konfigurasi form dikunci setelah pendaftaran pertama agar data dan

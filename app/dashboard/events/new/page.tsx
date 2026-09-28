@@ -109,7 +109,6 @@ function NewEventPreview({
       id: "pratinjau-event-baru",
       name,
       description: values?.description || "",
-      registration_form_description: "",
       location,
       event_date: values?.event_date || null,
       status: "published",
