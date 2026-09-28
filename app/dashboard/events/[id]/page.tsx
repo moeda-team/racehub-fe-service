@@ -54,7 +54,7 @@ type Tab = "detail" | "pendaftaran" | "kategori" | "peserta" | "keuangan" | "ref
 
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
-  { id: "pendaftaran", label: "Pendaftaran" },
+  { id: "pendaftaran", label: "Form Pendaftaran" },
   { id: "kategori", label: "Kategori" },
   { id: "peserta", label: "Peserta" },
   { id: "keuangan", label: "Keuangan" },
@@ -284,41 +284,44 @@ export default function EditEventPage({
                 onChange={setFormPreview}
               />
             </div>
-            <CardPreview
-              detail={detail}
-              live={formPreview}
-              registrationFields={registrationFieldsPreview}
-            />
           </div>
         )}
 
         {activeTab === "pendaftaran" && (
-          <div
-            style={{
-              padding: 28,
-              border: "1px solid var(--color-line)",
-              borderRadius: "var(--radius-md)",
-              backgroundColor: "var(--color-surface)",
-              maxWidth: 720,
-            }}
-          >
-            <h2
+          <div style={{ display: "flex", gap: 28, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div
               style={{
-                fontFamily: "var(--font-display)",
-                fontSize: 18,
-                fontWeight: 600,
-                marginTop: 0,
-                marginBottom: 8,
+                padding: 28,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "var(--color-surface)",
+                flex: "1 1 420px",
+                maxWidth: 720,
               }}
             >
-              Form Pendaftaran
-            </h2>
-            <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 20 }}>
-              Atur kolom tambahan yang harus diisi peserta saat mendaftar.
-            </p>
-            <RegistrationFieldsForm
-              eventId={eventId}
-              onChange={setRegistrationFieldsPreview}
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 18,
+                  fontWeight: 600,
+                  marginTop: 0,
+                  marginBottom: 8,
+                }}
+              >
+                Form Pendaftaran
+              </h2>
+              <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 20 }}>
+                Atur kolom tambahan yang harus diisi peserta saat mendaftar.
+              </p>
+              <RegistrationFieldsForm
+                eventId={eventId}
+                onChange={setRegistrationFieldsPreview}
+              />
+            </div>
+            <CardPreview
+              detail={detail}
+              live={formPreview}
+              registrationFields={registrationFieldsPreview}
             />
           </div>
         )}
@@ -2325,7 +2328,7 @@ function CardPreview({
             letterSpacing: "0.06em",
           }}
         >
-          Pratinjau
+          Pratinjau Form Pendaftaran
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
           <button
@@ -2350,7 +2353,7 @@ function CardPreview({
             aria-pressed={mode === "register"}
             onClick={() => setMode("register")}
           >
-            Pendaftaran
+            Form Pendaftaran
           </button>
         </div>
       </div>
