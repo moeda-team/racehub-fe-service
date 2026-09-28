@@ -15,6 +15,7 @@ import type {
   RegistrationField,
 } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
+import RichText from "@/components/ui/RichText";
 import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
 
@@ -342,6 +343,9 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       {/* Step 2: participant data */}
       {step === 2 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {detail.event.registration_form_description && (
+            <RichText html={detail.event.registration_form_description} />
+          )}
           <LabeledInput label="Nama Lengkap" value={name} onChange={setName} required />
           <LabeledInput label="Email" type="email" value={email} onChange={setEmail} required />
           <LabeledInput label="No. HP" type="tel" value={phone} onChange={setPhone} required />
