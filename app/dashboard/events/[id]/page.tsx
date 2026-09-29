@@ -118,6 +118,10 @@ export default function EditEventPage({
       registration_close_date: values.registration_close_date || undefined,
       donation_enabled: values.donation_enabled,
       refund_donation_on_cancel: values.refund_donation_on_cancel,
+      // The backend locks this field after publication; omit it rather than
+      // resubmitting the unchanged value while editing other event details.
+      platform_fee:
+        detail?.event.status === "published" ? undefined : values.platform_fee,
       color: values.color,
     });
     setDetail((prev) => (prev ? { ...prev, event: res.data } : prev));
@@ -279,8 +283,10 @@ export default function EditEventPage({
                   donation_enabled: event.donation_enabled,
                   refund_donation_on_cancel:
                     event.refund_donation_on_cancel ?? false,
+                  platform_fee: event.platform_fee,
                   color: event.color,
                 }}
+                platformFeeLocked={event.status === "published"}
                 onSubmit={handleUpdate}
                 onChange={setFormPreview}
               />

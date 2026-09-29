@@ -29,6 +29,7 @@ export interface EventFormValues {
   registration_close_date: string; // RFC3339 or ""
   donation_enabled: boolean;
   refund_donation_on_cancel: boolean;
+  platform_fee: number;
   color: string; // "#rrggbb" — card header color when no banner image
 }
 
@@ -48,6 +49,7 @@ interface EventFormProps {
   initial?: Partial<EventFormValues>;
   submitLabel: string;
   onSubmit: (values: EventFormValues) => Promise<void>;
+  platformFeeLocked?: boolean;
   // Emits current values on every change — used for the live card preview.
   onChange?: (values: EventFormValues) => void;
 }
@@ -535,6 +537,7 @@ export default function EventForm({
   initial,
   submitLabel,
   onSubmit,
+  platformFeeLocked = false,
   onChange,
 }: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
@@ -559,6 +562,9 @@ export default function EventForm({
   const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(
     initial?.refund_donation_on_cancel ?? false,
   );
+  const [platformFee, setPlatformFee] = useState(
+    String(initial?.platform_fee ?? 5000),
+  );
   const [color, setColor] = useState(initial?.color || "#16303A");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -577,6 +583,7 @@ export default function EventForm({
       registration_close_date: toRFC3339(regClose),
       donation_enabled: donationEnabled,
       refund_donation_on_cancel: refundDonationOnCancel,
+      platform_fee: Number(platformFee),
       color,
     };
   }
@@ -600,6 +607,7 @@ export default function EventForm({
     regClose,
     donationEnabled,
     refundDonationOnCancel,
+    platformFee,
     color,
   ]);
 
@@ -608,6 +616,9 @@ export default function EventForm({
     if (!name.trim()) next.name = "Nama event wajib diisi";
     if (eventType === "running" && Number(masterAgeThreshold) <= 0) {
       next.master_age_threshold = "Ambang Master harus lebih dari 0";
+    }
+    if (!Number.isInteger(Number(platformFee)) || Number(platformFee) < 0) {
+      next.platform_fee = "Platform Fee harus berupa nominal rupiah nol atau lebih";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -701,6 +712,18 @@ export default function EventForm({
           hint="Default 40 — peserta ≥ ambang masuk kelas Master"
         />
       )}
+
+      <LabeledInput
+        label="Platform Fee (Rp)"
+        type="number"
+        min={0}
+        step={1}
+        value={platformFee}
+        onChange={(e) => setPlatformFee(e.target.value)}
+        error={errors.platform_fee}
+        disabled={platformFeeLocked}
+        hint={platformFeeLocked ? "Platform Fee terkunci setelah event dipublikasikan." : "Default Rp5.000 per transaksi. Isi 0 untuk membebaskan Platform Fee."}
+      />
 
       <div className="field">
         <label htmlFor="event_color" className="field-label">

@@ -4303,6 +4303,12 @@ export interface components {
              */
             registration_close_date?: string | null;
             donation_enabled?: boolean;
+            /**
+             * Format: int64
+             * @description Flat platform fee for this event in whole rupiah. Locked after publication.
+             * @default 5000
+             */
+            platform_fee: number;
             /** @description Same-origin backend media URL for a private MinIO object. Legacy absolute R2 URLs remain valid until migrated. Null when no banner is uploaded. */
             banner_url?: string | null;
             /**
@@ -4837,6 +4843,12 @@ export interface components {
             registration_close_date?: string | null;
             donation_enabled?: boolean;
             /**
+             * Format: int64
+             * @description Flat platform fee for this event in whole rupiah. Locked after publication.
+             * @default 5000
+             */
+            platform_fee: number;
+            /**
              * @description Card header color ("#rrggbb") shown when no banner is uploaded. Omitted/empty = "#F5471D".
              * @default #F5471D
              */
@@ -4861,6 +4873,12 @@ export interface components {
              */
             registration_close_date?: string | null;
             donation_enabled?: boolean;
+            /**
+             * Format: int64
+             * @description Flat platform fee for this event in whole rupiah. Locked after publication.
+             * @default 5000
+             */
+            platform_fee: number;
             /**
              * @description Card header color ("#rrggbb") shown when no banner is uploaded. Omitted/empty = "#F5471D".
              * @default #F5471D

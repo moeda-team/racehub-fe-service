@@ -75,6 +75,7 @@ export interface Event {
   refund_cutoff_date: string | null;
   registration_close_date: string | null;
   donation_enabled: boolean;
+  platform_fee: number;
   refund_donation_on_cancel: boolean;
   banner_url: string | null;
   color: string;
@@ -249,6 +250,7 @@ export interface CreateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
+  platform_fee?: number;
   color?: string;
 }
 
@@ -262,6 +264,7 @@ export interface UpdateEventRequest {
   refund_cutoff_date?: string;
   registration_close_date?: string;
   donation_enabled?: boolean;
+  platform_fee?: number;
   color?: string;
 }
 
