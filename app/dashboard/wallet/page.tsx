@@ -4,17 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
-import {
-  formatRupiah,
-  formatNumberInput,
-  parseNumberInput,
-} from "@/lib/format";
-import type {
-  ApiResponse,
-  DonationWalletBalance,
-  PlatformRevenue,
-  WalletBalance,
-} from "@/lib/types.gen";
+import { formatRupiah, formatNumberInput, parseNumberInput } from "@/lib/format";
+import type { ApiResponse, DonationWalletBalance, PlatformRevenue, WalletBalance } from "@/lib/types.gen";
 import StatCard from "@/components/ui/StatCard";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -50,12 +41,8 @@ export default function WalletPage() {
   const load = useCallback(async () => {
     const [o, don, plat] = await Promise.all([
       api.get<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet"),
-      api.get<ApiResponse<DonationWalletBalance>>(
-        "/api/v1/organizers/me/wallet/donations",
-      ),
-      api.get<ApiResponse<PlatformRevenue>>(
-        "/api/v1/organizers/me/wallet/platform",
-      ),
+      api.get<ApiResponse<DonationWalletBalance>>("/api/v1/organizers/me/wallet/donations"),
+      api.get<ApiResponse<PlatformRevenue>>("/api/v1/organizers/me/wallet/platform"),
     ]);
     setOrg(o.data);
     setDonation(don.data);
@@ -78,32 +65,24 @@ export default function WalletPage() {
       return;
     }
     if (org && n > org.balance) {
-      setOrgError(
-        `Nominal melebihi saldo tersedia (${formatRupiah(org.balance)}).`,
-      );
+      setOrgError(`Nominal melebihi saldo tersedia (${formatRupiah(org.balance)}).`);
       return;
     }
-    if (
-      !confirmManualWithdrawal("Wallet Organizer", n, orgBank.trim())
-    ) {
+    if (!confirmManualWithdrawal("Wallet Organizer", n, orgBank.trim())) {
       return;
     }
     setOrgBusy(true);
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (orgBank.trim()) body.bank_account = orgBank.trim();
-      const res = await api.post<ApiResponse<WalletBalance>>(
-        "/api/v1/organizers/me/wallet/withdraw",
-        body,
-        { idempotencyKey: orgIdem.keyFor(body) },
-      );
+      const res = await api.post<ApiResponse<WalletBalance>>("/api/v1/organizers/me/wallet/withdraw", body, {
+        idempotencyKey: orgIdem.keyFor(body),
+      });
       orgIdem.reset();
       setOrg(res.data);
       setOrgAmount("");
       setOrgBank("");
-      setOrgNotice(
-        `Penarikan manual ${formatRupiah(n)} telah dicatat. Saldo kini ${formatRupiah(res.data.balance)}.`,
-      );
+      setOrgNotice(`Penarikan manual ${formatRupiah(n)} telah dicatat. Saldo kini ${formatRupiah(res.data.balance)}.`);
     } catch (err) {
       setOrgError(err instanceof ApiError ? err.message : "Penarikan gagal.");
     } finally {
@@ -120,9 +99,7 @@ export default function WalletPage() {
       return;
     }
     if (donation && n > donation.balance) {
-      setDonError(
-        `Nominal melebihi saldo donasi (${formatRupiah(donation.balance)}).`,
-      );
+      setDonError(`Nominal melebihi saldo donasi (${formatRupiah(donation.balance)}).`);
       return;
     }
     if (!confirmManualWithdrawal("Wallet Donasi", n, donBank.trim())) {
@@ -145,9 +122,7 @@ export default function WalletPage() {
         `Penarikan donasi manual ${formatRupiah(n)} telah dicatat. Saldo donasi kini ${formatRupiah(res.data.balance)}.`,
       );
     } catch (err) {
-      setDonError(
-        err instanceof ApiError ? err.message : "Penarikan donasi gagal.",
-      );
+      setDonError(err instanceof ApiError ? err.message : "Penarikan donasi gagal.");
     } finally {
       setDonBusy(false);
     }
@@ -162,9 +137,7 @@ export default function WalletPage() {
       return;
     }
     if (platform && n > platform.balance) {
-      setPlatError(
-        `Nominal melebihi saldo admin (${formatRupiah(platform.balance)}).`,
-      );
+      setPlatError(`Nominal melebihi saldo admin (${formatRupiah(platform.balance)}).`);
       return;
     }
     if (!confirmManualWithdrawal("Wallet Admin", n, platBank.trim())) {
@@ -174,11 +147,9 @@ export default function WalletPage() {
     try {
       const body: { amount: number; bank_account?: string } = { amount: n };
       if (platBank.trim()) body.bank_account = platBank.trim();
-      const res = await api.post<ApiResponse<PlatformRevenue>>(
-        "/api/v1/organizers/me/wallet/platform/withdraw",
-        body,
-        { idempotencyKey: platIdem.keyFor(body) },
-      );
+      const res = await api.post<ApiResponse<PlatformRevenue>>("/api/v1/organizers/me/wallet/platform/withdraw", body, {
+        idempotencyKey: platIdem.keyFor(body),
+      });
       platIdem.reset();
       setPlatform(res.data);
       setPlatAmount("");
@@ -224,9 +195,8 @@ export default function WalletPage() {
           </Link>
         </div>
         <p style={sectionDesc}>
-          Harga tiket bersih dari setiap pembayaran yang settled. Tidak termasuk
-          fee admin dan donasi. Penarikan hanya dicatat di sistem; transfer bank
-          dilakukan manual.
+          Harga tiket bersih dari setiap pembayaran yang settled. Tidak termasuk fee admin dan donasi. Penarikan hanya
+          dicatat di sistem; transfer bank dilakukan manual.
         </p>
 
         {orgError && (
@@ -241,19 +211,9 @@ export default function WalletPage() {
         )}
 
         <div style={statGrid}>
-          <StatCard
-            label="Saldo"
-            value={org ? formatRupiah(org.balance) : "—"}
-            accent
-          />
-          <StatCard
-            label="Total Terkumpul"
-            value={org ? formatRupiah(org.total_collected) : "—"}
-          />
-          <StatCard
-            label="Total Ditarik"
-            value={org ? formatRupiah(org.total_withdrawn) : "—"}
-          />
+          <StatCard label="Saldo" value={org ? formatRupiah(org.balance) : "—"} accent />
+          <StatCard label="Total Terkumpul" value={org ? formatRupiah(org.total_collected) : "—"} />
+          <StatCard label="Total Ditarik" value={org ? formatRupiah(org.total_withdrawn) : "—"} />
         </div>
 
         <WithdrawForm
@@ -276,9 +236,8 @@ export default function WalletPage() {
           </Link>
         </div>
         <p style={sectionDesc}>
-          Hasil donasi peserta dari seluruh event. Dana terpisah, dapat ditarik
-          kapan saja. Penarikan hanya dicatat di sistem; transfer bank dilakukan
-          manual.
+          Hasil donasi peserta dari seluruh event. Dana terpisah, dapat ditarik kapan saja. Penarikan hanya dicatat di
+          sistem; transfer bank dilakukan manual.
         </p>
 
         {donError && (
@@ -293,19 +252,9 @@ export default function WalletPage() {
         )}
 
         <div style={statGrid}>
-          <StatCard
-            label="Saldo"
-            value={donation ? formatRupiah(donation.balance) : "—"}
-            accent
-          />
-          <StatCard
-            label="Total Terkumpul"
-            value={donation ? formatRupiah(donation.total_collected) : "—"}
-          />
-          <StatCard
-            label="Total Ditarik"
-            value={donation ? formatRupiah(donation.total_withdrawn) : "—"}
-          />
+          <StatCard label="Saldo" value={donation ? formatRupiah(donation.balance) : "—"} accent />
+          <StatCard label="Total Terkumpul" value={donation ? formatRupiah(donation.total_collected) : "—"} />
+          <StatCard label="Total Ditarik" value={donation ? formatRupiah(donation.total_withdrawn) : "—"} />
         </div>
 
         <WithdrawForm
@@ -328,8 +277,7 @@ export default function WalletPage() {
           </Link>
         </div>
         <p style={sectionDesc}>
-          Fee aplikasi (Rp 5.000/transaksi) dari setiap pembayaran tiket.
-          Penarikan hanya dicatat di sistem; transfer bank dilakukan manual.
+          Fee aplikasi dari setiap pembayaran tiket. Penarikan hanya dicatat di sistem; transfer bank dilakukan manual.
         </p>
 
         {platError && (
@@ -344,19 +292,9 @@ export default function WalletPage() {
         )}
 
         <div style={statGrid}>
-          <StatCard
-            label="Saldo"
-            value={platform ? formatRupiah(platform.balance) : "—"}
-            accent
-          />
-          <StatCard
-            label="Total Terkumpul"
-            value={platform ? formatRupiah(platform.total_collected) : "—"}
-          />
-          <StatCard
-            label="Total Ditarik"
-            value={platform ? formatRupiah(platform.total_withdrawn) : "—"}
-          />
+          <StatCard label="Saldo" value={platform ? formatRupiah(platform.balance) : "—"} accent />
+          <StatCard label="Total Terkumpul" value={platform ? formatRupiah(platform.total_collected) : "—"} />
+          <StatCard label="Total Ditarik" value={platform ? formatRupiah(platform.total_withdrawn) : "—"} />
         </div>
 
         <WithdrawForm
@@ -395,9 +333,7 @@ function WithdrawForm({
 
   return (
     <div style={card}>
-      <div style={{ fontWeight: 600, marginBottom: 4 }}>
-        Catat Penarikan Manual
-      </div>
+      <div style={{ fontWeight: 600, marginBottom: 4 }}>Catat Penarikan Manual</div>
       <p style={{ fontSize: 12, color: "var(--color-ink-3)", margin: "0 0 12px" }}>
         Aksi ini mengurangi saldo di RaceHub dan tidak mengirim transfer bank.
       </p>
@@ -425,8 +361,7 @@ function WithdrawForm({
                 borderRadius: "var(--radius-pill)",
                 border: "1px solid var(--color-primary)",
                 backgroundColor: "transparent",
-                color:
-                  balance <= 0 ? "var(--color-ink-4)" : "var(--color-primary)",
+                color: balance <= 0 ? "var(--color-ink-4)" : "var(--color-primary)",
                 cursor: balance <= 0 ? "not-allowed" : "pointer",
                 lineHeight: 1.6,
               }}
@@ -441,11 +376,7 @@ function WithdrawForm({
             value={formatNumberInput(amount)}
             onChange={(e) => onAmount(parseNumberInput(e.target.value))}
             placeholder="0"
-            style={
-              overBalance
-                ? { borderColor: "var(--color-danger, #dc2626)" }
-                : undefined
-            }
+            style={overBalance ? { borderColor: "var(--color-danger, #dc2626)" } : undefined}
           />
           {overBalance && (
             <span
@@ -473,9 +404,7 @@ function WithdrawForm({
           )}
         </div>
         <div className="field">
-          <label className="field-label">
-            Rekening tujuan untuk catatan (opsional)
-          </label>
+          <label className="field-label">Rekening tujuan untuk catatan (opsional)</label>
           <input
             className="field-input"
             type="text"
@@ -484,12 +413,7 @@ function WithdrawForm({
             placeholder="Contoh: BCA 1234567890"
           />
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          disabled={busy || overBalance || balance <= 0}
-          onClick={onSubmit}
-        >
+        <Button variant="primary" size="md" disabled={busy || overBalance || balance <= 0} onClick={onSubmit}>
           {busy ? "Mencatat…" : "Catat Penarikan"}
         </Button>
       </div>
