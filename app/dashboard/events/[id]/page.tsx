@@ -825,7 +825,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
   if (rows.length === 0)
     return (
       <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-        Belum ada peserta berbayar untuk direkap.
+        Belum ada kategori tiket untuk direkap.
       </p>
     );
 

@@ -3439,7 +3439,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Per category × gender × age-class counts. */
+                /** @description Running events return category × gender × age-class counts. Non-running events return every configured category × ticket-class pair, including zero totals, with gender and age_class empty. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4653,7 +4653,7 @@ export interface components {
              */
             birth_date?: string;
             /** @enum {string} */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "Open" | "Master";
             /** @description Opaque token encoded into the QR for check-in (FR-604) */
             qr_token?: string;
             /** Format: date-time */
@@ -5089,14 +5089,16 @@ export interface components {
              */
             rpc_pending?: number;
         };
-        /** @description One category × gender × age-class count (FR-1103/1203). */
+        /** @description One running-event category × gender × age-class count, or one non-running category × ticket-class count. */
         RecapRow: {
             /** Format: uuid */
             category_id?: string;
             category_name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "" | "Open" | "Master";
+            /** @description Ticket class name for non-running events; empty for running events. */
+            ticket_name?: string;
             /** Format: int64 */
             total?: number;
         };
