@@ -403,9 +403,7 @@ export default function EditEventPage({
               eventId={eventId}
               onChanged={load}
             />
-            {event.event_type === "running" && (
-              <RPCAccessCard eventId={eventId} />
-            )}
+            <RPCAccessCard eventId={eventId} />
             <div
               style={{
                 padding: 28,
@@ -635,7 +633,7 @@ function RPCAccessCard({ eventId }: { eventId: string }) {
   useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
   async function rotate(){try{const r=await api.post<ApiResponse<{access_code:string}>>(`/api/v1/events/${eventId}/rpc-access/rotate`);setCode(r.data.access_code);setActive(true);setError(null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal membuat kode akses.")}}
   async function revoke(){try{await api.delete(`/api/v1/events/${eventId}/rpc-access`);setCode(null);setActive(false)}catch(e){setError(e instanceof ApiError?e.message:"Gagal mencabut akses.")}}
-  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,margin:"0 0 8px"}}>Akses volunteer RPC</h2><p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Satu kode aktif untuk satu event. Kode hanya berlaku di <code>/rpc/volunteer</code> dan tidak memberi akses wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,margin:"0 0 16px",background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
+  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,margin:"0 0 8px"}}>Akses volunteer pengambilan perlengkapan</h2><p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Satu kode aktif untuk satu event. Volunteer dapat memverifikasi peserta dan menandai pengambilan perlengkapan, tanpa akses ke wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,margin:"0 0 16px",background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
 }
 
 // RegistrationStatusCard shows whether registration is open or closed and lets
@@ -765,8 +763,8 @@ function DashboardCard({ eventId }: { eventId: string }) {
     { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
     { label: "Donasi", value: formatRupiah(d.donation_total) },
     { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
-    { label: "Racepack Sudah Diambil", value: String(d.rpc_collected) },
-    { label: "Racepack Belum Diambil", value: String(d.rpc_pending) },
+    { label: "Perlengkapan Sudah Diambil", value: String(d.rpc_collected) },
+    { label: "Perlengkapan Belum Diambil", value: String(d.rpc_pending) },
   ];
 
   return (

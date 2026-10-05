@@ -152,7 +152,7 @@ export default function LoginPage() {
         style={{ width: "100%" }}
         onClick={() => router.push("/rpc/volunteer")}
       >
-        Akses sebagai volunteer RPC
+        Akses volunteer pengambilan perlengkapan
       </Button>
       <p
         style={{
@@ -163,7 +163,7 @@ export default function LoginPage() {
           textAlign: "center",
         }}
       >
-        Tidak perlu akun. Masukkan ID event dan kode akses RPC dari organizer.
+        Tidak perlu akun. Masukkan kode akses dari organizer untuk event yang ditugaskan.
       </p>
     </div>
   );

@@ -128,7 +128,7 @@ export default function RpcPage() {
             <StageButton
               active={stage === "rpc"}
               onClick={() => setStage("rpc")}
-              label="Racepack (H-1/H-2)"
+              label="Pengambilan perlengkapan"
             />
             <StageButton
               active={stage === "raceday"}
@@ -283,7 +283,7 @@ function CheckinPanel({
   return (
     <div>
       <p style={{ margin: "0 0 12px", color: "var(--color-ink-4)", fontSize: 14, lineHeight: 1.5 }}>
-        {results.length} peserta lunas · {results.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil racepack" : "check-in Hari-H"}
+        {results.length} peserta lunas · {results.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
       </p>
       <label style={{ display: "grid", gap: 6, color: "var(--color-ink-4)", fontSize: 13 }}>
         Cari peserta
@@ -399,7 +399,7 @@ function ParticipantCard({
           {p.gender ? ` · ${p.gender}` : ""}
         </div>
         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-          <StatusPill on={p.rpc_status !== ""} label="Racepack" />
+          <StatusPill on={p.rpc_status !== ""} label="Perlengkapan" />
           <StatusPill on={p.raceday_status !== ""} label="Hari-H" />
         </div>
       </div>
@@ -437,7 +437,7 @@ function StatusPill({ on, label }: { on: boolean; label: string }) {
 }
 
 function stageLabel(stage: CheckinStage): string {
-  return stage === "rpc" ? "Racepack" : "Hari-H";
+  return stage === "rpc" ? "Pengambilan perlengkapan" : "Check-in acara";
 }
 
 const fieldStyle: React.CSSProperties = {

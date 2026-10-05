@@ -13,7 +13,7 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
   onClaim: () => void;
 }) {
   const done = stage === "rpc" ? participant.rpc_status !== "" : participant.raceday_status !== "";
-  const label = stage === "rpc" ? "RPC" : "check-in Hari-H";
+  const label = stage === "rpc" ? "pengambilan perlengkapan" : "check-in acara";
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !marking) onClose(); };
@@ -37,7 +37,7 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
           <Detail label="No. registrasi" value={participant.registration_number} mono />
           {participant.gender && <Detail label="Gender" value={participant.gender} />}
           {participant.age_class && <Detail label="Kelas usia" value={participant.age_class} />}
-          <Detail label="Status Racepack" value={participant.rpc_status ? "Sudah diambil" : "Belum diambil"} />
+          <Detail label="Status perlengkapan" value={participant.rpc_status ? "Sudah diambil" : "Belum diambil"} />
           <Detail label="Status Hari-H" value={participant.raceday_status ? "Sudah check-in" : "Belum check-in"} />
         </dl>
 

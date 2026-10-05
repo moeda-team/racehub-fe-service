@@ -86,7 +86,7 @@ export default function VolunteerRPCPage() {
       );
       setSelected(response.data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Pengambilan racepack gagal ditandai.");
+      setError(err instanceof ApiError ? err.message : "Pengambilan perlengkapan gagal ditandai.");
     } finally {
       setMarkingId(null);
     }
@@ -112,7 +112,7 @@ export default function VolunteerRPCPage() {
       <main style={pageStyle}>
         <section style={loginCardStyle}>
           <p style={eyebrowStyle}>VOLUNTEER</p>
-          <h1 style={titleStyle}>Akses Racepack Collection</h1>
+          <h1 style={titleStyle}>Akses Pengambilan Perlengkapan</h1>
           <p style={descriptionStyle}>
             Masukkan kode akses RPC dari organizer. Anda tidak perlu memakai akun organizer.
           </p>
@@ -146,11 +146,11 @@ export default function VolunteerRPCPage() {
   return (
     <main style={pageStyle}>
       <header style={headerStyle}>
-        <p style={eyebrowStyle}>PENGAMBILAN RACEPACK</p>
+        <p style={eyebrowStyle}>PENGAMBILAN PERLENGKAPAN</p>
         <h1 style={titleStyle}>{session.event_name}</h1>
         <div style={summaryStyle}>
           <p style={summaryTextStyle}>
-            {participants.length} peserta lunas · {participants.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil racepack" : "check-in Hari-H"}
+            {participants.length} peserta lunas · {participants.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
           </p>
           <button type="button" onClick={() => { setSession(null); setParticipants([]); setQuery(""); setStage("rpc"); }} style={changeCodeStyle}>
             Ganti kode
@@ -160,8 +160,8 @@ export default function VolunteerRPCPage() {
 
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
       <div style={stageToggleStyle}>
-        <StageButton active={stage === "rpc"} onClick={() => setStage("rpc")} label="Racepack (H-1/H-2)" />
-        <StageButton active={stage === "raceday"} onClick={() => setStage("raceday")} label="Hari-H" />
+        <StageButton active={stage === "rpc"} onClick={() => setStage("rpc")} label="Pengambilan perlengkapan" />
+        <StageButton active={stage === "raceday"} onClick={() => setStage("raceday")} label="Check-in acara" />
       </div>
       <label style={searchLabelStyle}>
         Cari peserta
@@ -191,8 +191,8 @@ export default function VolunteerRPCPage() {
                   {participant.gender ? ` · ${participant.gender}` : ""}
                 </p>
                 <div style={statusListStyle}>
-                  <StatusPill done={participant.rpc_status !== ""} label="Racepack" />
-                  <StatusPill done={participant.raceday_status !== ""} label="Hari-H" />
+                  <StatusPill done={participant.rpc_status !== ""} label="Perlengkapan" />
+                  <StatusPill done={participant.raceday_status !== ""} label="Check-in" />
                 </div>
               </div>
               <Button
