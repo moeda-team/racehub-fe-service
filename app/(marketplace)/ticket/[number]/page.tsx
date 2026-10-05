@@ -206,7 +206,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
           <Row label="Harga Tiket" value={formatRupiah(inv.price)} mono />
           {inv.donation > 0 && <Row label="Donasi" value={formatRupiah(inv.donation)} mono />}
           <Row label="Platform" value={formatRupiah(inv.fee_platform)} mono />
-          <Row label={`Biaya Payment Gateway`} value={formatRupiah(inv.fee_midtrans)} mono />
+          <Row label="Biaya Transaksi" value={formatRupiah(inv.fee_midtrans)} mono />
           <hr
             style={{
               border: 0,

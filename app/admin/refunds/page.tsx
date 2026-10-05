@@ -260,7 +260,7 @@ export default function AdminRefundsPage() {
                 <tr>
                   <th>Reg. ID</th>
                   <th>Nominal</th>
-                  <th>Biaya Payment Gateway</th>
+                  <th>Biaya Transaksi</th>
                   <th>Donasi</th>
                   <th>Metode</th>
                   <th>Mode</th>

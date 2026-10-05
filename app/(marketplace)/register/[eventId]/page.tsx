@@ -235,7 +235,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
               ? result.is_complimentary
                 ? "Harga tiket dan fee platform Rp0. Karena tidak ada donasi, Anda langsung menerima e-tiket tanpa melalui payment gateway."
                 : "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
-              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Biaya Payment Gateway, Sub Total) dihitung server setelah Anda memilih metode."}
+              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Biaya Transaksi, Sub Total) dihitung server setelah Anda memilih metode."}
           </p>
         </div>
         {isPaid ? (

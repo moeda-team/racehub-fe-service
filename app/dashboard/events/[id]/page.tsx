@@ -434,7 +434,7 @@ export default function EditEventPage({
                 Email yang terdaftar di sini mendapat tiket gratis: harga tiket dan
                 fee platform Rp0. Tanpa donasi, peserta langsung menerima e-tiket
                 tanpa melalui payment gateway. Jika memilih donasi, peserta hanya
-                membayar donasi dan biaya payment gateway; harga tiket serta fee
+                membayar donasi dan biaya transaksi; harga tiket serta fee
                 platform tetap Rp0.
               </p>
               <ComplimentaryManager eventId={eventId} />
