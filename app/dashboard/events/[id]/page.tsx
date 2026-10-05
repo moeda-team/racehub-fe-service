@@ -587,7 +587,10 @@ export default function EditEventPage({
               >
                 Rekap per Kategori
               </h2>
-              <RecapTable eventId={eventId} />
+              <RecapTable
+                eventId={eventId}
+                isRunning={event.event_type === "running"}
+              />
             </div>
             <div
               style={{
@@ -795,8 +798,9 @@ function DashboardCard({ eventId }: { eventId: string }) {
   );
 }
 
-// RecapTable lists participant counts per distance × gender × age class.
-function RecapTable({ eventId }: { eventId: string }) {
+// RecapTable lists running participants by category × gender × age class, and
+// non-running sales by category × ticket class.
+function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<RecapRow[] | null>(null);
 
   useEffect(() => {
@@ -828,14 +832,23 @@ function RecapTable({ eventId }: { eventId: string }) {
   const cols: Column<RecapRow>[] = [
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
-    { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
-    { key: "total", header: "Jumlah", render: (r) => r.total, mono: true },
+    {
+      key: "class",
+      header: "Kelas",
+      render: (r) => (isRunning ? r.age_class : r.ticket_name) || "—",
+    },
+    {
+      key: "total",
+      header: isRunning ? "Jumlah" : "Jumlah Terjual",
+      render: (r) => r.total,
+      mono: true,
+    },
   ];
   return (
     <DataTable
       columns={cols}
       data={rows}
-      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}`}
+      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
     />
   );
 }

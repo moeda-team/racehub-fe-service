@@ -2104,7 +2104,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). */
+                /** @description Estimated fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). The charge response contains the provider-confirmed final amount. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4539,7 +4539,7 @@ export interface components {
             /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
             payment_method: string;
         };
-        /** @description Fee breakdown (display only). All rupiah int64. iPaymu buyer-paid gateway fees are included in sub_total. */
+        /** @description Fee breakdown (display only). All rupiah int64. The standalone quote is an estimate; the same structure inside a charge response contains provider-confirmed final amounts. iPaymu buyer-paid gateway fees are included in sub_total. */
         PaymentQuoteResponse: {
             /** Format: uuid */
             registration_id?: string;
@@ -4579,6 +4579,7 @@ export interface components {
             /** @description Live iPaymu channel id. */
             payment_method: string;
         };
+        /** @description Payment instructions with the provider-confirmed final fee and total in quote. */
         PaymentChargeResponse: {
             /** Format: uuid */
             registration_id?: string;

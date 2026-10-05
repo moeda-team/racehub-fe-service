@@ -639,6 +639,8 @@ export interface RecapRow {
   category_name: string;
   gender: string;
   age_class: "" | "Open" | "Master";
+  /** Ticket class name for non-running events; empty for running events. */
+  ticket_name: string;
   total: number;
 }
 
