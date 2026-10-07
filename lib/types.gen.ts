@@ -534,6 +534,9 @@ export interface Refund {
   registration_id: string;
   registration_number?: string;
   participant_name?: string;
+  participant_email?: string;
+  participant_phone?: string;
+  participant_birth_date?: string;
   bib_number?: string;
   gender?: string;
   age_class?: "Open" | "Master" | "";

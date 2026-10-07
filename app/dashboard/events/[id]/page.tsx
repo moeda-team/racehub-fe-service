@@ -756,18 +756,18 @@ function RegistrationStatusCard({
 // DashboardCard shows the server-computed event summary.
 function DashboardCard({ eventId }: { eventId: string }) {
   const [d, setD] = useState<EventDashboard | null>(null);
+  const [refundSummary, setRefundSummary] = useState<RefundSummary | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const res = await api.get<ApiResponse<EventDashboard>>(
-          `/api/v1/events/${eventId}/dashboard`,
-        );
-        if (!cancelled) setD(res.data);
-      } catch {
-        /* non-fatal */
-      }
+      const [dashboardResult, refundResult] = await Promise.allSettled([
+        api.get<ApiResponse<EventDashboard>>(`/api/v1/events/${eventId}/dashboard`),
+        api.get<ApiResponse<RefundSummary>>(`/api/v1/events/${eventId}/refunds/summary`),
+      ]);
+      if (cancelled) return;
+      if (dashboardResult.status === "fulfilled") setD(dashboardResult.value.data);
+      if (refundResult.status === "fulfilled") setRefundSummary(refundResult.value.data);
     })();
     return () => {
       cancelled = true;
@@ -778,7 +778,8 @@ function DashboardCard({ eventId }: { eventId: string }) {
     return <p style={{ color: "var(--color-ink-3)" }}>Memuat ringkasan…</p>;
 
   const cells: { label: string; value: string }[] = [
-    { label: "Peserta Berbayar", value: String(d.paid_count) },
+    { label: "Total Pembeli", value: String(d.paid_count) },
+    { label: "Total Refund", value: refundSummary ? String(refundSummary.total_count) : "—" },
     { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
     { label: "Donasi", value: formatRupiah(d.donation_total) },
     { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
@@ -1975,6 +1976,9 @@ function RefundsCard({ eventId }: { eventId: string }) {
               <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Data peserta</h3>
               <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
                 <RefundInfo label="Nama" value={selectedRefund.participant_name || "—"} />
+                <RefundInfo label="Email" value={selectedRefund.participant_email || "—"} />
+                <RefundInfo label="Nomor telepon" value={selectedRefund.participant_phone || "—"} />
+                <RefundInfo label="Tanggal lahir" value={selectedRefund.participant_birth_date || "—"} />
                 <RefundInfo label="Nomor BIB" value={selectedRefund.bib_number || "—"} />
                 <RefundInfo label="Gender" value={selectedRefund.gender || "—"} />
                 <RefundInfo label="Kelas usia" value={selectedRefund.age_class || "—"} />
