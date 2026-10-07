@@ -533,6 +533,12 @@ export interface Refund {
   id: string;
   registration_id: string;
   registration_number?: string;
+  participant_name?: string;
+  bib_number?: string;
+  gender?: string;
+  age_class?: "Open" | "Master" | "";
+  category_name?: string;
+  ticket_name?: string;
   created_at?: string;
   ticket_price?: number;
   fee_platform?: number;

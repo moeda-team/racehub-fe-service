@@ -1885,10 +1885,6 @@ function RefundsCard({ eventId }: { eventId: string }) {
             >
               <th style={th}>No. registrasi</th>
               <th style={th}>Tanggal</th>
-              <th style={th}>Harga Tiket</th>
-              <th style={th}>Fee Platform</th>
-              <th style={th}>Fee Midtrans</th>
-              <th style={th}>Donasi</th>
               <th style={th}>Total Dibayarkan</th>
               <th style={th}>Dana Refund</th>
               <th style={th}>Metode</th>
@@ -1913,13 +1909,6 @@ function RefundsCard({ eventId }: { eventId: string }) {
                     </code>
                   </td>
                   <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.ticket_price === undefined ? "—" : formatRupiah(r.ticket_price)}</td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.fee_platform === undefined ? "—" : formatRupiah(r.fee_platform)}</td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{formatRupiah(r.fee_midtrans)}</td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
-                    {formatRupiah(r.donation)}
-                    {r.donation > 0 && <small style={{ display: "block", color: "var(--color-ink-3)", fontFamily: "var(--font-body)", fontSize: 11 }}>{r.donation_still_given ? "Tetap disalurkan" : "Dikembalikan"}</small>}
-                  </td>
                   <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.payment_sub_total === undefined ? "—" : formatRupiah(r.payment_sub_total)}</td>
                   <td style={{ ...td, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--color-danger)" }}>{formatRupiah(r.amount)}</td>
                   <td style={td}>
@@ -1962,6 +1951,9 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 <h2 id="refund-detail-title" style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 23, lineHeight: 1.2 }}>
                   {selectedRefund.registration_number || "Detail Refund"}
                 </h2>
+                <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 14, fontWeight: 600 }}>
+                  {selectedRefund.participant_name || "Nama peserta tidak tersedia"}
+                </p>
                 <p style={{ margin: "6px 0 0", color: "var(--color-ink-3)", fontSize: 13 }}>
                   {selectedRefund.created_at ? new Date(selectedRefund.created_at).toLocaleString("id-ID") : "Tanggal tidak tersedia"}
                 </p>
@@ -1979,12 +1971,24 @@ function RefundsCard({ eventId }: { eventId: string }) {
               </Badge>
             </div>
 
+            <section style={{ marginTop: 20 }}>
+              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Data peserta</h3>
+              <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
+                <RefundInfo label="Nama" value={selectedRefund.participant_name || "—"} />
+                <RefundInfo label="Nomor BIB" value={selectedRefund.bib_number || "—"} />
+                <RefundInfo label="Gender" value={selectedRefund.gender || "—"} />
+                <RefundInfo label="Kelas usia" value={selectedRefund.age_class || "—"} />
+                <RefundInfo label="Kategori" value={selectedRefund.category_name || "—"} />
+                <RefundInfo label="Kategori tiket" value={selectedRefund.ticket_name || "—"} />
+              </dl>
+            </section>
+
             <section style={{ marginTop: 22 }}>
               <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Rincian pembayaran</h3>
               <dl style={{ margin: 0, padding: "4px 14px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)" }}>
                 <RefundMoneyRow label="Harga tiket" value={selectedRefund.ticket_price === undefined ? "—" : formatRupiah(selectedRefund.ticket_price)} />
                 <RefundMoneyRow label="Fee Platform" value={selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)} />
-                <RefundMoneyRow label="Fee Midtrans" value={formatRupiah(selectedRefund.fee_midtrans)} />
+                <RefundMoneyRow label="Biaya Transaksi" value={formatRupiah(selectedRefund.fee_midtrans)} />
                 <RefundMoneyRow label="Donasi" value={`${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? selectedRefund.donation_still_given ? " · tetap disalurkan" : " · dikembalikan" : ""}`} />
                 <RefundMoneyRow label="Total dibayarkan" value={selectedRefund.payment_sub_total === undefined ? "—" : formatRupiah(selectedRefund.payment_sub_total)} strong />
               </dl>
