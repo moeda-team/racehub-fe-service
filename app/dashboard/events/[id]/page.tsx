@@ -1143,6 +1143,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1224,6 +1225,37 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     }
   }
 
+  async function refundParticipant(row: ParticipantRow) {
+    const reason = window.prompt(`Alasan refund untuk ${row.name} (opsional):`);
+    if (reason === null) return;
+    const bankAccount = window.prompt(
+      "Nomor rekening tujuan refund (wajib untuk metode pembayaran manual; kosongkan jika tidak berlaku):",
+    );
+    if (bankAccount === null) return;
+    if (!(await confirm({
+      title: "Refund peserta?",
+      message: `Refund tiket ${row.registration_number} akan diproses melalui sistem pembayaran. Tindakan ini tidak dapat dibatalkan.`,
+      confirmLabel: "Proses refund",
+      variant: "danger",
+    }))) return;
+
+    setErr(null);
+    setRefundingId(row.id);
+    try {
+      await api.post<ApiResponse<Refund>>(
+        `/api/v1/events/${eventId}/registrations/${row.id}/refund`,
+        { reason: reason.trim(), bank_account: bankAccount.trim() },
+      );
+      setRows((current) => current?.map((item) => item.id === row.id
+        ? { ...item, status: "refunded", qr_token: undefined }
+        : item) ?? null);
+    } catch (error) {
+      setErr(error instanceof ApiError ? error.message : "Refund gagal diproses.");
+    } finally {
+      setRefundingId(null);
+    }
+  }
+
   const runningCols: Column<ParticipantRow>[] = isRunning ? [
     {
       key: "bib",
@@ -1283,6 +1315,20 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           E-Ticket
         </Link>
       ) : "—",
+    },
+    {
+      key: "refund",
+      header: "Refund",
+      render: (r) => r.status === "paid" ? (
+        <Button
+          variant="danger"
+          size="sm"
+          disabled={refundingId !== null}
+          onClick={() => void refundParticipant(r)}
+        >
+          {refundingId === r.id ? "Memproses…" : "Refund"}
+        </Button>
+      ) : r.status === "refunded" ? <Badge variant="danger">Refunded</Badge> : "—",
     },
   ];
 
