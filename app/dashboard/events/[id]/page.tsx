@@ -1144,6 +1144,9 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
   const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [refundTarget, setRefundTarget] = useState<ParticipantRow | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundBankAccount, setRefundBankAccount] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -1225,30 +1228,28 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     }
   }
 
-  async function refundParticipant(row: ParticipantRow) {
-    const reason = window.prompt(`Alasan refund untuk ${row.name} (opsional):`);
-    if (reason === null) return;
-    const bankAccount = window.prompt(
-      "Nomor rekening tujuan refund (wajib untuk metode pembayaran manual; kosongkan jika tidak berlaku):",
-    );
-    if (bankAccount === null) return;
+  async function refundParticipant() {
+    if (!refundTarget) return;
     if (!(await confirm({
       title: "Refund peserta?",
-      message: `Refund tiket ${row.registration_number} akan diproses melalui sistem pembayaran. Tindakan ini tidak dapat dibatalkan.`,
+      message: `Refund tiket ${refundTarget.registration_number} akan diproses melalui sistem pembayaran. Tindakan ini tidak dapat dibatalkan.`,
       confirmLabel: "Proses refund",
       variant: "danger",
     }))) return;
 
     setErr(null);
-    setRefundingId(row.id);
+    setRefundingId(refundTarget.id);
     try {
       await api.post<ApiResponse<Refund>>(
-        `/api/v1/events/${eventId}/registrations/${row.id}/refund`,
-        { reason: reason.trim(), bank_account: bankAccount.trim() },
+        `/api/v1/events/${eventId}/registrations/${refundTarget.id}/refund`,
+        { reason: refundReason.trim(), bank_account: refundBankAccount.trim() },
       );
-      setRows((current) => current?.map((item) => item.id === row.id
+      setRows((current) => current?.map((item) => item.id === refundTarget.id
         ? { ...item, status: "refunded", qr_token: undefined }
         : item) ?? null);
+      setRefundTarget(null);
+      setRefundReason("");
+      setRefundBankAccount("");
     } catch (error) {
       setErr(error instanceof ApiError ? error.message : "Refund gagal diproses.");
     } finally {
@@ -1324,7 +1325,11 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           variant="danger"
           size="sm"
           disabled={refundingId !== null}
-          onClick={() => void refundParticipant(r)}
+          onClick={() => {
+            setRefundTarget(r);
+            setRefundReason("");
+            setRefundBankAccount("");
+          }}
         >
           {refundingId === r.id ? "Memproses…" : "Refund"}
         </Button>
@@ -1334,6 +1339,54 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
 
   return (
     <div>
+      {refundTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="participant-refund-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && refundingId === null) setRefundTarget(null);
+          }}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}
+        >
+          <section style={{ width: "min(100%, 480px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
+            <h2 id="participant-refund-title" style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 22 }}>Refund peserta</h2>
+            <p style={{ margin: "0 0 20px", color: "var(--color-ink-2)", fontSize: 14 }}>
+              {refundTarget.name} · {refundTarget.registration_number}
+            </p>
+            <label className="field-label" htmlFor="refund-reason">Alasan refund</label>
+            <textarea
+              id="refund-reason"
+              className="field-input"
+              value={refundReason}
+              onChange={(event) => setRefundReason(event.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Opsional"
+              style={{ width: "100%", resize: "vertical", marginBottom: 16 }}
+            />
+            <label className="field-label" htmlFor="refund-bank-account">Nomor rekening tujuan</label>
+            <input
+              id="refund-bank-account"
+              className="field-input"
+              value={refundBankAccount}
+              onChange={(event) => setRefundBankAccount(event.target.value)}
+              autoComplete="off"
+              placeholder="Wajib untuk refund manual"
+              style={{ width: "100%", marginBottom: 8 }}
+            />
+            <p style={{ margin: "0 0 20px", color: "var(--color-ink-3)", fontSize: 12 }}>
+              Refund manual memerlukan nomor rekening. Nilai refund dan metode pemrosesan ditentukan backend.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+              <Button variant="secondary" size="sm" disabled={refundingId !== null} onClick={() => setRefundTarget(null)}>Batal</Button>
+              <Button variant="danger" size="sm" disabled={refundingId !== null} onClick={() => void refundParticipant()}>
+                {refundingId === refundTarget.id ? "Memproses…" : "Lanjutkan refund"}
+              </Button>
+            </div>
+          </section>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
