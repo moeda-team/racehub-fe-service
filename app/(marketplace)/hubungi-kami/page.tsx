@@ -1,5 +1,6 @@
-import { Mail, MapPin, MessageCircle, Send } from "lucide-react";
+import { Mail, MapPin, MessageCircle } from "lucide-react";
 import { Eyebrow } from "@/components/ui/Layout";
+import { ContactForm } from "@/components/ContactForm";
 
 const supportEmail = "admin@lowkeythings.my.id";
 const address =
@@ -41,34 +42,7 @@ export default function ContactPage() {
             />
           </div>
 
-          <form className="contact-form" action={`mailto:${supportEmail}`} method="get" encType="text/plain">
-            <Eyebrow>Kirim Pesan</Eyebrow>
-            <div className="contact-form-row">
-              <label className="field">
-                <span className="field-label">Nama</span>
-                <input className="field-input" name="nama" placeholder="Nama kamu" required />
-              </label>
-              <label className="field">
-                <span className="field-label">Email</span>
-                <input className="field-input" name="email" type="email" placeholder="nama@email.com" required />
-              </label>
-            </div>
-            <label className="field contact-message-field">
-              <span className="field-label">Pesan</span>
-              <textarea
-                className="field-input"
-                name="body"
-                rows={4}
-                placeholder="Tulis pertanyaan atau kebutuhan kerja samamu…"
-                required
-              />
-            </label>
-            <input type="hidden" name="subject" value="Pesan dari halaman Hubungi Kami" />
-            <button className="btn btn-primary btn-lg" type="submit">
-              <Send size={17} aria-hidden />
-              Kirim Pesan
-            </button>
-          </form>
+          <ContactForm />
         </div>
       </section>
     </main>

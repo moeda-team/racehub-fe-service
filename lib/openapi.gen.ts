@@ -4,6 +4,63 @@
  */
 
 export interface paths {
+    "/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a contact message */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** Format: email */
+                        email: string;
+                        message: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Message queued for delivery to the support team. */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Message could not be queued. */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -570,6 +627,76 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/paid-registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List paid participants for a published event
+         * @description Public, anonymous participant directory. Returns only registrations whose
+         *     current status is `paid`; refunded and unpaid registrations are excluded.
+         *     Only the participant name and category are exposed. Contact information,
+         *     registration numbers, payment data, and check-in state are never returned.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Case-insensitive substring search across participant name and category. */
+                    q?: string;
+                    page?: number;
+                    /** @description Maximum 100. */
+                    page_size?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Paginated paid participant list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["PublicPaidParticipant"][];
+                            total?: number;
+                            page?: number;
+                            page_size?: number;
+                            total_pages?: number;
+                        };
+                    };
+                };
+                /** @description Invalid event UUID. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Event does not exist or is not published. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -4484,6 +4611,11 @@ export interface components {
             raceday_status?: string;
             /** Format: date-time */
             created_at?: string;
+        };
+        /** @description Anonymous-safe projection of a currently paid participant. */
+        PublicPaidParticipant: {
+            name: string;
+            category: string;
         };
         /** @description Registration projection. PII echoed/decrypted; never the encrypted blobs. */
         Registration: {
