@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@/components/analytics";
 import "@fontsource/fraunces/500.css";
 import "@fontsource/fraunces/600.css";
 import "@fontsource/fraunces/700.css";
@@ -38,13 +38,7 @@ export default function RootLayout({
         }}
       >
         {children}
-        <Analytics
-          beforeSend={(event) => {
-            const url = new URL(event.url);
-            url.searchParams.delete("token");
-            return { ...event, url: url.toString() };
-          }}
-        />
+        <Analytics />
       </body>
     </html>
   );
