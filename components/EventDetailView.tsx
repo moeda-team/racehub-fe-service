@@ -30,7 +30,9 @@ export default function EventDetailView({
 
   const ticketsByDistance = categories.map((d) => ({
     distance: d,
-    tickets: ticket_categories.filter((t) => t.category_id === d.id),
+    tickets: ticket_categories
+      .filter((t) => t.category_id === d.id)
+      .sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" })),
   }));
 
   const cta = (
