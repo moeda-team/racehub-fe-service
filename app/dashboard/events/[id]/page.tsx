@@ -47,6 +47,7 @@ import type {
   PublicEventDetail,
   RecapRow,
   Refund,
+  RefundSummary,
   TicketCategory,
 } from "@/lib/types.gen";
 
@@ -567,6 +568,7 @@ export default function EditEventPage({
                 Ringkasan
               </h2>
               <DashboardCard eventId={eventId} />
+              <RefundSummaryCard eventId={eventId} />
             </div>
             <div
               style={{
@@ -1929,6 +1931,50 @@ function RefundsCard({ eventId }: { eventId: string }) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function RefundSummaryCard({ eventId }: { eventId: string }) {
+  const [summary, setSummary] = useState<RefundSummary | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void api.get<ApiResponse<RefundSummary>>(`/api/v1/events/${eventId}/refunds/summary`)
+      .then((res) => { if (!cancelled) setSummary(res.data); })
+      .catch((error) => {
+        if (!cancelled) setErr(error instanceof ApiError ? error.message : "Gagal memuat ringkasan refund.");
+      });
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  return (
+    <section style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--color-line)" }}>
+      <h3 style={{ margin: "0 0 14px", fontFamily: "var(--font-display)", fontSize: 16 }}>Ringkasan Refund</h3>
+      {err ? <Alert variant="danger">{err}</Alert> : !summary ? (
+        <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 14 }}>Memuat ringkasan refund…</p>
+      ) : (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+            <RefundMetric label={`Total nominal · ${summary.total_count} refund`} amount={summary.total_amount} />
+            <RefundMetric label={`Selesai · ${summary.completed_count} refund`} amount={summary.completed_amount} />
+            <RefundMetric label={`Diproses · ${summary.processing_count} refund`} amount={summary.processing_amount} />
+          </div>
+          <p style={{ margin: "12px 0 0", color: "var(--color-ink-3)", fontSize: 12 }}>
+            Menunggu review: {summary.requested_count} · Ditolak: {summary.rejected_count}. Total nominal mencakup refund selesai dan sedang diproses.
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
+function RefundMetric({ label, amount }: { label: string; amount: number }) {
+  return (
+    <div style={{ padding: 14, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-paper)" }}>
+      <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 6 }}>{label}</div>
+      <div style={{ color: "var(--color-danger)", fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{formatRupiah(amount)}</div>
     </div>
   );
 }

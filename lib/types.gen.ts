@@ -548,6 +548,17 @@ export interface Refund {
   donation_still_given: boolean;
 }
 
+export interface RefundSummary {
+  total_count: number;
+  completed_count: number;
+  processing_count: number;
+  requested_count: number;
+  rejected_count: number;
+  total_amount: number;
+  completed_amount: number;
+  processing_amount: number;
+}
+
 export interface MassRefundResult {
   event_id: string;
   refunded: number;

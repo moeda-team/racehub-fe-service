@@ -2955,6 +2955,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/{id}/refunds/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Refund summary for an event (organizer)
+         * @description Returns server-calculated refund counts and amounts for the organizer's own event.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Refund summary. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["RefundSummary"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/{id}/donations": {
         parameters: {
             query?: never;
@@ -5016,6 +5062,27 @@ export interface components {
             reason?: string;
             /** @description Always true — donation is still channeled (FR-909/1406) */
             donation_still_given?: boolean;
+        };
+        RefundSummary: {
+            /** Format: int64 */
+            total_count?: number;
+            /** Format: int64 */
+            completed_count?: number;
+            /** Format: int64 */
+            processing_count?: number;
+            /** Format: int64 */
+            requested_count?: number;
+            /** Format: int64 */
+            rejected_count?: number;
+            /**
+             * Format: int64
+             * @description Sum of completed and processing refund amounts
+             */
+            total_amount?: number;
+            /** Format: int64 */
+            completed_amount?: number;
+            /** Format: int64 */
+            processing_amount?: number;
         };
         MassRefundResult: {
             /** Format: uuid */
