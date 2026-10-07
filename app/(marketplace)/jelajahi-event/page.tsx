@@ -186,7 +186,8 @@ export default function MarketplacePage() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-              gap: 16,
+              columnGap: 28,
+              rowGap: 16,
             }}
           >
             {events.map((ev) => (
