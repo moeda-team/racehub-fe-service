@@ -1371,7 +1371,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
             </Button>
           </div>
         </>
-      ) : null}
+      )}
     </div>
   );
 }
