@@ -1129,7 +1129,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const pageSize = 50;
+  const [pageSize, setPageSize] = useState(8);
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
@@ -1156,7 +1156,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     return () => {
       cancelled = true;
     };
-  }, [eventId, page]);
+  }, [eventId, page, pageSize]);
 
   async function exportCsv() {
     setErr(null);
@@ -1283,7 +1283,28 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
         }}
       >
         <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-          {rows ? `${rows.length} peserta di halaman ini` : "Memuat…"}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <label htmlFor="participants-page-size" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
+              Baris per halaman
+            </label>
+            <select
+              id="participants-page-size"
+              className="field-input"
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+              style={{ width: 76, padding: "6px 8px" }}
+            >
+              {[8, 16, 24].map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
+              {rows ? `${rows.length} peserta di halaman ini` : "Memuat…"}
+            </span>
+          </div>
         </span>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {isRunning && <Button
