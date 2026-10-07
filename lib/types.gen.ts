@@ -534,6 +534,9 @@ export interface Refund {
   registration_id: string;
   registration_number?: string;
   created_at?: string;
+  ticket_price?: number;
+  fee_platform?: number;
+  payment_sub_total?: number;
   amount: number;
   fee_midtrans: number;
   donation: number;

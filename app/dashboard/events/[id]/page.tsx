@@ -1160,6 +1160,8 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [refundTarget, setRefundTarget] = useState<ParticipantRow | null>(null);
   const [refundReason, setRefundReason] = useState("");
   const [refundBankAccount, setRefundBankAccount] = useState("");
+  const [refundEntries, setRefundEntries] = useState<Refund[]>([]);
+  const [completingRefundId, setCompletingRefundId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1189,6 +1191,14 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
       cancelled = true;
     };
   }, [eventId, page, pageSize, search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void api.get<ApiResponse<Refund[]>>(`/api/v1/events/${eventId}/refunds`)
+      .then((res) => { if (!cancelled) setRefundEntries(res.data ?? []); })
+      .catch(() => { if (!cancelled) setRefundEntries([]); });
+    return () => { cancelled = true; };
+  }, [eventId]);
 
   async function exportCsv() {
     setErr(null);
@@ -1253,10 +1263,14 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     setErr(null);
     setRefundingId(refundTarget.id);
     try {
-      await api.post<ApiResponse<Refund>>(
+      const res = await api.post<ApiResponse<Refund>>(
         `/api/v1/events/${eventId}/registrations/${refundTarget.id}/refund`,
         { reason: refundReason.trim(), bank_account: refundBankAccount.trim() },
       );
+      setRefundEntries((current) => [
+        ...current.filter((item) => item.registration_id !== refundTarget.id),
+        { ...res.data, registration_id: refundTarget.id, registration_number: refundTarget.registration_number },
+      ]);
       setRows((current) => current?.map((item) => item.id === refundTarget.id
         ? { ...item, status: "refunded", qr_token: undefined }
         : item) ?? null);
@@ -1267,6 +1281,28 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
       setErr(error instanceof ApiError ? error.message : "Refund gagal diproses.");
     } finally {
       setRefundingId(null);
+    }
+  }
+
+  async function completeManualRefund(row: ParticipantRow, refund: Refund) {
+    if (!(await confirm({
+      title: "Tandai refund selesai?",
+      message: `Pastikan transfer refund untuk ${row.registration_number} sudah benar-benar dilakukan sebelum menandai selesai.`,
+      confirmLabel: "Tandai Selesai",
+      variant: "primary",
+    }))) return;
+
+    setErr(null);
+    setCompletingRefundId(refund.id);
+    try {
+      await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refund.id}/complete`);
+      setRefundEntries((current) => current.map((item) => item.id === refund.id
+        ? { ...item, status: "completed" }
+        : item));
+    } catch (error) {
+      setErr(error instanceof ApiError ? error.message : "Gagal menandai refund selesai.");
+    } finally {
+      setCompletingRefundId(null);
     }
   }
 
@@ -1333,20 +1369,37 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     {
       key: "refund",
       header: "Refund",
-      render: (r) => r.status === "paid" ? (
-        <Button
-          variant="danger"
-          size="sm"
-          disabled={refundingId !== null}
-          onClick={() => {
-            setRefundTarget(r);
-            setRefundReason("");
-            setRefundBankAccount("");
-          }}
-        >
-          {refundingId === r.id ? "Memproses…" : "Refund"}
-        </Button>
-      ) : r.status === "refunded" ? <Badge variant="danger">Refunded</Badge> : "—",
+      render: (r) => {
+        if (r.status === "paid") return (
+          <Button
+            variant="danger"
+            size="sm"
+            disabled={refundingId !== null}
+            onClick={() => {
+              setRefundTarget(r);
+              setRefundReason("");
+              setRefundBankAccount("");
+            }}
+          >
+            {refundingId === r.id ? "Memproses…" : "Refund"}
+          </Button>
+        );
+        if (r.status !== "refunded") return "—";
+        const refund = refundEntries.find((item) => item.registration_id === r.id);
+        if (refund?.status === "processing" && refund.mode === "manual") return (
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={completingRefundId !== null}
+            onClick={() => void completeManualRefund(r, refund)}
+          >
+            {completingRefundId === refund.id ? "Memproses…" : "Tandai Selesai"}
+          </Button>
+        );
+        if (refund?.status === "completed") return <Badge variant="ok">Selesai</Badge>;
+        if (refund?.status === "processing") return <Badge variant="warn">Diproses</Badge>;
+        return <Badge variant="danger">Refunded</Badge>;
+      },
     },
   ];
 
@@ -1760,7 +1813,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
               marginBottom: 4,
             }}
           >
-            Total Refund
+            Jumlah Refund
           </div>
           <div
             style={{
@@ -1817,7 +1870,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
       </div>
       <div style={{ overflowX: "auto" }}>
         <table
-          style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
+          style={{ width: "100%", minWidth: 1120, borderCollapse: "collapse", fontSize: 14 }}
         >
           <thead>
             <tr
@@ -1828,7 +1881,12 @@ function RefundsCard({ eventId }: { eventId: string }) {
             >
               <th style={th}>No. registrasi</th>
               <th style={th}>Tanggal</th>
-              <th style={th}>Nominal</th>
+              <th style={th}>Harga Tiket</th>
+              <th style={th}>Fee Platform</th>
+              <th style={th}>Fee Midtrans</th>
+              <th style={th}>Donasi</th>
+              <th style={th}>Total Dibayarkan</th>
+              <th style={th}>Dana Refund</th>
               <th style={th}>Metode</th>
               <th style={th}>Status</th>
             </tr>
@@ -1850,9 +1908,15 @@ function RefundsCard({ eventId }: { eventId: string }) {
                     </code>
                   </td>
                   <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.ticket_price === undefined ? "—" : formatRupiah(r.ticket_price)}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.fee_platform === undefined ? "—" : formatRupiah(r.fee_platform)}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{formatRupiah(r.fee_midtrans)}</td>
                   <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
-                    {formatRupiah(r.amount)}
+                    {formatRupiah(r.donation)}
+                    {r.donation > 0 && <small style={{ display: "block", color: "var(--color-ink-3)", fontFamily: "var(--font-body)", fontSize: 11 }}>{r.donation_still_given ? "Tetap disalurkan" : "Dikembalikan"}</small>}
                   </td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.payment_sub_total === undefined ? "—" : formatRupiah(r.payment_sub_total)}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--color-danger)" }}>{formatRupiah(r.amount)}</td>
                   <td style={td}>
                     {r.method} · {r.mode === "auto" ? "Otomatis" : "Manual"}
                   </td>

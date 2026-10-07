@@ -4982,6 +4982,21 @@ export interface components {
             created_at?: string;
             /**
              * Format: int64
+             * @description Ticket price from the original payment
+             */
+            ticket_price?: number;
+            /**
+             * Format: int64
+             * @description Platform fee from the original payment
+             */
+            fee_platform?: number;
+            /**
+             * Format: int64
+             * @description Total paid in the original payment
+             */
+            payment_sub_total?: number;
+            /**
+             * Format: int64
              * @description total − fee_midtrans − donation (FR-902)
              */
             amount?: number;
