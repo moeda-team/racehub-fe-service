@@ -1127,6 +1127,9 @@ function BibCard({
 // ParticipantsCard renders the participant table + CSV export.
 function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const pageSize = 50;
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
@@ -1136,17 +1139,24 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     (async () => {
       try {
         const res = await api.get<ApiResponse<ParticipantRow[]>>(
-          `/api/v1/events/${eventId}/participants?limit=200`,
+          `/api/v1/events/${eventId}/participants?limit=${pageSize}&offset=${(page - 1) * pageSize}`,
         );
-        if (!cancelled) setRows(res.data ?? []);
+        if (!cancelled) {
+          const data = res.data ?? [];
+          setRows(data);
+          setHasNextPage(data.length === pageSize);
+        }
       } catch {
-        if (!cancelled) setRows([]);
+        if (!cancelled) {
+          setRows([]);
+          setHasNextPage(false);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [eventId]);
+  }, [eventId, page]);
 
   async function exportCsv() {
     setErr(null);
@@ -1273,7 +1283,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
         }}
       >
         <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-          {rows ? `${rows.length} peserta ditampilkan` : "Memuat…"}
+          {rows ? `${rows.length} peserta di halaman ini` : "Memuat…"}
         </span>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {isRunning && <Button
@@ -1304,7 +1314,30 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           Belum ada peserta.
         </p>
       ) : rows ? (
-        <DataTable columns={cols} data={rows} keyField="id" />
+        <>
+          <DataTable columns={cols} data={rows} keyField="id" />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              Sebelumnya
+            </Button>
+            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
+              Halaman {page}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!hasNextPage}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </>
       ) : null}
     </div>
   );
