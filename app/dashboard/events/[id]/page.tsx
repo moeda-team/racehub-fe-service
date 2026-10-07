@@ -3365,6 +3365,9 @@ function TicketManager({
 
   const distanceName = (id: string) =>
     distances.find((d) => d.id === id)?.name ?? "—";
+  const sortedTickets = [...tickets].sort((a, b) =>
+    a.name.localeCompare(b.name, "id", { sensitivity: "base" }),
+  );
 
   async function add() {
     if (!name.trim()) {
@@ -3520,7 +3523,7 @@ function TicketManager({
             gap: 8,
           }}
         >
-          {tickets.map((t) => (
+          {sortedTickets.map((t) => (
             <li
               key={t.id}
               style={{

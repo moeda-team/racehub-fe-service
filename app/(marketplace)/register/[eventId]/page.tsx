@@ -72,7 +72,11 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   }, [eventId]);
 
   const ticketsForDistance = useMemo(
-    () => (detail && distanceId ? detail.ticket_categories.filter((t) => t.category_id === distanceId) : []),
+    () => (detail && distanceId
+      ? detail.ticket_categories
+          .filter((t) => t.category_id === distanceId)
+          .sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }))
+      : []),
     [detail, distanceId],
   );
   const selectedTicket = useMemo(
