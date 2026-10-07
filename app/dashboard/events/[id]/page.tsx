@@ -779,6 +779,10 @@ function DashboardCard({ eventId }: { eventId: string }) {
 
   const cells: { label: string; value: string }[] = [
     { label: "Total Pembeli", value: String(d.paid_count) },
+    {
+      label: "Total Pendaftar (termasuk refund)",
+      value: refundSummary ? String(d.paid_count + refundSummary.total_count) : "—",
+    },
     { label: "Total Refund", value: refundSummary ? String(refundSummary.total_count) : "—" },
     { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
     { label: "Donasi", value: formatRupiah(d.donation_total) },
