@@ -532,6 +532,8 @@ export interface RefundRequest {
 export interface Refund {
   id: string;
   registration_id: string;
+  registration_number?: string;
+  created_at?: string;
   amount: number;
   fee_midtrans: number;
   donation: number;

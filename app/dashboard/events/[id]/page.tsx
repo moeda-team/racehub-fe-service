@@ -613,6 +613,19 @@ export default function EditEventPage({
               </h2>
               <DonationLedgerCard eventId={eventId} />
             </div>
+            <div
+              style={{
+                padding: 28,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "var(--color-surface)",
+              }}
+            >
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, marginTop: 0, marginBottom: 20 }}>
+                Riwayat Refund
+              </h2>
+              <RefundsCard eventId={eventId} />
+            </div>
           </div>
         )}
       </div>
@@ -1718,6 +1731,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
     string,
     { label: string; variant: "ok" | "warn" | "danger" }
   > = {
+    requested: { label: "Menunggu review", variant: "warn" },
     completed: { label: "Selesai", variant: "ok" },
     processing: { label: "Diproses", variant: "warn" },
     rejected: { label: "Ditolak", variant: "danger" },
@@ -1812,7 +1826,8 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 textAlign: "left",
               }}
             >
-              <th style={th}>Reg. ID</th>
+              <th style={th}>No. registrasi</th>
+              <th style={th}>Tanggal</th>
               <th style={th}>Nominal</th>
               <th style={th}>Metode</th>
               <th style={th}>Status</th>
@@ -1831,9 +1846,10 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 >
                   <td style={td}>
                     <code style={{ fontSize: 12 }}>
-                      {r.registration_id.slice(0, 8)}…
+                      {r.registration_number || `${r.registration_id.slice(0, 8)}…`}
                     </code>
                   </td>
+                  <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
                   <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
                     {formatRupiah(r.amount)}
                   </td>

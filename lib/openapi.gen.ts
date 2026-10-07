@@ -3643,6 +3643,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    /** @description Case-insensitive substring search across participant name, registration number, BIB, category, and ticket category. */
+                    q?: string;
                     limit?: number;
                     offset?: number;
                 };
@@ -4971,6 +4973,13 @@ export interface components {
             id?: string;
             /** Format: uuid */
             registration_id?: string;
+            /** @description Human-readable registration number; included in event refund lists */
+            registration_number?: string;
+            /**
+             * Format: date-time
+             * @description Refund record creation time
+             */
+            created_at?: string;
             /**
              * Format: int64
              * @description total − fee_midtrans − donation (FR-902)
