@@ -830,24 +830,32 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     );
 
   const cols: Column<RecapRow>[] = [
-    { key: "distance", header: "Kategori", render: (r) => r.category_name },
-    { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
+    { key: "distance", header: "Kategori", render: (r) => r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name },
+    { key: "gender", header: "Gender", render: (r) => r.category_id === "total" ? "" : r.gender || "—" },
     {
       key: "class",
       header: "Kelas",
-      render: (r) => (isRunning ? r.age_class : r.ticket_name) || "—",
+      render: (r) => r.category_id === "total" ? "" : (isRunning ? r.age_class : r.ticket_name) || "—",
     },
     {
       key: "total",
       header: isRunning ? "Jumlah" : "Jumlah Terjual",
-      render: (r) => r.total,
+      render: (r) => r.category_id === "total" ? <strong>{r.total}</strong> : r.total,
       mono: true,
     },
   ];
+  const totalRow: RecapRow = {
+    category_id: "total",
+    category_name: "Total",
+    gender: "",
+    age_class: "",
+    ticket_name: "",
+    total: rows.reduce((sum, row) => sum + row.total, 0),
+  };
   return (
     <DataTable
       columns={cols}
-      data={rows}
+      data={[...rows, totalRow]}
       keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
     />
   );
@@ -1131,6 +1139,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [hasNextPage, setHasNextPage] = useState(false);
   const [pageSize, setPageSize] = useState(8);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
@@ -1142,7 +1151,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     (async () => {
       try {
         const res = await api.get<ApiResponse<ParticipantRow[]>>(
-          `/api/v1/events/${eventId}/participants?limit=${pageSize}&offset=${(page - 1) * pageSize}`,
+          `/api/v1/events/${eventId}/participants?limit=${pageSize}&offset=${(page - 1) * pageSize}&q=${encodeURIComponent(search.trim())}`,
         );
         if (!cancelled) {
           const data = res.data ?? [];
@@ -1162,7 +1171,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     return () => {
       cancelled = true;
     };
-  }, [eventId, page, pageSize]);
+  }, [eventId, page, pageSize, search]);
 
   async function exportCsv() {
     setErr(null);
@@ -1288,8 +1297,19 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           gap: 12,
         }}
       >
-        <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <input
+              type="search"
+              className="field-input"
+              placeholder="Cari peserta…"
+              aria-label="Cari peserta berdasarkan nama, nomor registrasi, BIB, atau kategori"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              style={{ width: "min(260px, 40vw)" }}
+            />
             <label htmlFor="participants-page-size" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
               Baris per halaman
             </label>
@@ -1310,8 +1330,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
             <span style={{ fontSize: 14, color: "var(--color-ink-3)" }} aria-live="polite">
               {loading ? "Memuat peserta…" : `${rows?.length ?? 0} peserta di halaman ini`}
             </span>
-          </div>
-        </span>
+        </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {isRunning && <Button
             variant="secondary"
