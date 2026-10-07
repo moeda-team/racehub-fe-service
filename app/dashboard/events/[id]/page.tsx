@@ -1245,6 +1245,20 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
     ...runningCols.slice(5),
+    {
+      key: "eticket",
+      header: "E-Ticket",
+      render: (r) => r.status === "paid" && r.qr_token ? (
+        <Link
+          href={`/ticket/${encodeURIComponent(r.registration_number)}?token=${encodeURIComponent(r.qr_token)}`}
+          className="btn btn-secondary btn-sm"
+          target="_blank"
+          rel="noreferrer"
+        >
+          E-Ticket
+        </Link>
+      ) : "—",
+    },
   ];
 
   return (

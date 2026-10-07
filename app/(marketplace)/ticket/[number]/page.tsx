@@ -28,6 +28,32 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
   const [notReady, setNotReady] = useState(false);
   const [invalidLink, setInvalidLink] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  async function downloadTicket() {
+    setDownloading(true);
+    setDownloadError(null);
+    try {
+      const response = await fetch(`/api/v1/registrations/${encodeURIComponent(number)}/ticket.pdf?token=${encodeURIComponent(token)}`, {
+        headers: { "X-RaceHub-Public": "1" },
+      });
+      if (!response.ok) throw new Error("Gagal mengunduh e-tiket. Coba lagi.");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `eticket-${number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : "Gagal mengunduh e-tiket.");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -132,6 +158,15 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
           ? `${ticket.event_name} · ${ticket.category_name}`
           : "Tunjukkan QR ini saat check-in di lokasi acara."}
       </p>
+
+      {!isRefunded && (
+        <div style={{ marginBottom: 16 }}>
+          <Button variant="primary" size="md" onClick={downloadTicket} disabled={downloading} style={{ width: "100%" }}>
+            {downloading ? "Menyiapkan PDF…" : "Unduh e-tiket (PDF)"}
+          </Button>
+          {downloadError && <Alert variant="danger" className="mt-2">{downloadError}</Alert>}
+        </div>
+      )}
 
       {isRefunded ? (
         <div

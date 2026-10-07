@@ -656,6 +656,7 @@ export interface ParticipantRow {
   raceday_status: string;
   category_name: string;
   ticket_name: string;
+  qr_token?: string;
 }
 
 // === API Response Wrappers ===
