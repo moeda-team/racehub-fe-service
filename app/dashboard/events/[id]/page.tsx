@@ -1130,12 +1130,15 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [pageSize, setPageSize] = useState(8);
+  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setErr(null);
     (async () => {
       try {
         const res = await api.get<ApiResponse<ParticipantRow[]>>(
@@ -1145,11 +1148,14 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           const data = res.data ?? [];
           setRows(data);
           setHasNextPage(data.length === pageSize);
+          setLoading(false);
         }
       } catch {
         if (!cancelled) {
           setRows([]);
           setHasNextPage(false);
+          setErr("Gagal memuat daftar peserta.");
+          setLoading(false);
         }
       }
     })();
@@ -1301,8 +1307,8 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
                 <option key={size} value={size}>{size}</option>
               ))}
             </select>
-            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-              {rows ? `${rows.length} peserta di halaman ini` : "Memuat…"}
+            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }} aria-live="polite">
+              {loading ? "Memuat peserta…" : `${rows?.length ?? 0} peserta di halaman ini`}
             </span>
           </div>
         </span>
@@ -1330,13 +1336,19 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           {err}
         </Alert>
       )}
-      {rows && rows.length === 0 ? (
+      {!loading && rows && rows.length === 0 && page === 1 ? (
         <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
           Belum ada peserta.
         </p>
-      ) : rows ? (
+      ) : (
         <>
-          <DataTable columns={cols} data={rows} keyField="id" />
+          <DataTable
+            columns={cols}
+            data={loading ? [] : rows ?? []}
+            keyField="id"
+            minRows={pageSize}
+            loading={loading}
+          />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}>
             <Button
               variant="secondary"
