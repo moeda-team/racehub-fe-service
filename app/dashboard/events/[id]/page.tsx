@@ -2,6 +2,7 @@
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { api, ApiError } from "@/lib/api";
 import {
   formatRupiah,
@@ -1936,7 +1937,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
           </tbody>
         </table>
       </div>
-      {selectedRefund && (
+      {selectedRefund && typeof document !== "undefined" && createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -1944,38 +1945,86 @@ function RefundsCard({ eventId }: { eventId: string }) {
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setSelectedRefund(null);
           }}
-          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999, display: "grid",
+            alignContent: "start", justifyItems: "center", overflowY: "auto",
+            boxSizing: "border-box", padding: "24px 16px", background: "rgba(20,24,31,.78)",
+          }}
         >
-          <section style={{ width: "min(100%, 620px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
-            <h2 id="refund-detail-title" style={{ margin: "0 0 18px", fontFamily: "var(--font-display)", fontSize: 22 }}>Detail Refund</h2>
-            <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, margin: 0 }}>
-              {[
-                ["No. registrasi", selectedRefund.registration_number || selectedRefund.registration_id],
-                ["Tanggal refund", selectedRefund.created_at ? new Date(selectedRefund.created_at).toLocaleString("id-ID") : "—"],
-                ["Status", REFUND_STATUS[selectedRefund.status]?.label ?? selectedRefund.status],
-                ["Harga tiket", selectedRefund.ticket_price === undefined ? "—" : formatRupiah(selectedRefund.ticket_price)],
-                ["Fee Platform", selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)],
-                ["Fee Midtrans", formatRupiah(selectedRefund.fee_midtrans)],
-                ["Donasi", `${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? selectedRefund.donation_still_given ? " · Tetap disalurkan" : " · Dikembalikan" : ""}`],
-                ["Total dibayarkan", selectedRefund.payment_sub_total === undefined ? "—" : formatRupiah(selectedRefund.payment_sub_total)],
-                ["Dana refund", formatRupiah(selectedRefund.amount)],
-                ["Metode", selectedRefund.method],
-                ["Mode", selectedRefund.mode === "auto" ? "Otomatis" : "Manual"],
-                ["Rekening", selectedRefund.bank_account || "Tidak ada"],
-                ["Alasan", selectedRefund.reason || "Tidak dicantumkan"],
-              ].map(([label, value]) => (
-                <div key={label} style={{ padding: 11, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-paper)", minWidth: 0 }}>
-                  <dt style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 4 }}>{label}</dt>
-                  <dd style={{ margin: 0, overflowWrap: "anywhere", fontSize: 14, fontWeight: label === "Dana refund" ? 700 : 500, fontFamily: label === "Dana refund" ? "var(--font-mono)" : undefined }}>{value}</dd>
-                </div>
-              ))}
-            </dl>
+          <section style={{
+            width: "min(100%, 540px)", maxHeight: "calc(100dvh - 48px)", overflowY: "auto",
+            padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)",
+            color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)", boxSizing: "border-box",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+              <div>
+                <p style={{ margin: "0 0 5px", color: "var(--color-sprint)", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: ".1em" }}>RINCIAN TRANSAKSI REFUND</p>
+                <h2 id="refund-detail-title" style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 23, lineHeight: 1.2 }}>
+                  {selectedRefund.registration_number || "Detail Refund"}
+                </h2>
+                <p style={{ margin: "6px 0 0", color: "var(--color-ink-3)", fontSize: 13 }}>
+                  {selectedRefund.created_at ? new Date(selectedRefund.created_at).toLocaleString("id-ID") : "Tanggal tidak tersedia"}
+                </p>
+              </div>
+              <button type="button" aria-label="Tutup detail refund" onClick={() => setSelectedRefund(null)} style={{ width: 36, height: 36, border: "1px solid var(--color-line)", borderRadius: 999, background: "var(--color-surface)", color: "var(--color-ink-2)", fontSize: 22, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}>×</button>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 18, padding: 16, border: "1px solid var(--color-danger-tint)", borderRadius: "var(--radius-md)", background: "var(--color-surface)" }}>
+              <div>
+                <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 4 }}>Dana refund</div>
+                <div style={{ color: "var(--color-danger)", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 24, fontVariantNumeric: "tabular-nums" }}>{formatRupiah(selectedRefund.amount)}</div>
+              </div>
+              <Badge variant={REFUND_STATUS[selectedRefund.status]?.variant ?? "warn"}>
+                {REFUND_STATUS[selectedRefund.status]?.label ?? selectedRefund.status}
+              </Badge>
+            </div>
+
+            <section style={{ marginTop: 22 }}>
+              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Rincian pembayaran</h3>
+              <dl style={{ margin: 0, padding: "4px 14px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)" }}>
+                <RefundMoneyRow label="Harga tiket" value={selectedRefund.ticket_price === undefined ? "—" : formatRupiah(selectedRefund.ticket_price)} />
+                <RefundMoneyRow label="Fee Platform" value={selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)} />
+                <RefundMoneyRow label="Fee Midtrans" value={formatRupiah(selectedRefund.fee_midtrans)} />
+                <RefundMoneyRow label="Donasi" value={`${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? selectedRefund.donation_still_given ? " · tetap disalurkan" : " · dikembalikan" : ""}`} />
+                <RefundMoneyRow label="Total dibayarkan" value={selectedRefund.payment_sub_total === undefined ? "—" : formatRupiah(selectedRefund.payment_sub_total)} strong />
+              </dl>
+            </section>
+
+            <section style={{ marginTop: 20 }}>
+              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Informasi refund</h3>
+              <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
+                <RefundInfo label="Metode" value={selectedRefund.method || "—"} />
+                <RefundInfo label="Mode" value={selectedRefund.mode === "auto" ? "Otomatis" : "Manual"} />
+                <RefundInfo label="Rekening tujuan" value={selectedRefund.bank_account || "Tidak ada"} />
+                <RefundInfo label="Alasan" value={selectedRefund.reason || "Tidak dicantumkan"} />
+              </dl>
+            </section>
+
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
               <Button variant="secondary" onClick={() => setSelectedRefund(null)}>Tutup</Button>
             </div>
           </section>
-        </div>
+        </div>,
+        document.body,
       )}
+    </div>
+  );
+}
+
+function RefundMoneyRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, padding: "10px 0", borderBottom: "1px solid var(--color-line)", fontWeight: strong ? 700 : 400 }}>
+      <dt style={{ color: strong ? "var(--color-ink)" : "var(--color-ink-2)", fontSize: 13 }}>{label}</dt>
+      <dd style={{ margin: 0, textAlign: "right", fontFamily: "var(--font-mono)", fontSize: 13, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere" }}>{value}</dd>
+    </div>
+  );
+}
+
+function RefundInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ padding: 11, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", minWidth: 0 }}>
+      <dt style={{ color: "var(--color-ink-3)", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>{label}</dt>
+      <dd style={{ margin: 0, color: "var(--color-ink)", fontSize: 13, overflowWrap: "anywhere" }}>{value}</dd>
     </div>
   );
 }
