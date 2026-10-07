@@ -945,6 +945,15 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-gold-dee
   flex-direction: column;
 }
 
+.event-card-grid > a {
+  display: flex;
+  min-width: 0;
+}
+
+.event-card-grid > a > .evcard {
+  flex: 1;
+}
+
 .evcard-top {
   border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
   overflow: hidden;

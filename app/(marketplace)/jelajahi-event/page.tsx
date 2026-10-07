@@ -182,6 +182,7 @@ export default function MarketplacePage() {
       ) : (
         <>
           <div
+            className="event-card-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
