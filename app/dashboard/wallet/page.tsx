@@ -335,7 +335,7 @@ function WithdrawForm({
     <div style={card}>
       <div style={{ fontWeight: 600, marginBottom: 4 }}>Catat Penarikan Manual</div>
       <p style={{ fontSize: 12, color: "var(--color-ink-3)", margin: "0 0 12px" }}>
-        Aksi ini mengurangi saldo di RaceHub dan tidak mengirim transfer bank.
+        Aksi ini mengurangi saldo di LowkeyThings dan tidak mengirim transfer bank.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div className="field">
@@ -464,6 +464,6 @@ const ledgerLink: React.CSSProperties = {
 function confirmManualWithdrawal(wallet: string, amount: number, bankAccount: string) {
   const destination = bankAccount || "belum dicatat";
   return window.confirm(
-    `Catat penarikan manual dari ${wallet}?\n\nNominal: ${formatRupiah(amount)}\nRekening tujuan: ${destination}\n\nSaldo RaceHub akan berkurang. Aksi ini tidak mengirim transfer bank.`,
+    `Catat penarikan manual dari ${wallet}?\n\nNominal: ${formatRupiah(amount)}\nRekening tujuan: ${destination}\n\nSaldo LowkeyThings akan berkurang. Aksi ini tidak mengirim transfer bank.`,
   );
 }

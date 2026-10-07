@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
           textAlign: "center",
         }}
       >
-        Masuk ke akun admin LowkeyThings — RaceHub
+        Masuk ke akun admin LowkeyThings
       </p>
 
       {error && (

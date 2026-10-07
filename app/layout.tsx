@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "LowkeyThings — Platform Event Indonesia",
   description:
     "Telusuri, daftar, dan kelola event di seluruh Indonesia. Transparan, cepat, dan aman.",
-  icons: { icon: "/favicon.ico?v=3" },
+  icons: { icon: "/lowkeythings-logo.png" },
 };
 
 export default function RootLayout({

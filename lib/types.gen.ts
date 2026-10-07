@@ -1,7 +1,7 @@
 /**
  * Generated API Types from OpenAPI backend (api/openapi.yaml).
  *
- * Tipe-tipe ini merefleksikan kontrak API RaceHub backend.
+ * Tipe-tipe ini merefleksikan kontrak API LowkeyThings backend.
  * Semua angka uang adalah integer (int64) dalam Rupiah utuh.
  * JANGAN gunakan float untuk uang.
  */

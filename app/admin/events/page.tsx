@@ -77,7 +77,7 @@ export default function AdminEventsPage() {
       <p
         style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}
       >
-        Semua event di platform RaceHub
+        Semua event di platform LowkeyThings
       </p>
 
       {/* Filter tabs */}

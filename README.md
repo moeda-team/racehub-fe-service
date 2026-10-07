@@ -1,6 +1,6 @@
 # racehub-fe-service (Frontend)
 
-Frontend web RaceHub — platform event Indonesia. Next.js App Router + TypeScript + Tailwind (design tokens).
+Frontend web LowkeyThings — platform event Indonesia. Next.js App Router + TypeScript + Tailwind (design tokens).
 Repo ini **konsumen API** dari [`racehub-be-service`](../racehub-be-service/); tidak memegang logika bisnis uang/kuota.
 
 ## Stack

@@ -2154,6 +2154,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/registrations/{number}/ticket.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a paid registration e-ticket as PDF
+         * @description Returns a server-rendered PDF with the e-ticket QR and stored invoice. Requires the same private ticket token as the JSON e-ticket endpoint.
+         */
+        get: {
+            parameters: {
+                query: {
+                    token: string;
+                };
+                header?: never;
+                path: {
+                    number: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description E-ticket PDF attachment. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/pdf": string;
+                    };
+                };
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/registrations/{number}/refund": {
         parameters: {
             query?: never;
@@ -2349,7 +2393,7 @@ export interface paths {
         };
         /**
          * List configured iPaymu payment channels
-         * @description Returns RaceHub's configured VA and QRIS iPaymu channels.
+         * @description Returns LowkeyThings's configured VA and QRIS iPaymu channels.
          */
         get: {
             parameters: {
@@ -4412,7 +4456,7 @@ export interface components {
             /** Format: uuid */
             organizer_id?: string;
             name?: string;
-            /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
+            /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4470,7 +4514,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             name?: string;
-            /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
+            /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4715,7 +4759,7 @@ export interface components {
         PaymentChargeResponse: {
             /** Format: uuid */
             registration_id?: string;
-            /** @description RaceHub iPaymu reference id */
+            /** @description LowkeyThings iPaymu reference id */
             transaction_id?: string;
             /** @enum {string} */
             status?: "pending" | "settlement" | "expired" | "cancelled" | "denied";
@@ -4959,7 +5003,7 @@ export interface components {
         };
         CreateEventRequest: {
             name: string;
-            /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
+            /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4990,7 +5034,7 @@ export interface components {
         };
         UpdateEventRequest: {
             name: string;
-            /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
+            /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -5249,6 +5293,8 @@ export interface components {
             raceday_status?: string;
             category_name?: string;
             ticket_name?: string;
+            /** @description Private ticket access token. Returned only to the authenticated organizer who owns the event. */
+            qr_token?: string;
         };
         /**
          * Format: int64

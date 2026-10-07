@@ -4,7 +4,7 @@ import DOMPurify from "isomorphic-dompurify";
 
 const eventImageURL = /^\/api\/v1\/media\/events\/[^/?#]+\.(?:jpe?g|png|webp)$/i;
 
-// Organizer-authored HTML may only load images hosted behind RaceHub's media
+// Organizer-authored HTML may only load images hosted behind LowkeyThings' media
 // proxy. This avoids third-party tracking pixels and unstable external URLs.
 DOMPurify.addHook("afterSanitizeAttributes", (node) => {
   if (node.nodeName.toLowerCase() !== "img") return;
