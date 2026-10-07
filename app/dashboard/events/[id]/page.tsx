@@ -1764,6 +1764,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
 function RefundsCard({ eventId }: { eventId: string }) {
   const [refunds, setRefunds] = useState<Refund[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [selectedRefund, setSelectedRefund] = useState<Refund | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1891,6 +1892,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
               <th style={th}>Dana Refund</th>
               <th style={th}>Metode</th>
               <th style={th}>Status</th>
+              <th style={th}>Detail</th>
             </tr>
           </thead>
           <tbody>
@@ -1925,12 +1927,55 @@ function RefundsCard({ eventId }: { eventId: string }) {
                   <td style={td}>
                     <Badge variant={s.variant}>{s.label}</Badge>
                   </td>
+                  <td style={td}>
+                    <Button variant="secondary" size="sm" onClick={() => setSelectedRefund(r)}>Lihat Detail</Button>
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+      {selectedRefund && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="refund-detail-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedRefund(null);
+          }}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}
+        >
+          <section style={{ width: "min(100%, 620px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
+            <h2 id="refund-detail-title" style={{ margin: "0 0 18px", fontFamily: "var(--font-display)", fontSize: 22 }}>Detail Refund</h2>
+            <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10, margin: 0 }}>
+              {[
+                ["No. registrasi", selectedRefund.registration_number || selectedRefund.registration_id],
+                ["Tanggal refund", selectedRefund.created_at ? new Date(selectedRefund.created_at).toLocaleString("id-ID") : "—"],
+                ["Status", REFUND_STATUS[selectedRefund.status]?.label ?? selectedRefund.status],
+                ["Harga tiket", selectedRefund.ticket_price === undefined ? "—" : formatRupiah(selectedRefund.ticket_price)],
+                ["Fee Platform", selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)],
+                ["Fee Midtrans", formatRupiah(selectedRefund.fee_midtrans)],
+                ["Donasi", `${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? selectedRefund.donation_still_given ? " · Tetap disalurkan" : " · Dikembalikan" : ""}`],
+                ["Total dibayarkan", selectedRefund.payment_sub_total === undefined ? "—" : formatRupiah(selectedRefund.payment_sub_total)],
+                ["Dana refund", formatRupiah(selectedRefund.amount)],
+                ["Metode", selectedRefund.method],
+                ["Mode", selectedRefund.mode === "auto" ? "Otomatis" : "Manual"],
+                ["Rekening", selectedRefund.bank_account || "Tidak ada"],
+                ["Alasan", selectedRefund.reason || "Tidak dicantumkan"],
+              ].map(([label, value]) => (
+                <div key={label} style={{ padding: 11, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-paper)", minWidth: 0 }}>
+                  <dt style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 4 }}>{label}</dt>
+                  <dd style={{ margin: 0, overflowWrap: "anywhere", fontSize: 14, fontWeight: label === "Dana refund" ? 700 : 500, fontFamily: label === "Dana refund" ? "var(--font-mono)" : undefined }}>{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+              <Button variant="secondary" onClick={() => setSelectedRefund(null)}>Tutup</Button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
