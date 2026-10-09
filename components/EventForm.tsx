@@ -4,8 +4,10 @@ import {
   ChangeEvent,
   FormEvent,
   InputHTMLAttributes,
+  PointerEvent as ReactPointerEvent,
   useEffect,
   useId,
+  useRef,
   useState,
 } from "react";
 import Button from "@/components/ui/Button";
@@ -143,10 +145,11 @@ const toggleRow: React.CSSProperties = {
 };
 
 // --- Registration Field Builder types ---
-type FieldDraft = RegistrationFieldPreview;
+type FieldDraft = RegistrationFieldPreview & { clientKey: string };
 
 function emptyDraft(sortOrder: number): FieldDraft {
   return {
+    clientKey: crypto.randomUUID(),
     name: "",
     label: "",
     field_type: "text",
@@ -173,6 +176,10 @@ function FieldBuilder({
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [fieldNotice, setFieldNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [orderDirty, setOrderDirty] = useState(false);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragSource = useRef<number | null>(null);
+  const dragTarget = useRef<number | null>(null);
   const busy = isSaving;
 
   function updateField(index: number, patch: Partial<FieldDraft>) {
@@ -184,6 +191,91 @@ function FieldBuilder({
 
   function addField() {
     onChange([...fields, emptyDraft(fields.length)]);
+  }
+
+  function reorderField(index: number, target: number) {
+    if (target < 0 || target >= fields.length || target === index) return;
+    const reordered = [...fields];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+    onChange(reordered.map((field, position) => ({ ...field, sort_order: position })));
+    setOrderDirty(true);
+    setFieldError(null);
+    setFieldNotice(null);
+  }
+
+  function moveField(index: number, direction: -1 | 1) {
+    reorderField(index, index + direction);
+  }
+
+  function handleDragStart(event: ReactPointerEvent<HTMLButtonElement>, index: number) {
+    if (busy || (event.pointerType === "mouse" && event.button !== 0)) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragSource.current = index;
+    dragTarget.current = index;
+    setDragOverIndex(index);
+  }
+
+  function handleDragMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (dragSource.current === null) return;
+    const row = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-registration-field-index]");
+    if (row) {
+      dragTarget.current = Number(row.dataset.registrationFieldIndex);
+      setDragOverIndex(dragTarget.current);
+    }
+  }
+
+  function handleDragEnd() {
+    if (dragSource.current !== null && dragTarget.current !== null) {
+      reorderField(dragSource.current, dragTarget.current);
+    }
+    dragSource.current = null;
+    dragTarget.current = null;
+    setDragOverIndex(null);
+  }
+
+  function handleDragCancel() {
+    dragSource.current = null;
+    dragTarget.current = null;
+    setDragOverIndex(null);
+  }
+
+  async function saveOrder() {
+    if (fields.some((field) => !field.id)) {
+      setFieldError("Simpan semua kolom baru sebelum menyimpan urutan.");
+      return;
+    }
+    setFieldError(null);
+    setFieldNotice(null);
+    setIsSaving(true);
+    try {
+      // Read current server values so unsaved edits to a column are not saved here.
+      const { data: savedFields } = await api.get<{ data: RegistrationField[] }>(
+        `/api/v1/events/${eventId}/registration-fields`,
+      );
+      const byId = new Map(savedFields.map((field) => [field.id, field]));
+      for (const [position, draft] of fields.entries()) {
+        const saved = byId.get(draft.id!);
+        if (!saved) throw new Error("Kolom berubah di server. Muat ulang halaman lalu coba lagi.");
+        if (saved.sort_order === position) continue;
+        await api.post(`/api/v1/events/${eventId}/registration-fields`, {
+          id: saved.id,
+          name: saved.name,
+          label: saved.label,
+          field_type: saved.field_type,
+          options: saved.options,
+          placeholder: saved.placeholder,
+          required: saved.required,
+          sort_order: position,
+        } satisfies UpsertRegistrationFieldRequest);
+      }
+      setOrderDirty(false);
+      setFieldNotice("Urutan pertanyaan berhasil disimpan.");
+    } catch (err) {
+      setFieldError(err instanceof Error ? err.message : "Urutan gagal disimpan. Coba lagi.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function removeField(index: number) {
@@ -226,7 +318,7 @@ function FieldBuilder({
       options: f.options,
       placeholder: f.placeholder,
       required: f.required,
-      sort_order: f.sort_order,
+      sort_order: index,
     };
     try {
       const res = await api.post<{ data: RegistrationField }>(
@@ -320,6 +412,11 @@ function FieldBuilder({
             atau garis bawah (<span style={{ fontFamily: "var(--font-mono)" }}>_</span>)
             (contoh: <span style={{ fontFamily: "var(--font-mono)" }}>shirt_size</span>).
           </p>
+          {fields.length > 1 && (
+            <p className="field-hint" style={{ margin: 0 }}>
+              Seret pegangan pertanyaan atau gunakan tombol Naik/Turun, lalu simpan urutan.
+            </p>
+          )}
           {fields.length === 0 && (
             <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
               Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di
@@ -330,9 +427,10 @@ function FieldBuilder({
             const nameError = slugError(f.name, i);
             return (
               <div
-              key={i}
+              key={f.clientKey}
+              data-registration-field-index={i}
               style={{
-                border: "1px solid var(--color-line)",
+                border: `1px solid ${dragOverIndex === i ? "var(--color-flame, #F5471D)" : "var(--color-line)"}`,
                 borderRadius: "var(--radius-sm)",
                 padding: 12,
                 display: "flex",
@@ -341,6 +439,32 @@ function FieldBuilder({
                 background: "var(--color-surface)",
               }}
             >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button
+                    type="button"
+                    aria-label={`Seret untuk mengurutkan pertanyaan ${f.label || i + 1}`}
+                    title="Seret untuk mengubah urutan"
+                    onPointerDown={(event) => handleDragStart(event, i)}
+                    onPointerMove={handleDragMove}
+                    onPointerUp={handleDragEnd}
+                    onPointerCancel={handleDragCancel}
+                    disabled={busy || fields.length < 2}
+                    style={{ border: "1px solid var(--color-line)", borderRadius: 6, background: "var(--color-surface-2)", padding: "4px 8px", cursor: "grab", touchAction: "none", userSelect: "none" }}
+                  >
+                    ⋮⋮
+                  </button>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>Pertanyaan {i + 1}</span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => moveField(i, -1)} disabled={busy || i === 0} aria-label={`Naikkan pertanyaan ${f.label || i + 1}`}>
+                    Naik ↑
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => moveField(i, 1)} disabled={busy || i === fields.length - 1} aria-label={`Turunkan pertanyaan ${f.label || i + 1}`}>
+                    Turun ↓
+                  </Button>
+                </div>
+              </div>
               <div
                 style={{
                   display: "grid",
@@ -469,9 +593,18 @@ function FieldBuilder({
             variant="secondary"
             size="sm"
             onClick={addField}
+            disabled={busy}
           >
             + Tambah Kolom
           </Button>
+          {orderDirty && (
+            <Button type="button" variant="primary" size="sm" onClick={saveOrder} disabled={busy || fields.some((field) => !field.id)}>
+              {busy ? "Menyimpan…" : "Simpan Urutan"}
+            </Button>
+          )}
+          {orderDirty && fields.some((field) => !field.id) && (
+            <span className="field-hint">Simpan semua kolom baru terlebih dahulu untuk menyimpan urutan.</span>
+          )}
         </div>
       )}
     </div>
@@ -497,6 +630,7 @@ export function RegistrationFieldsForm({
       .then((res) => {
         setFields(
           res.data.map((field) => ({
+            clientKey: field.id,
             id: field.id,
             name: field.name,
             label: field.label,
