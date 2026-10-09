@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type {
   ApiResponse,
   CheckinParticipant,
+  CheckinSearchPage,
   CheckinStage,
   Event,
 } from "@/lib/types.gen";
@@ -14,6 +15,8 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import ParticipantDetailModal from "@/components/rpc/ParticipantDetailModal";
 import BarcodeScanner from "@/components/rpc/BarcodeScanner";
+
+const PAGE_SIZE_OPTIONS = [8, 16, 24] as const;
 
 // Field RPC / check-in module (F6, FR-602..605). Built for one-handed phone use
 // at a busy desk: high contrast, large targets, manual search is the PRIMARY
@@ -191,6 +194,13 @@ function CheckinPanel({
 }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CheckinParticipant[]>([]);
+  const [total, setTotal] = useState(0);
+  const [paidTotal, setPaidTotal] = useState(0);
+  const [rpcCollected, setRpcCollected] = useState(0);
+  const [racedayCheckedIn, setRacedayCheckedIn] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
+  const [refresh, setRefresh] = useState(0);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [flash, setFlash] = useState<string | null>(null);
@@ -199,47 +209,47 @@ function CheckinPanel({
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      setErr(null);
       try {
-        const res = await api.get<ApiResponse<CheckinParticipant[]>>(
-          `/api/v1/events/${eventId}/checkin/search`,
+        const params = new URLSearchParams({
+          q: q.trim(), stage, limit: String(pageSize),
+          offset: String((page - 1) * pageSize),
+        });
+        const res = await api.get<CheckinSearchPage>(
+          `/api/v1/events/${eventId}/checkin/search?${params}`,
         );
-        if (!cancelled) setResults(res.data ?? []);
+        if (cancelled) return;
+        setResults(res.data ?? []);
+        setTotal(res.total);
+        setPaidTotal(res.paid_total);
+        setRpcCollected(res.rpc_collected);
+        setRacedayCheckedIn(res.raceday_checked_in);
       } catch (e) {
-        if (!cancelled) setErr(e instanceof ApiError ? e.message : "Daftar peserta gagal dimuat.");
+        if (!cancelled) {
+          setResults([]);
+          setErr(e instanceof ApiError ? e.message : "Daftar peserta gagal dimuat.");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }, q ? 250 : 0);
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
-  }, [eventId]);
+  }, [eventId, stage, q, page, pageSize, refresh]);
 
-  const visibleParticipants = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return results;
-    return results.filter((participant) =>
-      [participant.name, participant.bib_number, participant.registration_number].some(
-        (value) => value.toLowerCase().includes(needle),
-      ),
-    );
-  }, [q, results]);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const rangeStart = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(currentPage * pageSize, total);
 
-  // Replace a participant in the current result list after marking.
-  const applyMarked = useCallback(
-    (p: CheckinParticipant) => {
-      setResults((prev) => {
-        const i = prev.findIndex((r) => r.id === p.id);
-        if (i === -1) return [p, ...prev];
-        const next = [...prev];
-        next[i] = p;
-        return next;
-      });
-      setFlash(`${p.name} · ${stageLabel(stage)} ✓`);
-    },
-    [stage],
-  );
+  function beginSearch() {
+    setLoading(true);
+    setErr(null);
+  }
 
   async function mark(p: CheckinParticipant) {
     if (markingId) return; // ignore a rapid double-tap while a mark is in flight
@@ -253,8 +263,10 @@ function CheckinPanel({
           stage,
         },
       );
-      applyMarked(res.data);
+      setFlash(`${res.data.name} · ${stageLabel(stage)} ✓`);
       setSelected(res.data);
+      beginSearch();
+      setRefresh((current) => current + 1);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Gagal menandai check-in.");
     } finally {
@@ -283,13 +295,13 @@ function CheckinPanel({
   return (
     <div>
       <p style={{ margin: "0 0 12px", color: "var(--color-ink-4)", fontSize: 14, lineHeight: 1.5 }}>
-        {results.length} peserta lunas · {results.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
+        {paidTotal} peserta lunas · {stage === "rpc" ? rpcCollected : racedayCheckedIn} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
       </p>
       <label style={{ display: "grid", gap: 6, color: "var(--color-ink-4)", fontSize: 13 }}>
         Cari peserta
         <input
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { beginSearch(); setQ(e.target.value); setPage(1); }}
           placeholder="Nama / BIB / no. registrasi"
           inputMode="search"
           autoFocus
@@ -320,6 +332,7 @@ function CheckinPanel({
       )}
 
       <div
+        aria-busy={loading}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -327,7 +340,8 @@ function CheckinPanel({
           marginTop: 12,
         }}
       >
-        {visibleParticipants.map((p) => (
+        {loading && <p role="status" style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--color-ink-4)", fontSize: 14 }}><span className="spinner" aria-hidden="true" style={{ borderTopColor: "var(--color-gold)" }} />Memuat peserta…</p>}
+        {!loading && results.map((p) => (
           <ParticipantCard
             key={p.id}
             p={p}
@@ -336,10 +350,30 @@ function CheckinPanel({
           />
         ))}
       </div>
-      {!loading && visibleParticipants.length === 0 && !err && (
+      {!loading && total === 0 && !err && (
         <p style={{ color: "var(--color-ink-4)", fontSize: 14, marginTop: 12 }}>
           Tidak ada peserta yang cocok.
         </p>
+      )}
+      {total > 0 && !err && (
+        <nav aria-label="Halaman daftar peserta" style={paginationStyle}>
+          <div style={paginationInfoStyle}>
+            <span>{rangeStart}–{rangeEnd} dari {total} peserta</span>
+            <select
+              aria-label="Jumlah peserta per halaman"
+              value={pageSize}
+              onChange={(e) => { beginSearch(); setPageSize(Number(e.target.value)); setPage(1); }}
+              style={pageSizeStyle}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size} per halaman</option>)}
+            </select>
+          </div>
+          <div style={paginationButtonsStyle}>
+            <button type="button" onClick={() => { beginSearch(); setPage(currentPage - 1); }} disabled={loading || currentPage === 1} style={{ ...pageButtonStyle, opacity: loading || currentPage === 1 ? 0.5 : 1 }}>← Sebelumnya</button>
+            <span aria-live="polite" style={{ whiteSpace: "nowrap" }}>Halaman {currentPage} dari {totalPages}</span>
+            <button type="button" onClick={() => { beginSearch(); setPage(currentPage + 1); }} disabled={loading || currentPage === totalPages} style={{ ...pageButtonStyle, opacity: loading || currentPage === totalPages ? 0.5 : 1 }}>Berikutnya →</button>
+          </div>
+        </nav>
       )}
       {selected && <ParticipantDetailModal participant={selected} stage={stage} marking={markingId === selected.id} onClose={() => setSelected(null)} onClaim={() => mark(selected)} />}
     </div>
@@ -454,3 +488,9 @@ const fieldStyle: React.CSSProperties = {
   fontSize: 16,
   marginBottom: 0,
 };
+
+const paginationStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 20, color: "var(--color-ink-4)", fontSize: 13 };
+const paginationInfoStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 };
+const paginationButtonsStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 };
+const pageSizeStyle: React.CSSProperties = { minHeight: 40, padding: "6px 8px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", color: "var(--color-ink)", fontSize: 13 };
+const pageButtonStyle: React.CSSProperties = { minHeight: 44, padding: "6px 10px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "transparent", color: "var(--color-text-on-dark)", fontSize: 13, fontWeight: 700, cursor: "pointer" };
