@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import type {
   ApiResponse,
   CheckinParticipant,
   CheckinStage,
+  CheckinSearchPage,
   RPCAccessSession,
 } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
@@ -13,16 +14,26 @@ import Button from "@/components/ui/Button";
 import ParticipantDetailModal from "@/components/rpc/ParticipantDetailModal";
 import BarcodeScanner from "@/components/rpc/BarcodeScanner";
 
+const PAGE_SIZE_OPTIONS = [8, 16, 24] as const;
+
 // This page intentionally has no organizer session. The volunteer code stays
 // only in component state and is sent only to narrowly scoped RPC endpoints.
 export default function VolunteerRPCPage() {
   const [code, setCode] = useState("");
   const [session, setSession] = useState<RPCAccessSession | null>(null);
   const [participants, setParticipants] = useState<CheckinParticipant[]>([]);
+  const [total, setTotal] = useState(0);
+  const [paidTotal, setPaidTotal] = useState(0);
+  const [rpcCollected, setRpcCollected] = useState(0);
+  const [racedayCheckedIn, setRacedayCheckedIn] = useState(0);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
   const [stage, setStage] = useState<CheckinStage>("rpc");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [refresh, setRefresh] = useState(0);
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [selected, setSelected] = useState<CheckinParticipant | null>(null);
 
@@ -31,17 +42,47 @@ export default function VolunteerRPCPage() {
     headers: { "X-RPC-Access-Code": code },
   };
 
-  const visibleParticipants = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return participants;
-    return participants.filter((participant) =>
-      [
-        participant.name,
-        participant.bib_number,
-        participant.registration_number,
-      ].some((value) => value.toLowerCase().includes(needle)),
-    );
-  }, [participants, query]);
+  useEffect(() => {
+    if (!session) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          q: query.trim(), stage, limit: String(pageSize),
+          offset: String((page - 1) * pageSize),
+        });
+        const response = await api.get<CheckinSearchPage>(
+          `/api/v1/events/${session.event_id}/checkin/search?${params}`,
+          { auth: false, headers: { "X-RPC-Access-Code": code } },
+        );
+        if (cancelled) return;
+        setParticipants(response.data ?? []);
+        setTotal(response.total);
+        setPaidTotal(response.paid_total);
+        setRpcCollected(response.rpc_collected);
+        setRacedayCheckedIn(response.raceday_checked_in);
+      } catch (err) {
+        if (cancelled) return;
+        setParticipants([]);
+        setError(err instanceof ApiError ? err.message : "Daftar peserta gagal dimuat.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }, query ? 250 : 0);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [session, code, query, stage, page, pageSize, refresh]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const rangeStart = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(currentPage * pageSize, total);
+
+  function beginSearch() {
+    setLoading(true);
+    setError(null);
+  }
 
   async function enterEvent(e: FormEvent) {
     e.preventDefault();
@@ -53,13 +94,12 @@ export default function VolunteerRPCPage() {
         options,
       );
       const event = access.data;
-      const response = await api.get<ApiResponse<CheckinParticipant[]>>(
-        `/api/v1/events/${event.event_id}/checkin/search`,
-        options,
-      );
       setSession(event);
-      setParticipants(response.data ?? []);
+      setLoading(true);
+      setQuery("");
+      setPage(1);
     } catch (err) {
+      setLoading(false);
       setError(
         err instanceof ApiError
           ? err.message
@@ -81,10 +121,9 @@ export default function VolunteerRPCPage() {
         { registration_id: participant.id, stage },
         options,
       );
-      setParticipants((current) =>
-        current.map((item) => (item.id === participant.id ? response.data : item)),
-      );
       setSelected(response.data);
+      beginSearch();
+      setRefresh((current) => current + 1);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Pengambilan perlengkapan gagal ditandai.");
     } finally {
@@ -150,9 +189,9 @@ export default function VolunteerRPCPage() {
         <h1 style={titleStyle}>{session.event_name}</h1>
         <div style={summaryStyle}>
           <p style={summaryTextStyle}>
-            {participants.length} peserta lunas · {participants.filter((item) => stage === "rpc" ? item.rpc_status !== "" : item.raceday_status !== "").length} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
+            {paidTotal} peserta lunas · {stage === "rpc" ? rpcCollected : racedayCheckedIn} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
           </p>
-          <button type="button" onClick={() => { setSession(null); setParticipants([]); setQuery(""); setStage("rpc"); }} style={changeCodeStyle}>
+          <button type="button" onClick={() => { setSession(null); setParticipants([]); setQuery(""); setPage(1); setTotal(0); setPaidTotal(0); setRpcCollected(0); setRacedayCheckedIn(0); setStage("rpc"); }} style={changeCodeStyle}>
             Ganti kode
           </button>
         </div>
@@ -160,15 +199,15 @@ export default function VolunteerRPCPage() {
 
       {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
       <div style={stageToggleStyle}>
-        <StageButton active={stage === "rpc"} onClick={() => setStage("rpc")} label="Pengambilan perlengkapan" />
-        <StageButton active={stage === "raceday"} onClick={() => setStage("raceday")} label="Check-in acara" />
+        <StageButton active={stage === "rpc"} onClick={() => { if (stage !== "rpc") { beginSearch(); setSelected(null); setStage("rpc"); setPage(1); } }} label="Pengambilan perlengkapan" />
+        <StageButton active={stage === "raceday"} onClick={() => { if (stage !== "raceday") { beginSearch(); setSelected(null); setStage("raceday"); setPage(1); } }} label="Check-in acara" />
       </div>
       <label style={searchLabelStyle}>
         Cari peserta
         <input
           autoFocus
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => { beginSearch(); setQuery(event.target.value); setPage(1); }}
           placeholder="Nama / BIB / no. registrasi"
           inputMode="search"
           style={inputStyle}
@@ -177,7 +216,7 @@ export default function VolunteerRPCPage() {
       <BarcodeScanner onToken={previewByToken} />
 
       <div style={{ ...participantListStyle, marginTop: 12 }}>
-        {visibleParticipants.map((participant) => {
+        {!loading && participants.map((participant) => {
           return (
             <article key={participant.id} style={participantStyle}>
               <div style={{ minWidth: 0 }}>
@@ -212,8 +251,31 @@ export default function VolunteerRPCPage() {
           );
         })}
       </div>
-      {visibleParticipants.length === 0 && (
+      {loading && <p style={descriptionStyle}>Memuat peserta…</p>}
+      {!loading && total === 0 && !error && (
         <p style={descriptionStyle}>Tidak ada peserta yang cocok.</p>
+      )}
+      {total > 0 && !error && (
+        <nav aria-label="Halaman daftar peserta" style={paginationStyle}>
+          <div style={paginationInfoStyle}>
+            <span>{rangeStart}–{rangeEnd} dari {total} peserta</span>
+            <select
+              aria-label="Jumlah peserta per halaman"
+              value={pageSize}
+              onChange={(event) => { beginSearch(); setPageSize(Number(event.target.value)); setPage(1); }}
+              style={pageSizeStyle}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>{size} per halaman</option>
+              ))}
+            </select>
+          </div>
+          <div style={paginationButtonsStyle}>
+            <button type="button" onClick={() => { beginSearch(); setPage(currentPage - 1); }} disabled={loading || currentPage === 1} style={{ ...pageButtonStyle, opacity: currentPage === 1 ? 0.5 : 1 }}>← Sebelumnya</button>
+            <span aria-live="polite" style={{ whiteSpace: "nowrap" }}>Halaman {currentPage} dari {totalPages}</span>
+            <button type="button" onClick={() => { beginSearch(); setPage(currentPage + 1); }} disabled={loading || currentPage === totalPages} style={{ ...pageButtonStyle, opacity: currentPage === totalPages ? 0.5 : 1 }}>Berikutnya →</button>
+          </div>
+        </nav>
       )}
       {selected && <ParticipantDetailModal participant={selected} stage={stage} marking={markingId === selected.id} onClose={() => setSelected(null)} onClaim={() => collect(selected)} />}
     </main>
@@ -267,3 +329,8 @@ const statusPillStyle: React.CSSProperties = { display: "inline-block", padding:
 const statusPillDoneStyle: React.CSSProperties = { border: "none", background: "var(--color-sprint)", color: "var(--color-ink)" };
 const markButtonStyle: React.CSSProperties = { minWidth: 112, minHeight: 56, flexShrink: 0, borderRadius: "var(--radius-md)", fontWeight: 800 };
 const changeCodeStyle: React.CSSProperties = { minHeight: 36, padding: "0 10px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-pill)", background: "transparent", color: "var(--color-ink-4)", cursor: "pointer", fontSize: 13, fontWeight: 700, whiteSpace: "nowrap" };
+const paginationStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 20, color: "var(--color-ink-4)", fontSize: 13 };
+const paginationInfoStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 };
+const paginationButtonsStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 };
+const pageSizeStyle: React.CSSProperties = { minHeight: 40, padding: "6px 8px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", color: "var(--color-ink)", fontSize: 13 };
+const pageButtonStyle: React.CSSProperties = { minHeight: 44, padding: "6px 10px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "transparent", color: "var(--color-text-on-dark)", fontSize: 13, fontWeight: 700, cursor: "pointer" };

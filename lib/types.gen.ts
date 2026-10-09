@@ -692,6 +692,13 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface CheckinSearchPage extends ApiResponse<CheckinParticipant[]> {
+  total: number;
+  paid_total: number;
+  rpc_collected: number;
+  raceday_checked_in: number;
+}
+
 export interface ApiMessageResponse {
   message: string;
 }

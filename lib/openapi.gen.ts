@@ -3441,13 +3441,19 @@ export interface paths {
         };
         /**
          * Manual RPC participant lookup (FR-605)
-         * @description Primary RPC method — search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query lists all paid participants.
+         * @description Primary RPC method — search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query matches all paid participants. Unclaimed participants for the selected stage appear first. Omit limit for the legacy unbounded result.
          */
         get: {
             parameters: {
                 query?: {
                     /** @description Name */
                     q?: string;
+                    /** @description Stage used to put unclaimed participants first. */
+                    stage?: "rpc" | "raceday";
+                    /** @description Page size; omit for the legacy unbounded result. */
+                    limit?: number;
+                    /** @description Zero-based offset; requires limit. */
+                    offset?: number;
                 };
                 header?: never;
                 path: {
@@ -3465,9 +3471,30 @@ export interface paths {
                     content: {
                         "application/json": {
                             data?: components["schemas"]["CheckinParticipant"][];
+                            /**
+                             * Format: int64
+                             * @description Number of paid participants matching q.
+                             */
+                            total?: number;
+                            /**
+                             * Format: int64
+                             * @description All paid participants in the event.
+                             */
+                            paid_total?: number;
+                            /**
+                             * Format: int64
+                             * @description Paid participants with RPC claimed.
+                             */
+                            rpc_collected?: number;
+                            /**
+                             * Format: int64
+                             * @description Paid participants checked in on race day.
+                             */
+                            raceday_checked_in?: number;
                         };
                     };
                 };
+                400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
             };
         };
