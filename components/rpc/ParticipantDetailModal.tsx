@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import type { CheckinParticipant, CheckinStage } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
 import { X } from "lucide-react";
+
+const subscribeToClient = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function ParticipantDetailModal({ participant, stage, marking, onClose, onClaim }: {
   participant: CheckinParticipant;
@@ -12,6 +17,7 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
   onClose: () => void;
   onClaim: () => void;
 }) {
+  const isClient = useSyncExternalStore(subscribeToClient, getClientSnapshot, getServerSnapshot);
   const done = stage === "rpc" ? participant.rpc_status !== "" : participant.raceday_status !== "";
   const claimLabel = stage === "rpc" ? "Tandai diambil" : "Tandai check-in";
   const doneLabel = stage === "rpc" ? "Sudah diambil" : "Sudah check-in";
@@ -22,7 +28,9 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [marking, onClose]);
 
-  return (
+  if (!isClient) return null;
+
+  return createPortal(
     <div role="dialog" aria-modal="true" aria-labelledby="participant-detail-title" style={backdropStyle} onMouseDown={(event) => { if (event.target === event.currentTarget && !marking) onClose(); }}>
       <section style={modalStyle}>
         <div style={headerStyle}>
@@ -62,7 +70,8 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
           </Button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
