@@ -35,6 +35,8 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
         <dl style={detailGridStyle}>
           <Detail label="Nomor BIB" value={participant.bib_number || "—"} mono />
           <Detail label="No. registrasi" value={participant.registration_number} mono />
+          <Detail label="Kategori" value={participant.category_name} />
+          <Detail label="Jenis tiket" value={participant.ticket_name} />
           {participant.gender && <Detail label="Gender" value={participant.gender} />}
           {participant.age_class && <Detail label="Kelas usia" value={participant.age_class} />}
           <Detail label="Status perlengkapan" value={participant.rpc_status ? "Sudah diambil" : "Belum diambil"} />

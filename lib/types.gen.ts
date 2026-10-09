@@ -627,6 +627,8 @@ export interface CheckinParticipant {
   gender: string;
   age_class: "" | "Open" | "Master";
   category_id: string;
+  category_name: string;
+  ticket_name: string;
   rpc_status: string; // "" | "collected"
   raceday_status: string; // "" | "checked_in"
   custom_answers: Array<{ label: string; value: string }>;

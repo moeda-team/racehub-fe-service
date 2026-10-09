@@ -190,6 +190,9 @@ export default function VolunteerRPCPage() {
                   {participant.age_class ? ` · ${participant.age_class}` : ""}
                   {participant.gender ? ` · ${participant.gender}` : ""}
                 </p>
+                <p style={{ ...participantMetaStyle, fontFamily: "inherit", fontSize: 13 }}>
+                  {participant.category_name} · {participant.ticket_name}
+                </p>
                 <div style={statusListStyle}>
                   <StatusPill done={participant.rpc_status !== ""} label="Perlengkapan" />
                   <StatusPill done={participant.raceday_status !== ""} label="Check-in" />

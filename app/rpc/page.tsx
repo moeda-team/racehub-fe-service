@@ -398,6 +398,9 @@ function ParticipantCard({
           {p.age_class ? ` · ${p.age_class}` : ""}
           {p.gender ? ` · ${p.gender}` : ""}
         </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-2)", marginTop: 4 }}>
+          {p.category_name} · {p.ticket_name}
+        </div>
         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
           <StatusPill on={p.rpc_status !== ""} label="Perlengkapan" />
           <StatusPill on={p.raceday_status !== ""} label="Hari-H" />

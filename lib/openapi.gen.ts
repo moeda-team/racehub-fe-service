@@ -5021,6 +5021,20 @@ export interface components {
             registration_id?: string;
             /** @description Human-readable registration number; included in event refund lists */
             registration_number?: string;
+            /** @description Participant name for event refund lists */
+            participant_name?: string;
+            /** @description Decrypted participant email for the event organizer */
+            participant_email?: string;
+            /** @description Decrypted participant phone for the event organizer */
+            participant_phone?: string;
+            /** @description Decrypted participant birth date for the event organizer */
+            participant_birth_date?: string;
+            bib_number?: string;
+            gender?: string;
+            /** @enum {string} */
+            age_class?: "Open" | "Master";
+            category_name?: string;
+            ticket_name?: string;
             /**
              * Format: date-time
              * @description Refund record creation time
@@ -5254,7 +5268,7 @@ export interface components {
              */
             strategy: "all" | "category" | "gender" | "category_gender";
         };
-        /** @description Field-facing participant projection including labeled custom registration answers needed to verify the racepack. */
+        /** @description Field-facing participant projection including the purchased ticket category, event category, and labeled custom registration answers needed to verify the racepack. */
         CheckinParticipant: {
             /** Format: uuid */
             id?: string;
@@ -5266,6 +5280,10 @@ export interface components {
             age_class?: "Open" | "Master";
             /** Format: uuid */
             category_id?: string;
+            /** @description Event category name selected at registration. */
+            category_name?: string;
+            /** @description Purchased ticket category name. */
+            ticket_name?: string;
             /** @description Empty or 'collected' (FR-603). */
             rpc_status?: string;
             /** @description Empty or 'checked_in' (FR-603). */
