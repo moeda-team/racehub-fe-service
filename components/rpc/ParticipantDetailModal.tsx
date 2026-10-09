@@ -13,7 +13,8 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
   onClaim: () => void;
 }) {
   const done = stage === "rpc" ? participant.rpc_status !== "" : participant.raceday_status !== "";
-  const label = stage === "rpc" ? "pengambilan perlengkapan" : "check-in acara";
+  const claimLabel = stage === "rpc" ? "Tandai diambil" : "Tandai check-in";
+  const doneLabel = stage === "rpc" ? "Sudah diambil" : "Sudah check-in";
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape" && !marking) onClose(); };
@@ -43,7 +44,7 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
           <Detail label="Status Hari-H" value={participant.raceday_status ? "Sudah check-in" : "Belum check-in"} />
         </dl>
 
-        <div style={{ marginTop: 18 }}>
+        <div style={{ marginTop: 12 }}>
           <h3 style={sectionTitleStyle}>Data tambahan</h3>
           {participant.custom_answers.length > 0 ? (
             <dl style={answersStyle}>
@@ -55,9 +56,9 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
         </div>
 
         <div style={actionsStyle}>
-          <Button type="button" variant="secondary" onClick={onClose} disabled={marking}>Tutup</Button>
-          <Button type="button" variant={done ? "secondary" : "primary"} onClick={onClaim} disabled={done || marking}>
-            {done ? `${label} sudah diklaim` : marking ? "Memproses…" : `Claim ${label}`}
+          <Button type="button" variant="secondary" onClick={onClose} disabled={marking} style={{ flex: 1, minWidth: 0 }}>Tutup</Button>
+          <Button type="button" variant={done ? "secondary" : "primary"} onClick={onClaim} disabled={done || marking} style={{ flex: 1, minWidth: 0 }}>
+            {done ? doneLabel : marking ? "Memproses…" : claimLabel}
           </Button>
         </div>
       </section>
@@ -69,17 +70,17 @@ function Detail({ label, value, mono = false }: { label: string; value: string; 
   return <div style={detailStyle}><dt style={termStyle}>{label}</dt><dd style={{ ...valueStyle, ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}>{value}</dd></div>;
 }
 
-const backdropStyle: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" };
-const modalStyle: React.CSSProperties = { width: "min(100%, 520px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 20, borderRadius: "var(--radius-lg)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" };
-const headerStyle: React.CSSProperties = { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 };
+const backdropStyle: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 8, background: "rgba(20,24,31,.78)" };
+const modalStyle: React.CSSProperties = { width: "min(100%, 440px)", maxHeight: "calc(100dvh - 16px)", overflowY: "auto", padding: "14px 16px", borderRadius: "var(--radius-md)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" };
+const headerStyle: React.CSSProperties = { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 };
 const eyebrowStyle: React.CSSProperties = { margin: "0 0 4px", color: "var(--color-gold-deep)", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: ".12em" };
-const titleStyle: React.CSSProperties = { margin: 0, fontFamily: "var(--font-display)", fontSize: 24, lineHeight: 1.2 };
-const closeStyle: React.CSSProperties = { width: 40, height: 40, flexShrink: 0, border: "1px solid var(--color-line)", borderRadius: 999, background: "transparent", color: "var(--color-ink-2)", fontSize: 26, cursor: "pointer" };
-const detailGridStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, margin: "18px 0 0" };
-const answersStyle: React.CSSProperties = { display: "grid", gap: 8, margin: "8px 0 0" };
-const detailStyle: React.CSSProperties = { padding: "10px 12px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-paper)" };
-const termStyle: React.CSSProperties = { color: "var(--color-ink-3)", fontSize: 12, fontWeight: 700 };
-const valueStyle: React.CSSProperties = { margin: "3px 0 0", fontSize: 15, fontWeight: 700, overflowWrap: "anywhere" };
-const sectionTitleStyle: React.CSSProperties = { margin: 0, fontFamily: "var(--font-display)", fontSize: 17 };
-const emptyStyle: React.CSSProperties = { margin: "8px 0 0", color: "var(--color-ink-3)", fontSize: 14 };
-const actionsStyle: React.CSSProperties = { display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap", marginTop: 22 };
+const titleStyle: React.CSSProperties = { margin: 0, fontFamily: "var(--font-display)", fontSize: 20, lineHeight: 1.2, overflowWrap: "anywhere" };
+const closeStyle: React.CSSProperties = { width: 32, height: 32, flexShrink: 0, border: "1px solid var(--color-line)", borderRadius: 999, background: "transparent", color: "var(--color-ink-2)", cursor: "pointer" };
+const detailGridStyle: React.CSSProperties = { display: "grid", margin: "10px 0 0" };
+const answersStyle: React.CSSProperties = { display: "grid", margin: "4px 0 0" };
+const detailStyle: React.CSSProperties = { display: "grid", gridTemplateColumns: "minmax(105px, 36%) minmax(0, 1fr)", alignItems: "start", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--color-line)" };
+const termStyle: React.CSSProperties = { color: "var(--color-ink-3)", fontSize: 12, lineHeight: 1.35 };
+const valueStyle: React.CSSProperties = { margin: 0, fontSize: 13, fontWeight: 700, lineHeight: 1.35, overflowWrap: "anywhere" };
+const sectionTitleStyle: React.CSSProperties = { margin: 0, fontFamily: "var(--font-display)", fontSize: 15 };
+const emptyStyle: React.CSSProperties = { margin: "5px 0 0", color: "var(--color-ink-3)", fontSize: 12 };
+const actionsStyle: React.CSSProperties = { position: "sticky", bottom: -14, display: "flex", gap: 8, marginTop: 12, paddingTop: 10, background: "var(--color-panel)" };

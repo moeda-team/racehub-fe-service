@@ -215,7 +215,8 @@ export default function VolunteerRPCPage() {
       </label>
       <BarcodeScanner onToken={previewByToken} />
 
-      <div style={{ ...participantListStyle, marginTop: 12 }}>
+      <div aria-busy={loading} style={{ ...participantListStyle, marginTop: 12 }}>
+        {loading && <ParticipantLoading />}
         {!loading && participants.map((participant) => {
           return (
             <article key={participant.id} style={participantStyle}>
@@ -251,7 +252,6 @@ export default function VolunteerRPCPage() {
           );
         })}
       </div>
-      {loading && <p style={descriptionStyle}>Memuat peserta…</p>}
       {!loading && total === 0 && !error && (
         <p style={descriptionStyle}>Tidak ada peserta yang cocok.</p>
       )}
@@ -279,6 +279,24 @@ export default function VolunteerRPCPage() {
       )}
       {selected && <ParticipantDetailModal participant={selected} stage={stage} marking={markingId === selected.id} onClose={() => setSelected(null)} onClaim={() => collect(selected)} />}
     </main>
+  );
+}
+
+function ParticipantLoading() {
+  return (
+    <div role="status" aria-live="polite" style={{ display: "grid", gap: 10 }}>
+      <p style={{ display: "flex", alignItems: "center", gap: 10, margin: "0 0 2px", color: "var(--color-ink-4)", fontSize: 14 }}>
+        <span className="spinner" aria-hidden="true" style={{ borderTopColor: "var(--color-gold)" }} />
+        Memuat peserta…
+      </p>
+      {Array.from({ length: 3 }, (_, index) => (
+        <div key={index} aria-hidden="true" style={{ ...participantStyle, minHeight: 92, display: "grid", gap: 9 }}>
+          <span style={{ width: "58%", height: 14, borderRadius: 6, background: "var(--color-panel)" }} />
+          <span style={{ width: "76%", height: 10, borderRadius: 6, background: "var(--color-panel)" }} />
+          <span style={{ width: "42%", height: 10, borderRadius: 6, background: "var(--color-panel)" }} />
+        </div>
+      ))}
+    </div>
   );
 }
 
