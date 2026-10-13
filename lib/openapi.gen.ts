@@ -645,10 +645,10 @@ export interface paths {
          * List paid participants for a published event
          * @description Public, anonymous participant directory. Returns only registrations whose
          *     current status is `paid`; refunded and unpaid registrations are excluded.
-         *     Participant name, category, and submitted custom registration field answers
-         *     are exposed. Contact information, registration numbers, payment data, and
-         *     check-in state are never returned. Organizers should only configure custom
-         *     fields suitable for public display.
+         *     Participant name, category, and the submitted answer for the custom
+         *     registration field whose slug is `asal_kabupaten` are exposed. Other custom
+         *     answers, contact information, registration numbers, payment data, and
+         *     check-in state are never returned.
          */
         get: {
             parameters: {
@@ -4733,7 +4733,7 @@ export interface components {
             /** Format: date-time */
             created_at?: string;
         };
-        /** @description Anonymous-safe projection of a currently paid participant. */
+        /** @description Public projection of a currently paid participant, including the submitted asal_kabupaten answer when configured. */
         PublicPaidParticipant: {
             name: string;
             category: string;
