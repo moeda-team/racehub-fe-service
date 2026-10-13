@@ -645,8 +645,10 @@ export interface paths {
          * List paid participants for a published event
          * @description Public, anonymous participant directory. Returns only registrations whose
          *     current status is `paid`; refunded and unpaid registrations are excluded.
-         *     Only the participant name and category are exposed. Contact information,
-         *     registration numbers, payment data, and check-in state are never returned.
+         *     Participant name, category, and submitted custom registration field answers
+         *     are exposed. Contact information, registration numbers, payment data, and
+         *     check-in state are never returned. Organizers should only configure custom
+         *     fields suitable for public display.
          */
         get: {
             parameters: {
@@ -4735,6 +4737,10 @@ export interface components {
         PublicPaidParticipant: {
             name: string;
             category: string;
+            custom_answers: {
+                label: string;
+                value: string;
+            }[];
         };
         /** @description Registration projection. PII echoed/decrypted; never the encrypted blobs. */
         Registration: {
