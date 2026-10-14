@@ -43,6 +43,7 @@ jobs:
       - name: Configure SSH
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
           DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           install -m 700 -d ~/.ssh
@@ -50,6 +51,18 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
+          eval "$(ssh-agent -s)"
+          {
+            echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK"
+            echo "SSH_AGENT_PID=$SSH_AGENT_PID"
+          } >> "$GITHUB_ENV"
+          cat > ~/.ssh/askpass <<'ASKPASS'
+          #!/bin/sh
+          printf '%s\n' "$SSH_KEY_PASSPHRASE"
+          ASKPASS
+          chmod 700 ~/.ssh/askpass
+          DISPLAY=:0 SSH_ASKPASS_REQUIRE=force SSH_ASKPASS="$HOME/.ssh/askpass" \
+            ssh-add ~/.ssh/deploy_key </dev/null
 
       - name: Copy production Compose file
         env:
@@ -58,9 +71,9 @@ jobs:
           DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
             "mkdir -p '$DEPLOY_PATH'"
-          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" compose.production.yml \
+          scp -P "$DEPLOY_PORT" compose.production.yml \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/compose.production.yml"
 
       - name: Pull and start production container
@@ -72,7 +85,7 @@ jobs:
           DEPLOY_SHA: ${{ github.sha }}
           GHCR_IMAGE: ghcr.io/${{ github.repository }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
             "DEPLOY_PATH='$DEPLOY_PATH' IMAGE_TAG='$DEPLOY_SHA' GHCR_IMAGE='$GHCR_IMAGE' bash -s" <<'REMOTE'
           set -euo pipefail
           cd "$DEPLOY_PATH"
