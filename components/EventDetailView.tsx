@@ -36,12 +36,7 @@ export default function EventDetailView({
   }));
 
   const cta = (
-    <Button
-      variant="primary"
-      size="lg"
-      style={{ width: "100%" }}
-      disabled={!interactive || isComingSoon}
-    >
+    <Button variant="primary" size="lg" style={{ width: "100%" }} disabled={!interactive || isComingSoon}>
       {isComingSoon ? "Pendaftaran Belum Dibuka" : "Daftar Sekarang"}
     </Button>
   );
@@ -84,26 +79,18 @@ export default function EventDetailView({
         {event.name}
       </h1>
       <p style={{ color: "var(--color-ink-3)", marginBottom: 12 }}>
-        {event.location || "Lokasi belum diatur"} &middot;{" "}
-        {formatDate(event.event_date)}
+        {event.location || "Lokasi belum diatur"} &middot; {formatDate(event.event_date)}
       </p>
 
-      <div
-        style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}
-      >
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {isComingSoon && <Badge variant="warn">Segera Hadir</Badge>}
-        {event.event_type === "running" && (
-          <Badge variant="sprint">Event Lari</Badge>
-        )}
-        {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && (
-          <Badge variant="flame">Donasi Tersedia</Badge>
-        )}
+        {event.event_type === "running" && <Badge variant="sprint">Event Lari</Badge>}
+        {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && <Badge variant="flame">Donasi Tersedia</Badge>}
       </div>
 
       {isComingSoon && (
         <Alert variant="warn" className="mb-6">
-          Pendaftaran belum dibuka. Pantau halaman ini untuk informasi
-          pembukaan.
+          Pendaftaran belum dibuka. Pantau halaman ini untuk informasi pembukaan.
         </Alert>
       )}
 
@@ -114,7 +101,14 @@ export default function EventDetailView({
       )}
 
       {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && interactive && !isComingSoon && (
-        <ButtonLink href={`/donate/${event.id}`} variant="secondary" size="md" style={{ width: "100%", margin: "0 0 24px" }}>Donasi tanpa mendaftar</ButtonLink>
+        <ButtonLink
+          href={`/donate/${event.id}`}
+          variant="secondary"
+          size="md"
+          style={{ width: "100%", margin: "0 0 24px" }}
+        >
+          Donasi tanpa mendaftar
+        </ButtonLink>
       )}
 
       <section style={{ marginBottom: 24 }}>
@@ -129,9 +123,7 @@ export default function EventDetailView({
           {event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
         </h2>
         {categories.length === 0 ? (
-          <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
-            Belum ada kategori.
-          </p>
+          <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada kategori.</p>
         ) : (
           <div
             style={{
@@ -180,9 +172,7 @@ export default function EventDetailView({
           Tiket
         </h2>
         {ticket_categories.length === 0 ? (
-          <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
-            Belum ada tiket.
-          </p>
+          <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada tiket.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {ticketsByDistance.map(({ distance, tickets }) =>
@@ -216,12 +206,9 @@ export default function EventDetailView({
                       {distance.name}
                     </span>
                   </div>
-                  <div
-                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                  >
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {tickets.map((t) => {
-                      const expired =
-                        !!t.sale_end && new Date(t.sale_end).getTime() < now;
+                      const expired = !!t.sale_end && new Date(t.sale_end).getTime() < now;
                       return (
                         <TicketCard
                           key={t.id}
@@ -249,12 +236,8 @@ export default function EventDetailView({
                                 flexWrap: "wrap",
                               }}
                             >
-                              <span style={{ fontWeight: 600, fontSize: 15 }}>
-                                {t.name}
-                              </span>
-                              {expired ? (
-                                <Badge variant="neutral">Berakhir</Badge>
-                              ) : null}
+                              <span style={{ fontWeight: 600, fontSize: 15 }}>{t.name}</span>
+                              {expired ? <Badge variant="neutral">Berakhir</Badge> : null}
                             </div>
                             <div
                               style={{
@@ -263,11 +246,11 @@ export default function EventDetailView({
                                 marginTop: 3,
                               }}
                             >
-                              {expired
+                              {/* {expired
                                 ? `Penjualan berakhir ${formatDate(t.sale_end)}`
                                 : t.sale_end
                                   ? `Penjualan s.d. ${formatDate(t.sale_end)}`
-                                  : ""}
+                                  : ""} */}
                             </div>
                           </div>
                           <div
@@ -293,7 +276,9 @@ export default function EventDetailView({
       </section>
 
       {interactive && !isComingSoon ? (
-        <ButtonLink href={`/register/${event.id}`} variant="primary" size="lg" style={{ width: "100%" }}>Daftar Sekarang</ButtonLink>
+        <ButtonLink href={`/register/${event.id}`} variant="primary" size="lg" style={{ width: "100%" }}>
+          Daftar Sekarang
+        </ButtonLink>
       ) : (
         cta
       )}
