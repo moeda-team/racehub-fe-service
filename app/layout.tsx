@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@/components/analytics";
 import "@fontsource/fraunces/500.css";
 import "@fontsource/fraunces/600.css";
 import "@fontsource/fraunces/700.css";
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   title: "LowkeyThings — Platform Event Indonesia",
   description:
     "Telusuri, daftar, dan kelola event di seluruh Indonesia. Transparan, cepat, dan aman.",
-  icons: { icon: "/favicon.ico?v=3" },
+  icons: { icon: "/lowkeythings-logo.png" },
 };
 
 export default function RootLayout({
@@ -37,6 +38,7 @@ export default function RootLayout({
         }}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );

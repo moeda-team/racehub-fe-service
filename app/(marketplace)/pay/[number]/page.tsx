@@ -227,7 +227,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         ...(quote.fee_midtrans_charged_to_buyer
           ? [
               {
-                label: "Biaya Payment Gateway",
+                label: "Biaya Transaksi",
                 value: formatRupiah(quote.fee_midtrans),
               },
             ]
@@ -310,7 +310,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
               margin: "10px 0 16px",
             }}
           >
-            ⛁ Pilih metode dulu untuk melihat estimasi biaya payment gateway. Nominal final mengikuti konfirmasi provider setelah pembayaran dibuat.
+            ⛁ Pilih metode dulu untuk melihat estimasi biaya transaksi. Nominal final mengikuti konfirmasi provider setelah pembayaran dibuat.
           </p>
           <Button
             variant="primary"
@@ -372,7 +372,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           />
           {charge.quote.fee_midtrans_charged_to_buyer && (
             <Row
-              label="Biaya Payment Gateway"
+              label="Biaya Transaksi"
               value={formatRupiah(charge.quote.fee_midtrans)}
               mono
             />

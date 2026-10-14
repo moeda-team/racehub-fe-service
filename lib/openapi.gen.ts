@@ -4,6 +4,63 @@
  */
 
 export interface paths {
+    "/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a contact message */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** Format: email */
+                        email: string;
+                        message: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Message queued for delivery to the support team. */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Message could not be queued. */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -570,6 +627,83 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/paid-registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List paid participants for a published event
+         * @description Public, anonymous participant directory. Returns only registrations whose
+         *     current status is `paid`; refunded and unpaid registrations are excluded.
+         *     Participant name, category suffixed with the compact age class when set
+         *     (for example `5K(Master+)`), and the submitted answer for the custom
+         *     registration field whose slug is `asal_kabupaten` are exposed. Other custom
+         *     answers, contact information, registration numbers, payment data, and
+         *     check-in state are never returned.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Case-insensitive substring search across participant name and category. */
+                    q?: string;
+                    /** @description Exact category name filter; omit or leave empty to include all categories. */
+                    category?: string;
+                    /** @description Exact stored age class filter; omit or leave empty to include all classes. */
+                    age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+                    page?: number;
+                    /** @description Number of results per page. Use 12, 24, or 36; use `all` to return all matches. Defaults to 24. */
+                    page_size?: (12 | 24 | 36) | "all";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Paginated paid participant list. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["PublicPaidParticipant"][];
+                            total?: number;
+                            page?: number;
+                            page_size?: number;
+                            total_pages?: number;
+                        };
+                    };
+                };
+                /** @description Invalid event UUID. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Event does not exist or is not published. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1877,8 +2011,10 @@ export interface paths {
          * Register a participant
          * @description Public participant registration — NO authentication required (FR-401).
          *     Reserves quota atomically across ticket → category → event (FR-408).
-         *     birth_date is required; for running events it sets the Open/Master age
-         *     class (FR-404). PII is encrypted at rest (NFR-206). Donation is optional
+         *     birth_date is required. For running events, a standalone case-insensitive 5K
+         *     token in the selected category sets age_class to Fun Run; other categories
+         *     use the Open/Master/Master+ age classes (FR-404). PII is encrypted at rest
+         *     (NFR-206). Donation is optional
          *     with no minimum (FR-406). No money is computed here — fees are Phase 4.
          */
         post: {
@@ -2027,6 +2163,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/registrations/{number}/ticket.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a paid registration e-ticket as PDF
+         * @description Returns a server-rendered PDF with the e-ticket QR and stored invoice. Requires the same private ticket token as the JSON e-ticket endpoint.
+         */
+        get: {
+            parameters: {
+                query: {
+                    token: string;
+                };
+                header?: never;
+                path: {
+                    number: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description E-ticket PDF attachment. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/pdf": string;
+                    };
+                };
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/registrations/{number}/refund": {
         parameters: {
             query?: never;
@@ -2104,7 +2284,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). */
+                /** @description Estimated fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). The charge response contains the provider-confirmed final amount. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -2222,7 +2402,7 @@ export interface paths {
         };
         /**
          * List configured iPaymu payment channels
-         * @description Returns RaceHub's configured VA and QRIS iPaymu channels.
+         * @description Returns LowkeyThings's configured VA and QRIS iPaymu channels.
          */
         get: {
             parameters: {
@@ -2784,6 +2964,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/{id}/refunds/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Refund summary for an event (organizer)
+         * @description Returns server-calculated refund counts and amounts for the organizer's own event.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Refund summary. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["RefundSummary"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/events/{id}/donations": {
         parameters: {
             query?: never;
@@ -3224,13 +3450,19 @@ export interface paths {
         };
         /**
          * Manual RPC participant lookup (FR-605)
-         * @description Primary RPC method — search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query lists all paid participants.
+         * @description Primary RPC method — search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query matches all paid participants. Unclaimed participants for the selected stage appear first. Omit limit for the legacy unbounded result.
          */
         get: {
             parameters: {
                 query?: {
                     /** @description Name */
                     q?: string;
+                    /** @description Stage used to put unclaimed participants first. */
+                    stage?: "rpc" | "raceday";
+                    /** @description Page size; omit for the legacy unbounded result. */
+                    limit?: number;
+                    /** @description Zero-based offset; requires limit. */
+                    offset?: number;
                 };
                 header?: never;
                 path: {
@@ -3248,9 +3480,30 @@ export interface paths {
                     content: {
                         "application/json": {
                             data?: components["schemas"]["CheckinParticipant"][];
+                            /**
+                             * Format: int64
+                             * @description Number of paid participants matching q.
+                             */
+                            total?: number;
+                            /**
+                             * Format: int64
+                             * @description All paid participants in the event.
+                             */
+                            paid_total?: number;
+                            /**
+                             * Format: int64
+                             * @description Paid participants with RPC claimed.
+                             */
+                            rpc_collected?: number;
+                            /**
+                             * Format: int64
+                             * @description Paid participants checked in on race day.
+                             */
+                            raceday_checked_in?: number;
                         };
                     };
                 };
+                400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
             };
         };
@@ -3439,7 +3692,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Per category × gender × age-class counts. */
+                /** @description Running events return category × gender × age-class counts. Non-running events return every configured category × ticket-class pair, including zero totals, with gender and age_class empty. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -3472,6 +3725,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
+                    /** @description Case-insensitive substring search across participant name, registration number, BIB, category, and ticket category. */
+                    q?: string;
                     limit?: number;
                     offset?: number;
                 };
@@ -4285,7 +4540,7 @@ export interface components {
             /** Format: uuid */
             organizer_id?: string;
             name?: string;
-            /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
+            /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4293,7 +4548,11 @@ export interface components {
             /** @enum {string} */
             status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
             is_running_event?: boolean;
-            /** @default 40 */
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             * @default 40
+             */
             master_age_threshold: number;
             /** Format: date-time */
             refund_cutoff_date?: string;
@@ -4343,7 +4602,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             name?: string;
-            /** @description Organizer-authored HTML; consumers must sanitize before rendering. RaceHub-hosted img URLs use /api/v1/media/events/. */
+            /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
             description?: string;
             location?: string;
             /** Format: date-time */
@@ -4351,6 +4610,10 @@ export interface components {
             /** @enum {string} */
             status?: "coming_soon" | "published";
             is_running_event?: boolean;
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             */
             master_age_threshold?: number;
             /** Format: date-time */
             refund_cutoff_date?: string | null;
@@ -4474,7 +4737,7 @@ export interface components {
             name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** Format: int64 */
             donation?: number;
             /** @enum {string} */
@@ -4484,6 +4747,15 @@ export interface components {
             raceday_status?: string;
             /** Format: date-time */
             created_at?: string;
+        };
+        /** @description Public projection of a currently paid participant. Category includes the compact age class in parentheses when set, for example `5K(Master+)`. Includes the submitted asal_kabupaten answer when configured. */
+        PublicPaidParticipant: {
+            name: string;
+            category: string;
+            custom_answers: {
+                label: string;
+                value: string;
+            }[];
         };
         /** @description Registration projection. PII echoed/decrypted; never the encrypted blobs. */
         Registration: {
@@ -4503,10 +4775,10 @@ export interface components {
             birth_date?: string;
             gender?: string;
             /**
-             * @description Set only for running events (FR-404)
+             * @description Running events: a standalone 5K token in the selected distance category gives Fun Run; other categories use the participant age classes (FR-404).
              * @enum {string}
              */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** Format: int64 */
             donation?: number;
             /** @enum {string} */
@@ -4539,7 +4811,7 @@ export interface components {
             /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
             payment_method: string;
         };
-        /** @description Fee breakdown (display only). All rupiah int64. iPaymu buyer-paid gateway fees are included in sub_total. */
+        /** @description Fee breakdown (display only). All rupiah int64. The standalone quote is an estimate; the same structure inside a charge response contains provider-confirmed final amounts. iPaymu buyer-paid gateway fees are included in sub_total. */
         PaymentQuoteResponse: {
             /** Format: uuid */
             registration_id?: string;
@@ -4579,10 +4851,11 @@ export interface components {
             /** @description Live iPaymu channel id. */
             payment_method: string;
         };
+        /** @description Payment instructions with the provider-confirmed final fee and total in quote. */
         PaymentChargeResponse: {
             /** Format: uuid */
             registration_id?: string;
-            /** @description RaceHub iPaymu reference id */
+            /** @description LowkeyThings iPaymu reference id */
             transaction_id?: string;
             /** @enum {string} */
             status?: "pending" | "settlement" | "expired" | "cancelled" | "denied";
@@ -4652,7 +4925,7 @@ export interface components {
              */
             birth_date?: string;
             /** @enum {string} */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** @description Opaque token encoded into the QR for check-in (FR-604) */
             qr_token?: string;
             /** Format: date-time */
@@ -4794,6 +5067,42 @@ export interface components {
             id?: string;
             /** Format: uuid */
             registration_id?: string;
+            /** @description Human-readable registration number; included in event refund lists */
+            registration_number?: string;
+            /** @description Participant name for event refund lists */
+            participant_name?: string;
+            /** @description Decrypted participant email for the event organizer */
+            participant_email?: string;
+            /** @description Decrypted participant phone for the event organizer */
+            participant_phone?: string;
+            /** @description Decrypted participant birth date for the event organizer */
+            participant_birth_date?: string;
+            bib_number?: string;
+            gender?: string;
+            /** @enum {string} */
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+            category_name?: string;
+            ticket_name?: string;
+            /**
+             * Format: date-time
+             * @description Refund record creation time
+             */
+            created_at?: string;
+            /**
+             * Format: int64
+             * @description Ticket price from the original payment
+             */
+            ticket_price?: number;
+            /**
+             * Format: int64
+             * @description Platform fee from the original payment
+             */
+            fee_platform?: number;
+            /**
+             * Format: int64
+             * @description Total paid in the original payment
+             */
+            payment_sub_total?: number;
             /**
              * Format: int64
              * @description total − fee_midtrans − donation (FR-902)
@@ -4816,6 +5125,27 @@ export interface components {
             /** @description Always true — donation is still channeled (FR-909/1406) */
             donation_still_given?: boolean;
         };
+        RefundSummary: {
+            /** Format: int64 */
+            total_count?: number;
+            /** Format: int64 */
+            completed_count?: number;
+            /** Format: int64 */
+            processing_count?: number;
+            /** Format: int64 */
+            requested_count?: number;
+            /** Format: int64 */
+            rejected_count?: number;
+            /**
+             * Format: int64
+             * @description Sum of completed and processing refund amounts
+             */
+            total_amount?: number;
+            /** Format: int64 */
+            completed_amount?: number;
+            /** Format: int64 */
+            processing_amount?: number;
+        };
         MassRefundResult: {
             /** Format: uuid */
             event_id?: string;
@@ -4826,13 +5156,17 @@ export interface components {
         };
         CreateEventRequest: {
             name: string;
-            /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
+            /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
             description?: string;
             location?: string;
             /** Format: date-time */
             event_date?: string;
             is_running_event?: boolean;
-            /** @default 40 */
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             * @default 40
+             */
             master_age_threshold: number;
             /** Format: date-time */
             refund_cutoff_date?: string;
@@ -4857,13 +5191,17 @@ export interface components {
         };
         UpdateEventRequest: {
             name: string;
-            /** @description Organizer-authored HTML; may contain img elements whose src is a RaceHub event-media proxy URL. */
+            /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
             description?: string;
             location?: string;
             /** Format: date-time */
             event_date?: string;
             is_running_event?: boolean;
-            /** @default 40 */
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             * @default 40
+             */
             master_age_threshold: number;
             /** Format: date-time */
             refund_cutoff_date?: string;
@@ -4986,7 +5324,7 @@ export interface components {
              */
             strategy: "all" | "category" | "gender" | "category_gender";
         };
-        /** @description Field-facing participant projection including labeled custom registration answers needed to verify the racepack. */
+        /** @description Field-facing participant projection including the purchased ticket category, event category, and labeled custom registration answers needed to verify the racepack. */
         CheckinParticipant: {
             /** Format: uuid */
             id?: string;
@@ -4995,9 +5333,13 @@ export interface components {
             name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** Format: uuid */
             category_id?: string;
+            /** @description Event category name selected at registration. */
+            category_name?: string;
+            /** @description Purchased ticket category name. */
+            ticket_name?: string;
             /** @description Empty or 'collected' (FR-603). */
             rpc_status?: string;
             /** @description Empty or 'checked_in' (FR-603). */
@@ -5088,14 +5430,16 @@ export interface components {
              */
             rpc_pending?: number;
         };
-        /** @description One category × gender × age-class count (FR-1103/1203). */
+        /** @description One running-event category × gender × age-class count, or one non-running category × ticket-class count. */
         RecapRow: {
             /** Format: uuid */
             category_id?: string;
             category_name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+            /** @description Ticket class name for non-running events; empty for running events. */
+            ticket_name?: string;
             /** Format: int64 */
             total?: number;
         };
@@ -5108,12 +5452,14 @@ export interface components {
             name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             status?: string;
             rpc_status?: string;
             raceday_status?: string;
             category_name?: string;
             ticket_name?: string;
+            /** @description Private ticket access token. Returned only to the authenticated organizer who owns the event. */
+            qr_token?: string;
         };
         /**
          * Format: int64

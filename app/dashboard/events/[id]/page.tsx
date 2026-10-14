@@ -2,8 +2,10 @@
 
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { api, ApiError } from "@/lib/api";
 import {
+  formatAgeClass,
   formatRupiah,
   formatNumber,
   formatNumberInput,
@@ -47,6 +49,7 @@ import type {
   PublicEventDetail,
   RecapRow,
   Refund,
+  RefundSummary,
   TicketCategory,
 } from "@/lib/types.gen";
 
@@ -403,9 +406,7 @@ export default function EditEventPage({
               eventId={eventId}
               onChanged={load}
             />
-            {event.event_type === "running" && (
-              <RPCAccessCard eventId={eventId} />
-            )}
+            <RPCAccessCard eventId={eventId} />
             <div
               style={{
                 padding: 28,
@@ -436,7 +437,7 @@ export default function EditEventPage({
                 Email yang terdaftar di sini mendapat tiket gratis: harga tiket dan
                 fee platform Rp0. Tanpa donasi, peserta langsung menerima e-tiket
                 tanpa melalui payment gateway. Jika memilih donasi, peserta hanya
-                membayar donasi dan biaya payment gateway; harga tiket serta fee
+                membayar donasi dan biaya transaksi; harga tiket serta fee
                 platform tetap Rp0.
               </p>
               <ComplimentaryManager eventId={eventId} />
@@ -569,6 +570,7 @@ export default function EditEventPage({
                 Ringkasan
               </h2>
               <DashboardCard eventId={eventId} />
+              <RefundSummaryCard eventId={eventId} />
             </div>
             <div
               style={{
@@ -589,7 +591,10 @@ export default function EditEventPage({
               >
                 Rekap per Kategori
               </h2>
-              <RecapTable eventId={eventId} />
+              <RecapTable
+                eventId={eventId}
+                isRunning={event.event_type === "running"}
+              />
             </div>
             <div
               style={{
@@ -611,6 +616,19 @@ export default function EditEventPage({
                 Wallet Donasi
               </h2>
               <DonationLedgerCard eventId={eventId} />
+            </div>
+            <div
+              style={{
+                padding: 28,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "var(--color-surface)",
+              }}
+            >
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, marginTop: 0, marginBottom: 20 }}>
+                Riwayat Refund
+              </h2>
+              <RefundsCard eventId={eventId} />
             </div>
           </div>
         )}
@@ -635,7 +653,7 @@ function RPCAccessCard({ eventId }: { eventId: string }) {
   useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
   async function rotate(){try{const r=await api.post<ApiResponse<{access_code:string}>>(`/api/v1/events/${eventId}/rpc-access/rotate`);setCode(r.data.access_code);setActive(true);setError(null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal membuat kode akses.")}}
   async function revoke(){try{await api.delete(`/api/v1/events/${eventId}/rpc-access`);setCode(null);setActive(false)}catch(e){setError(e instanceof ApiError?e.message:"Gagal mencabut akses.")}}
-  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,margin:"0 0 8px"}}>Akses volunteer RPC</h2><p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Satu kode aktif untuk satu event. Kode hanya berlaku di <code>/rpc/volunteer</code> dan tidak memberi akses wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,margin:"0 0 16px",background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
+  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,margin:"0 0 8px"}}>Akses volunteer pengambilan perlengkapan</h2><p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Satu kode aktif untuk satu event. Volunteer dapat memverifikasi peserta dan menandai pengambilan perlengkapan, tanpa akses ke wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,margin:"0 0 16px",background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
 }
 
 // RegistrationStatusCard shows whether registration is open or closed and lets
@@ -739,18 +757,18 @@ function RegistrationStatusCard({
 // DashboardCard shows the server-computed event summary.
 function DashboardCard({ eventId }: { eventId: string }) {
   const [d, setD] = useState<EventDashboard | null>(null);
+  const [refundSummary, setRefundSummary] = useState<RefundSummary | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const res = await api.get<ApiResponse<EventDashboard>>(
-          `/api/v1/events/${eventId}/dashboard`,
-        );
-        if (!cancelled) setD(res.data);
-      } catch {
-        /* non-fatal */
-      }
+      const [dashboardResult, refundResult] = await Promise.allSettled([
+        api.get<ApiResponse<EventDashboard>>(`/api/v1/events/${eventId}/dashboard`),
+        api.get<ApiResponse<RefundSummary>>(`/api/v1/events/${eventId}/refunds/summary`),
+      ]);
+      if (cancelled) return;
+      if (dashboardResult.status === "fulfilled") setD(dashboardResult.value.data);
+      if (refundResult.status === "fulfilled") setRefundSummary(refundResult.value.data);
     })();
     return () => {
       cancelled = true;
@@ -761,12 +779,17 @@ function DashboardCard({ eventId }: { eventId: string }) {
     return <p style={{ color: "var(--color-ink-3)" }}>Memuat ringkasan…</p>;
 
   const cells: { label: string; value: string }[] = [
-    { label: "Peserta Berbayar", value: String(d.paid_count) },
+    { label: "Total Pembeli", value: String(d.paid_count) },
+    {
+      label: "Total Pendaftar (termasuk refund)",
+      value: refundSummary ? String(d.paid_count + refundSummary.total_count) : "—",
+    },
+    { label: "Total Refund", value: refundSummary ? String(refundSummary.total_count) : "—" },
     { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
     { label: "Donasi", value: formatRupiah(d.donation_total) },
     { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
-    { label: "Racepack Sudah Diambil", value: String(d.rpc_collected) },
-    { label: "Racepack Belum Diambil", value: String(d.rpc_pending) },
+    { label: "Perlengkapan Sudah Diambil", value: String(d.rpc_collected) },
+    { label: "Perlengkapan Belum Diambil", value: String(d.rpc_pending) },
   ];
 
   return (
@@ -797,8 +820,9 @@ function DashboardCard({ eventId }: { eventId: string }) {
   );
 }
 
-// RecapTable lists participant counts per distance × gender × age class.
-function RecapTable({ eventId }: { eventId: string }) {
+// RecapTable lists running participants by category × gender × age class, and
+// non-running sales by category × ticket class.
+function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<RecapRow[] | null>(null);
 
   useEffect(() => {
@@ -823,21 +847,38 @@ function RecapTable({ eventId }: { eventId: string }) {
   if (rows.length === 0)
     return (
       <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-        Belum ada peserta berbayar untuk direkap.
+        Belum ada kategori tiket untuk direkap.
       </p>
     );
 
   const cols: Column<RecapRow>[] = [
-    { key: "distance", header: "Kategori", render: (r) => r.category_name },
-    { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
-    { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
-    { key: "total", header: "Jumlah", render: (r) => r.total, mono: true },
+    { key: "distance", header: "Kategori", render: (r) => r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name },
+    { key: "gender", header: "Gender", render: (r) => r.category_id === "total" ? "" : r.gender || "—" },
+    {
+      key: "class",
+      header: "Kelas",
+      render: (r) => r.category_id === "total" ? "" : (isRunning ? formatAgeClass(r.age_class, r.category_name) : r.ticket_name) || "—",
+    },
+    {
+      key: "total",
+      header: isRunning ? "Jumlah" : "Jumlah Terjual",
+      render: (r) => r.category_id === "total" ? <strong>{r.total}</strong> : r.total,
+      mono: true,
+    },
   ];
+  const totalRow: RecapRow = {
+    category_id: "total",
+    category_name: "Total",
+    gender: "",
+    age_class: "",
+    ticket_name: "",
+    total: rows.reduce((sum, row) => sum + row.total, 0),
+  };
   return (
     <DataTable
       columns={cols}
-      data={rows}
-      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}`}
+      data={[...rows, totalRow]}
+      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
     />
   );
 }
@@ -1116,25 +1157,56 @@ function BibCard({
 // ParticipantsCard renders the participant table + CSV export.
 function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [pageSize, setPageSize] = useState(8);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [rpcExporting, setRPCExporting] = useState(false);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [refundTarget, setRefundTarget] = useState<ParticipantRow | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundBankAccount, setRefundBankAccount] = useState("");
+  const [refundEntries, setRefundEntries] = useState<Refund[]>([]);
+  const [completingRefundId, setCompletingRefundId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setErr(null);
     (async () => {
       try {
         const res = await api.get<ApiResponse<ParticipantRow[]>>(
-          `/api/v1/events/${eventId}/participants?limit=200`,
+          `/api/v1/events/${eventId}/participants?limit=${pageSize}&offset=${(page - 1) * pageSize}&q=${encodeURIComponent(search.trim())}`,
         );
-        if (!cancelled) setRows(res.data ?? []);
+        if (!cancelled) {
+          const data = res.data ?? [];
+          setRows(data);
+          setHasNextPage(data.length === pageSize);
+          setLoading(false);
+        }
       } catch {
-        if (!cancelled) setRows([]);
+        if (!cancelled) {
+          setRows([]);
+          setHasNextPage(false);
+          setErr("Gagal memuat daftar peserta.");
+          setLoading(false);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
+  }, [eventId, page, pageSize, search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void api.get<ApiResponse<Refund[]>>(`/api/v1/events/${eventId}/refunds`)
+      .then((res) => { if (!cancelled) setRefundEntries(res.data ?? []); })
+      .catch(() => { if (!cancelled) setRefundEntries([]); });
+    return () => { cancelled = true; };
   }, [eventId]);
 
   async function exportCsv() {
@@ -1188,6 +1260,61 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     }
   }
 
+  async function refundParticipant() {
+    if (!refundTarget) return;
+    if (!(await confirm({
+      title: "Refund peserta?",
+      message: `Refund tiket ${refundTarget.registration_number} akan diproses melalui sistem pembayaran. Tindakan ini tidak dapat dibatalkan.`,
+      confirmLabel: "Proses refund",
+      variant: "danger",
+    }))) return;
+
+    setErr(null);
+    setRefundingId(refundTarget.id);
+    try {
+      const res = await api.post<ApiResponse<Refund>>(
+        `/api/v1/events/${eventId}/registrations/${refundTarget.id}/refund`,
+        { reason: refundReason.trim(), bank_account: refundBankAccount.trim() },
+      );
+      setRefundEntries((current) => [
+        ...current.filter((item) => item.registration_id !== refundTarget.id),
+        { ...res.data, registration_id: refundTarget.id, registration_number: refundTarget.registration_number },
+      ]);
+      setRows((current) => current?.map((item) => item.id === refundTarget.id
+        ? { ...item, status: "refunded", qr_token: undefined }
+        : item) ?? null);
+      setRefundTarget(null);
+      setRefundReason("");
+      setRefundBankAccount("");
+    } catch (error) {
+      setErr(error instanceof ApiError ? error.message : "Refund gagal diproses.");
+    } finally {
+      setRefundingId(null);
+    }
+  }
+
+  async function completeManualRefund(row: ParticipantRow, refund: Refund) {
+    if (!(await confirm({
+      title: "Tandai refund selesai?",
+      message: `Pastikan transfer refund untuk ${row.registration_number} sudah benar-benar dilakukan sebelum menandai selesai.`,
+      confirmLabel: "Tandai Selesai",
+      variant: "primary",
+    }))) return;
+
+    setErr(null);
+    setCompletingRefundId(refund.id);
+    try {
+      await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refund.id}/complete`);
+      setRefundEntries((current) => current.map((item) => item.id === refund.id
+        ? { ...item, status: "completed" }
+        : item));
+    } catch (error) {
+      setErr(error instanceof ApiError ? error.message : "Gagal menandai refund selesai.");
+    } finally {
+      setCompletingRefundId(null);
+    }
+  }
+
   const runningCols: Column<ParticipantRow>[] = isRunning ? [
     {
       key: "bib",
@@ -1205,7 +1332,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
     { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
-    { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
+    { key: "age", header: "Kelas", render: (r) => formatAgeClass(r.age_class, r.category_name) || "—" },
     {
       key: "rpc",
       header: "RPC",
@@ -1234,10 +1361,107 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
     ...runningCols.slice(5),
+    {
+      key: "eticket",
+      header: "E-Ticket",
+      render: (r) => r.status === "paid" && r.qr_token ? (
+        <Link
+          href={`/ticket/${encodeURIComponent(r.registration_number)}?token=${encodeURIComponent(r.qr_token)}`}
+          className="btn btn-secondary btn-sm"
+          target="_blank"
+          rel="noreferrer"
+        >
+          E-Ticket
+        </Link>
+      ) : "—",
+    },
+    {
+      key: "refund",
+      header: "Refund",
+      render: (r) => {
+        if (r.status === "paid") return (
+          <Button
+            variant="danger"
+            size="sm"
+            disabled={refundingId !== null}
+            onClick={() => {
+              setRefundTarget(r);
+              setRefundReason("");
+              setRefundBankAccount("");
+            }}
+          >
+            {refundingId === r.id ? "Memproses…" : "Refund"}
+          </Button>
+        );
+        if (r.status !== "refunded") return "—";
+        const refund = refundEntries.find((item) => item.registration_id === r.id);
+        if (refund?.status === "processing" && refund.mode === "manual") return (
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={completingRefundId !== null}
+            onClick={() => void completeManualRefund(r, refund)}
+          >
+            {completingRefundId === refund.id ? "Memproses…" : "Tandai Selesai"}
+          </Button>
+        );
+        if (refund?.status === "completed") return <Badge variant="ok">Selesai</Badge>;
+        if (refund?.status === "processing") return <Badge variant="warn">Diproses</Badge>;
+        return <Badge variant="danger">Refunded</Badge>;
+      },
+    },
   ];
 
   return (
     <div>
+      {refundTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="participant-refund-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && refundingId === null) setRefundTarget(null);
+          }}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}
+        >
+          <section style={{ width: "min(100%, 480px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
+            <h2 id="participant-refund-title" style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 22 }}>Refund peserta</h2>
+            <p style={{ margin: "0 0 20px", color: "var(--color-ink-2)", fontSize: 14 }}>
+              {refundTarget.name} · {refundTarget.registration_number}
+            </p>
+            <label className="field-label" htmlFor="refund-reason">Alasan refund</label>
+            <textarea
+              id="refund-reason"
+              className="field-input"
+              value={refundReason}
+              onChange={(event) => setRefundReason(event.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Opsional"
+              style={{ width: "100%", resize: "vertical", marginBottom: 16 }}
+            />
+            <label className="field-label" htmlFor="refund-bank-account">Nomor rekening tujuan</label>
+            <input
+              id="refund-bank-account"
+              className="field-input"
+              value={refundBankAccount}
+              onChange={(event) => setRefundBankAccount(event.target.value)}
+              autoComplete="off"
+              placeholder="Wajib untuk refund manual"
+              style={{ width: "100%", marginBottom: 8 }}
+            />
+            <p style={{ margin: "0 0 20px", color: "var(--color-ink-3)", fontSize: 12 }}>
+              Refund manual memerlukan nomor rekening. Nilai refund dan metode pemrosesan ditentukan backend.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+              <Button variant="secondary" size="sm" disabled={refundingId !== null} onClick={() => setRefundTarget(null)}>Batal</Button>
+              <Button variant="danger" size="sm" disabled={refundingId !== null} onClick={() => void refundParticipant()}>
+                {refundingId === refundTarget.id ? "Memproses…" : "Lanjutkan refund"}
+              </Button>
+            </div>
+          </section>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
@@ -1247,9 +1471,40 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           gap: 12,
         }}
       >
-        <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-          {rows ? `${rows.length} peserta ditampilkan` : "Memuat…"}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <input
+              type="search"
+              className="field-input"
+              placeholder="Cari peserta…"
+              aria-label="Cari peserta berdasarkan nama, nomor registrasi, BIB, atau kategori"
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              style={{ width: "min(260px, 40vw)" }}
+            />
+            <label htmlFor="participants-page-size" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
+              Baris per halaman
+            </label>
+            <select
+              id="participants-page-size"
+              className="field-input"
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+              style={{ width: 76, padding: "6px 8px" }}
+            >
+              {[8, 16, 24].map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }} aria-live="polite">
+              {loading ? "Memuat peserta…" : `${rows?.length ?? 0} peserta di halaman ini`}
+            </span>
+        </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {isRunning && <Button
             variant="secondary"
@@ -1274,13 +1529,42 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           {err}
         </Alert>
       )}
-      {rows && rows.length === 0 ? (
+      {!loading && rows && rows.length === 0 && page === 1 ? (
         <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
           Belum ada peserta.
         </p>
-      ) : rows ? (
-        <DataTable columns={cols} data={rows} keyField="id" />
-      ) : null}
+      ) : (
+        <>
+          <DataTable
+            columns={cols}
+            data={loading ? [] : rows ?? []}
+            keyField="id"
+            minRows={pageSize}
+            loading={loading}
+          />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              Sebelumnya
+            </Button>
+            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
+              Halaman {page}
+            </span>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={!hasNextPage}
+              onClick={() => setPage((current) => current + 1)}
+            >
+              Berikutnya
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1487,6 +1771,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
 function RefundsCard({ eventId }: { eventId: string }) {
   const [refunds, setRefunds] = useState<Refund[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [selectedRefund, setSelectedRefund] = useState<Refund | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1509,6 +1794,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
     string,
     { label: string; variant: "ok" | "warn" | "danger" }
   > = {
+    requested: { label: "Menunggu review", variant: "warn" },
     completed: { label: "Selesai", variant: "ok" },
     processing: { label: "Diproses", variant: "warn" },
     rejected: { label: "Ditolak", variant: "danger" },
@@ -1537,7 +1823,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
               marginBottom: 4,
             }}
           >
-            Total Refund
+            Jumlah Refund
           </div>
           <div
             style={{
@@ -1594,7 +1880,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
       </div>
       <div style={{ overflowX: "auto" }}>
         <table
-          style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}
+          style={{ width: "100%", minWidth: 1120, borderCollapse: "collapse", fontSize: 14 }}
         >
           <thead>
             <tr
@@ -1603,10 +1889,13 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 textAlign: "left",
               }}
             >
-              <th style={th}>Reg. ID</th>
-              <th style={th}>Nominal</th>
+              <th style={th}>No. registrasi</th>
+              <th style={th}>Tanggal</th>
+              <th style={th}>Total Dibayarkan</th>
+              <th style={th}>Dana Refund</th>
               <th style={th}>Metode</th>
               <th style={th}>Status</th>
+              <th style={th}>Detail</th>
             </tr>
           </thead>
           <tbody>
@@ -1622,17 +1911,20 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 >
                   <td style={td}>
                     <code style={{ fontSize: 12 }}>
-                      {r.registration_id.slice(0, 8)}…
+                      {r.registration_number || `${r.registration_id.slice(0, 8)}…`}
                     </code>
                   </td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
-                    {formatRupiah(r.amount)}
-                  </td>
+                  <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.payment_sub_total === undefined ? "—" : formatRupiah(r.payment_sub_total)}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--color-danger)" }}>{formatRupiah(r.amount)}</td>
                   <td style={td}>
                     {r.method} · {r.mode === "auto" ? "Otomatis" : "Manual"}
                   </td>
                   <td style={td}>
                     <Badge variant={s.variant}>{s.label}</Badge>
+                  </td>
+                  <td style={td}>
+                    <Button variant="secondary" size="sm" onClick={() => setSelectedRefund(r)}>Lihat Detail</Button>
                   </td>
                 </tr>
               );
@@ -1640,6 +1932,156 @@ function RefundsCard({ eventId }: { eventId: string }) {
           </tbody>
         </table>
       </div>
+      {selectedRefund && typeof document !== "undefined" && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="refund-detail-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedRefund(null);
+          }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999, display: "grid",
+            alignContent: "start", justifyItems: "center", overflowY: "auto",
+            boxSizing: "border-box", padding: "24px 16px", background: "rgba(20,24,31,.78)",
+          }}
+        >
+          <section style={{
+            width: "min(100%, 540px)", maxHeight: "calc(100dvh - 48px)", overflowY: "auto",
+            padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)",
+            color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)", boxSizing: "border-box",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+              <div>
+                <p style={{ margin: "0 0 5px", color: "var(--color-sprint)", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: ".1em" }}>RINCIAN TRANSAKSI REFUND</p>
+                <h2 id="refund-detail-title" style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 23, lineHeight: 1.2 }}>
+                  {selectedRefund.registration_number || "Detail Refund"}
+                </h2>
+                <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 14, fontWeight: 600 }}>
+                  {selectedRefund.participant_name || "Nama peserta tidak tersedia"}
+                </p>
+                <p style={{ margin: "6px 0 0", color: "var(--color-ink-3)", fontSize: 13 }}>
+                  {selectedRefund.created_at ? new Date(selectedRefund.created_at).toLocaleString("id-ID") : "Tanggal tidak tersedia"}
+                </p>
+              </div>
+              <button type="button" aria-label="Tutup detail refund" onClick={() => setSelectedRefund(null)} style={{ width: 36, height: 36, border: "1px solid var(--color-line)", borderRadius: 999, background: "var(--color-surface)", color: "var(--color-ink-2)", fontSize: 22, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}>×</button>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 18, padding: 16, border: "1px solid var(--color-danger-tint)", borderRadius: "var(--radius-md)", background: "var(--color-surface)" }}>
+              <div>
+                <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 4 }}>Dana refund</div>
+                <div style={{ color: "var(--color-danger)", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 24, fontVariantNumeric: "tabular-nums" }}>{formatRupiah(selectedRefund.amount)}</div>
+              </div>
+              <Badge variant={REFUND_STATUS[selectedRefund.status]?.variant ?? "warn"}>
+                {REFUND_STATUS[selectedRefund.status]?.label ?? selectedRefund.status}
+              </Badge>
+            </div>
+
+            <section style={{ marginTop: 20 }}>
+              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Data peserta</h3>
+              <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
+                <RefundInfo label="Nama" value={selectedRefund.participant_name || "—"} />
+                <RefundInfo label="Email" value={selectedRefund.participant_email || "—"} />
+                <RefundInfo label="Nomor telepon" value={selectedRefund.participant_phone || "—"} />
+                <RefundInfo label="Tanggal lahir" value={selectedRefund.participant_birth_date || "—"} />
+                <RefundInfo label="Nomor BIB" value={selectedRefund.bib_number || "—"} />
+                <RefundInfo label="Gender" value={selectedRefund.gender || "—"} />
+                <RefundInfo label="Kelas usia" value={formatAgeClass(selectedRefund.age_class, selectedRefund.category_name) || "—"} />
+                <RefundInfo label="Kategori" value={selectedRefund.category_name || "—"} />
+                <RefundInfo label="Kategori tiket" value={selectedRefund.ticket_name || "—"} />
+              </dl>
+            </section>
+
+            <section style={{ marginTop: 22 }}>
+              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Rincian pembayaran</h3>
+              <dl style={{ margin: 0, padding: "4px 14px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)" }}>
+                <RefundMoneyRow label="Harga tiket" value={selectedRefund.ticket_price === undefined ? "—" : formatRupiah(selectedRefund.ticket_price)} />
+                <RefundMoneyRow label="Fee Platform" value={selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)} />
+                <RefundMoneyRow label="Biaya Transaksi" value={formatRupiah(selectedRefund.fee_midtrans)} />
+                <RefundMoneyRow label="Donasi" value={`${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? selectedRefund.donation_still_given ? " · tetap disalurkan" : " · dikembalikan" : ""}`} />
+                <RefundMoneyRow label="Total dibayarkan" value={selectedRefund.payment_sub_total === undefined ? "—" : formatRupiah(selectedRefund.payment_sub_total)} strong />
+              </dl>
+            </section>
+
+            <section style={{ marginTop: 20 }}>
+              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Informasi refund</h3>
+              <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
+                <RefundInfo label="Metode" value={selectedRefund.method || "—"} />
+                <RefundInfo label="Mode" value={selectedRefund.mode === "auto" ? "Otomatis" : "Manual"} />
+                <RefundInfo label="Rekening tujuan" value={selectedRefund.bank_account || "Tidak ada"} />
+                <RefundInfo label="Alasan" value={selectedRefund.reason || "Tidak dicantumkan"} />
+              </dl>
+            </section>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+              <Button variant="secondary" onClick={() => setSelectedRefund(null)}>Tutup</Button>
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
+    </div>
+  );
+}
+
+function RefundMoneyRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, padding: "10px 0", borderBottom: "1px solid var(--color-line)", fontWeight: strong ? 700 : 400 }}>
+      <dt style={{ color: strong ? "var(--color-ink)" : "var(--color-ink-2)", fontSize: 13 }}>{label}</dt>
+      <dd style={{ margin: 0, textAlign: "right", fontFamily: "var(--font-mono)", fontSize: 13, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere" }}>{value}</dd>
+    </div>
+  );
+}
+
+function RefundInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ padding: 11, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", minWidth: 0 }}>
+      <dt style={{ color: "var(--color-ink-3)", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>{label}</dt>
+      <dd style={{ margin: 0, color: "var(--color-ink)", fontSize: 13, overflowWrap: "anywhere" }}>{value}</dd>
+    </div>
+  );
+}
+
+function RefundSummaryCard({ eventId }: { eventId: string }) {
+  const [summary, setSummary] = useState<RefundSummary | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void api.get<ApiResponse<RefundSummary>>(`/api/v1/events/${eventId}/refunds/summary`)
+      .then((res) => { if (!cancelled) setSummary(res.data); })
+      .catch((error) => {
+        if (!cancelled) setErr(error instanceof ApiError ? error.message : "Gagal memuat ringkasan refund.");
+      });
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  return (
+    <section style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--color-line)" }}>
+      <h3 style={{ margin: "0 0 14px", fontFamily: "var(--font-display)", fontSize: 16 }}>Ringkasan Refund</h3>
+      {err ? <Alert variant="danger">{err}</Alert> : !summary ? (
+        <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 14 }}>Memuat ringkasan refund…</p>
+      ) : (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+            <RefundMetric label={`Total nominal · ${summary.total_count} refund`} amount={summary.total_amount} />
+            <RefundMetric label={`Selesai · ${summary.completed_count} refund`} amount={summary.completed_amount} />
+            <RefundMetric label={`Diproses · ${summary.processing_count} refund`} amount={summary.processing_amount} />
+          </div>
+          <p style={{ margin: "12px 0 0", color: "var(--color-ink-3)", fontSize: 12 }}>
+            Menunggu review: {summary.requested_count} · Ditolak: {summary.rejected_count}. Total nominal mencakup refund selesai dan sedang diproses.
+          </p>
+        </>
+      )}
+    </section>
+  );
+}
+
+function RefundMetric({ label, amount }: { label: string; amount: number }) {
+  return (
+    <div style={{ padding: 14, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-paper)" }}>
+      <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 6 }}>{label}</div>
+      <div style={{ color: "var(--color-danger)", fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{formatRupiah(amount)}</div>
     </div>
   );
 }
@@ -2492,7 +2934,7 @@ function CardPreview({
               <RegistrationPreviewField
                 label="Tanggal Lahir"
                 type="date"
-                hint="Wajib — menentukan kelas usia (Open/Master) otomatis"
+                hint="Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
               />
               <div className="field">
                 <label className="field-label">Jenis Kelamin</label>
@@ -2924,6 +3366,9 @@ function TicketManager({
 
   const distanceName = (id: string) =>
     distances.find((d) => d.id === id)?.name ?? "—";
+  const sortedTickets = [...tickets].sort((a, b) =>
+    a.name.localeCompare(b.name, "id", { sensitivity: "base" }),
+  );
 
   async function add() {
     if (!name.trim()) {
@@ -3079,7 +3524,7 @@ function TicketManager({
             gap: 8,
           }}
         >
-          {tickets.map((t) => (
+          {sortedTickets.map((t) => (
             <li
               key={t.id}
               style={{

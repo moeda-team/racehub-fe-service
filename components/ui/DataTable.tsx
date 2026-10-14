@@ -15,6 +15,8 @@ interface DataTableProps<T> {
   keyField?: keyof T;
   keyFn?: (row: T) => string;
   className?: string;
+  minRows?: number;
+  loading?: boolean;
 }
 
 export default function DataTable<T>({
@@ -23,6 +25,8 @@ export default function DataTable<T>({
   keyField,
   keyFn,
   className = "",
+  minRows = 0,
+  loading = false,
 }: DataTableProps<T>) {
   const getKey = keyFn ?? ((row: T) => String(row[keyField!]));
   return (
@@ -52,6 +56,25 @@ export default function DataTable<T>({
                   </td>
                 );
               })}
+            </tr>
+          ))}
+          {Array.from({ length: Math.max(0, minRows - data.length) }, (_, index) => (
+            <tr key={`placeholder-${index}`} aria-hidden="true">
+              {columns.map((col) => (
+                <td key={col.key} style={{ height: 48 }}>
+                  {loading && (
+                    <span
+                      style={{
+                        display: "block",
+                        width: col.key === "name" ? "70%" : "45%",
+                        height: 12,
+                        borderRadius: 6,
+                        background: "var(--color-panel)",
+                      }}
+                    />
+                  )}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>

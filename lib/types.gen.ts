@@ -1,7 +1,7 @@
 /**
  * Generated API Types from OpenAPI backend (api/openapi.yaml).
  *
- * Tipe-tipe ini merefleksikan kontrak API RaceHub backend.
+ * Tipe-tipe ini merefleksikan kontrak API LowkeyThings backend.
  * Semua angka uang adalah integer (int64) dalam Rupiah utuh.
  * JANGAN gunakan float untuk uang.
  */
@@ -193,7 +193,7 @@ export interface Registration {
   phone: string;
   birth_date: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
   donation: number;
   status: RegistrationStatus;
   is_complimentary?: boolean;
@@ -419,7 +419,7 @@ export interface ETicket {
   category_name: string;
   gender: string;
   birth_date: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
   qr_token: string;
   issued_at: string;
   registration_status: string;
@@ -532,6 +532,20 @@ export interface RefundRequest {
 export interface Refund {
   id: string;
   registration_id: string;
+  registration_number?: string;
+  participant_name?: string;
+  participant_email?: string;
+  participant_phone?: string;
+  participant_birth_date?: string;
+  bib_number?: string;
+  gender?: string;
+  age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)" | "";
+  category_name?: string;
+  ticket_name?: string;
+  created_at?: string;
+  ticket_price?: number;
+  fee_platform?: number;
+  payment_sub_total?: number;
   amount: number;
   fee_midtrans: number;
   donation: number;
@@ -541,6 +555,17 @@ export interface Refund {
   status: RefundStatus;
   reason?: string;
   donation_still_given: boolean;
+}
+
+export interface RefundSummary {
+  total_count: number;
+  completed_count: number;
+  processing_count: number;
+  requested_count: number;
+  rejected_count: number;
+  total_amount: number;
+  completed_amount: number;
+  processing_amount: number;
 }
 
 export interface MassRefundResult {
@@ -558,7 +583,7 @@ export interface RegistrationSummary {
   registration_number: string;
   name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
   donation: number;
   status: RegistrationStatus;
   bib_number: string;
@@ -600,8 +625,10 @@ export interface CheckinParticipant {
   bib_number: string;
   name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
   category_id: string;
+  category_name: string;
+  ticket_name: string;
   rpc_status: string; // "" | "collected"
   raceday_status: string; // "" | "checked_in"
   custom_answers: Array<{ label: string; value: string }>;
@@ -638,7 +665,9 @@ export interface RecapRow {
   category_id: string;
   category_name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+  /** Ticket class name for non-running events; empty for running events. */
+  ticket_name: string;
   total: number;
 }
 
@@ -648,18 +677,26 @@ export interface ParticipantRow {
   bib_number: string;
   name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
   status: RegistrationStatus;
   rpc_status: string;
   raceday_status: string;
   category_name: string;
   ticket_name: string;
+  qr_token?: string;
 }
 
 // === API Response Wrappers ===
 
 export interface ApiResponse<T> {
   data: T;
+}
+
+export interface CheckinSearchPage extends ApiResponse<CheckinParticipant[]> {
+  total: number;
+  paid_total: number;
+  rpc_collected: number;
+  raceday_checked_in: number;
 }
 
 export interface ApiMessageResponse {

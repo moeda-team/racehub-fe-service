@@ -1,5 +1,5 @@
 /**
- * API Client for RaceHub Backend.
+ * API Client for LowkeyThings Backend.
  *
  * PENTING: Frontend TIDAK PERNAH menghitung fee/total/refund.
  * Semua angka uang diterima dari backend apa adanya.

@@ -4,7 +4,7 @@ import { use, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
-import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
+import { formatAgeClass, formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
 import { isValidEmail } from "@/lib/validation";
 import type {
@@ -72,7 +72,11 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   }, [eventId]);
 
   const ticketsForDistance = useMemo(
-    () => (detail && distanceId ? detail.ticket_categories.filter((t) => t.category_id === distanceId) : []),
+    () => (detail && distanceId
+      ? detail.ticket_categories
+          .filter((t) => t.category_id === distanceId)
+          .sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }))
+      : []),
     [detail, distanceId],
   );
   const selectedTicket = useMemo(
@@ -228,14 +232,14 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           >
             {isPaid ? <Badge variant="ok">E-Tiket Aktif</Badge> : <Badge variant="warn">Menunggu Pembayaran</Badge>}
             {result.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
-            {result.age_class && <Badge variant="sprint">Kelas {result.age_class}</Badge>}
+            {result.age_class && <Badge variant="sprint">Kelas {formatAgeClass(result.age_class)}</Badge>}
           </div>
           <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
             {isPaid
               ? result.is_complimentary
                 ? "Harga tiket dan fee platform Rp0. Karena tidak ada donasi, Anda langsung menerima e-tiket tanpa melalui payment gateway."
                 : "E-tiket Anda sudah aktif dan siap dipakai. Gunakan nomor registrasi di atas untuk check-in."
-              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Biaya Payment Gateway, Sub Total) dihitung server setelah Anda memilih metode."}
+              : "Langkah berikutnya: pembayaran. Rincian biaya (Platform, Biaya Transaksi, Sub Total) dihitung server setelah Anda memilih metode."}
           </p>
         </div>
         {isPaid ? (
@@ -363,7 +367,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             value={birthDate}
             onChange={setBirthDate}
             required
-            hint="Wajib — menentukan kelas usia (Open/Master) otomatis"
+            hint="Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
           />
           <div className="field">
             <label className="field-label">Jenis Kelamin</label>

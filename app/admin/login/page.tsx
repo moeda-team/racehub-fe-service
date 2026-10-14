@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
           textAlign: "center",
         }}
       >
-        Masuk ke akun admin LowkeyThings — RaceHub
+        Masuk ke akun admin LowkeyThings
       </p>
 
       {error && (
@@ -83,7 +83,7 @@ export default function AdminLoginPage() {
         <Field
           label="Email"
           type="email"
-          placeholder="admin@racehub.id"
+          placeholder="admin@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
