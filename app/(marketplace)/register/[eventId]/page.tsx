@@ -367,7 +367,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             value={birthDate}
             onChange={setBirthDate}
             required
-            hint="Wajib — menentukan kelas usia (Open/Master) otomatis"
+            hint="Wajib — menentukan kelas usia (Open, Master, atau Master+) otomatis"
           />
           <div className="field">
             <label className="field-label">Jenis Kelamin</label>

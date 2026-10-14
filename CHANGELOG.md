@@ -18,7 +18,7 @@ Release awal. Platform event Indonesia — frontend web.
 
 - Wizard 3 langkah: pilih kategori + tiket → data peserta (birth_date wajib) → donasi + ringkasan
 - Opsi tiket disable: `(berakhir)` / `(belum dibuka)` / `(habis)`
-- Kelas usia badge (Open/Master) tampil di layar sukses
+- Kelas usia badge (Open/Master/Master+) tampil di layar sukses
 - Error server (kuota/periode/birth_date) tampil via Alert
 - Idempotency-Key: cegah double-submit
 

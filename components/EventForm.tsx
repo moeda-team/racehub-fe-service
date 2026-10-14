@@ -681,9 +681,6 @@ export default function EventForm({
     toLocalInput(initial?.event_date ?? ""),
   );
   const [eventType, setEventType] = useState(initial?.event_type ?? "custom");
-  const [masterAgeThreshold, setMasterAgeThreshold] = useState(
-    String(initial?.master_age_threshold ?? 40),
-  );
   const [refundCutoff, setRefundCutoff] = useState(
     toLocalInput(initial?.refund_cutoff_date ?? ""),
   );
@@ -712,7 +709,7 @@ export default function EventForm({
       location,
       event_date: toRFC3339(eventDate),
       event_type: eventType,
-      master_age_threshold: Number(masterAgeThreshold) || 40,
+      master_age_threshold: 40,
       refund_cutoff_date: toRFC3339(refundCutoff),
       registration_close_date: toRFC3339(regClose),
       donation_enabled: donationEnabled,
@@ -736,7 +733,6 @@ export default function EventForm({
     location,
     eventDate,
     eventType,
-    masterAgeThreshold,
     refundCutoff,
     regClose,
     donationEnabled,
@@ -748,9 +744,6 @@ export default function EventForm({
   function validate(): boolean {
     const next: Record<string, string> = {};
     if (!name.trim()) next.name = "Nama event wajib diisi";
-    if (eventType === "running" && Number(masterAgeThreshold) <= 0) {
-      next.master_age_threshold = "Ambang Master harus lebih dari 0";
-    }
     if (!Number.isInteger(Number(platformFee)) || Number(platformFee) < 0) {
       next.platform_fee = "Platform Fee harus berupa nominal rupiah nol atau lebih";
     }
@@ -831,21 +824,9 @@ export default function EventForm({
           ))}
         </select>
         <span className="field-hint">
-          &ldquo;Lari&rdquo; mengaktifkan kelas usia Open/Master
+          &ldquo;Lari&rdquo; mengaktifkan kelas usia Open (&lt;40), Master (40–49), dan Master + (50+).
         </span>
       </div>
-
-      {eventType === "running" && (
-        <LabeledInput
-          label="Ambang Usia Master"
-          type="number"
-          min={1}
-          value={masterAgeThreshold}
-          onChange={(e) => setMasterAgeThreshold(e.target.value)}
-          error={errors.master_age_threshold}
-          hint="Default 40 — peserta ≥ ambang masuk kelas Master"
-        />
-      )}
 
       <LabeledInput
         label="Platform Fee (Rp)"

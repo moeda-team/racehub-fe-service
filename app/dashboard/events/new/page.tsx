@@ -275,7 +275,7 @@ function NewEventPreview({
                 <label className="field-label">Tanggal Lahir</label>
                 <input className="field-input" type="date" readOnly />
                 <span className="field-hint">
-                  Wajib — menentukan kelas usia (Open/Master) otomatis
+                  Wajib — menentukan kelas usia (Open, Master, atau Master+) otomatis
                 </span>
               </div>
               <div className="field">

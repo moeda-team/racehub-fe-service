@@ -193,7 +193,7 @@ export interface Registration {
   phone: string;
   birth_date: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)";
   donation: number;
   status: RegistrationStatus;
   is_complimentary?: boolean;
@@ -419,7 +419,7 @@ export interface ETicket {
   category_name: string;
   gender: string;
   birth_date: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)";
   qr_token: string;
   issued_at: string;
   registration_status: string;
@@ -539,7 +539,7 @@ export interface Refund {
   participant_birth_date?: string;
   bib_number?: string;
   gender?: string;
-  age_class?: "Open" | "Master" | "";
+  age_class?: "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)" | "";
   category_name?: string;
   ticket_name?: string;
   created_at?: string;
@@ -583,7 +583,7 @@ export interface RegistrationSummary {
   registration_number: string;
   name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)";
   donation: number;
   status: RegistrationStatus;
   bib_number: string;
@@ -625,7 +625,7 @@ export interface CheckinParticipant {
   bib_number: string;
   name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)";
   category_id: string;
   category_name: string;
   ticket_name: string;
@@ -665,7 +665,7 @@ export interface RecapRow {
   category_id: string;
   category_name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)";
   /** Ticket class name for non-running events; empty for running events. */
   ticket_name: string;
   total: number;
@@ -677,7 +677,7 @@ export interface ParticipantRow {
   bib_number: string;
   name: string;
   gender: string;
-  age_class: "" | "Open" | "Master";
+  age_class: "" | "Open (Under 40th)" | "Master (40–49th)" | "Master + (50th and up)";
   status: RegistrationStatus;
   rpc_status: string;
   raceday_status: string;

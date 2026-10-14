@@ -2933,7 +2933,7 @@ function CardPreview({
               <RegistrationPreviewField
                 label="Tanggal Lahir"
                 type="date"
-                hint="Wajib — menentukan kelas usia (Open/Master) otomatis"
+                hint="Wajib — menentukan kelas usia (Open, Master, atau Master+) otomatis"
               />
               <div className="field">
                 <label className="field-label">Jenis Kelamin</label>
