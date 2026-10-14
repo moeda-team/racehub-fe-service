@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import type { CheckinParticipant, CheckinStage } from "@/lib/types.gen";
+import { formatAgeClass } from "@/lib/format";
 import Button from "@/components/ui/Button";
 import { X } from "lucide-react";
 
@@ -47,7 +48,7 @@ export default function ParticipantDetailModal({ participant, stage, marking, on
           <Detail label="Kategori" value={participant.category_name} />
           <Detail label="Jenis tiket" value={participant.ticket_name} />
           {participant.gender && <Detail label="Gender" value={participant.gender} />}
-          {participant.age_class && <Detail label="Kelas usia" value={participant.age_class} />}
+          {participant.age_class && <Detail label="Kelas usia" value={formatAgeClass(participant.age_class, participant.category_name)} />}
           <Detail label="Status perlengkapan" value={participant.rpc_status ? "Sudah diambil" : "Belum diambil"} />
           <Detail label="Status Hari-H" value={participant.raceday_status ? "Sudah check-in" : "Belum check-in"} />
         </dl>

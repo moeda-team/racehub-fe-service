@@ -824,7 +824,7 @@ export default function EventForm({
           ))}
         </select>
         <span className="field-hint">
-          &ldquo;Lari&rdquo; mengaktifkan kelas usia Open (&lt;40), Master (40th to before 50th), dan Master + (50+).
+          Kategori jarak bertoken 5K otomatis masuk Fun Run; kategori lain memakai kelas usia Open, Master, atau Master+.
         </span>
       </div>
 

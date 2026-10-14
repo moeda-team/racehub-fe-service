@@ -1,3 +1,4 @@
+import { formatAgeClass } from "@/lib/format";
 import { QRCodeSVG } from "qrcode.react";
 
 interface TicketProps {
@@ -70,7 +71,7 @@ export default function Ticket({
           {ageClass && (
             <div>
               <div className="k">Kelas Usia</div>
-              <div className="v">{ageClass}</div>
+              <div className="v">{formatAgeClass(ageClass, distance)}</div>
             </div>
           )}
           {birthDate && (

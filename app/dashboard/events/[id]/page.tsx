@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { api, ApiError } from "@/lib/api";
 import {
+  formatAgeClass,
   formatRupiah,
   formatNumber,
   formatNumberInput,
@@ -856,7 +857,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     {
       key: "class",
       header: "Kelas",
-      render: (r) => r.category_id === "total" ? "" : (isRunning ? r.age_class : r.ticket_name) || "—",
+      render: (r) => r.category_id === "total" ? "" : (isRunning ? formatAgeClass(r.age_class, r.category_name) : r.ticket_name) || "—",
     },
     {
       key: "total",
@@ -1331,7 +1332,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
     { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
-    { key: "age", header: "Kelas", render: (r) => r.age_class || "—" },
+    { key: "age", header: "Kelas", render: (r) => formatAgeClass(r.age_class, r.category_name) || "—" },
     {
       key: "rpc",
       header: "RPC",
@@ -1985,7 +1986,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 <RefundInfo label="Tanggal lahir" value={selectedRefund.participant_birth_date || "—"} />
                 <RefundInfo label="Nomor BIB" value={selectedRefund.bib_number || "—"} />
                 <RefundInfo label="Gender" value={selectedRefund.gender || "—"} />
-                <RefundInfo label="Kelas usia" value={selectedRefund.age_class || "—"} />
+                <RefundInfo label="Kelas usia" value={formatAgeClass(selectedRefund.age_class, selectedRefund.category_name) || "—"} />
                 <RefundInfo label="Kategori" value={selectedRefund.category_name || "—"} />
                 <RefundInfo label="Kategori tiket" value={selectedRefund.ticket_name || "—"} />
               </dl>
@@ -2933,7 +2934,7 @@ function CardPreview({
               <RegistrationPreviewField
                 label="Tanggal Lahir"
                 type="date"
-                hint="Wajib — menentukan kelas usia (Open, Master, atau Master+) otomatis"
+                hint="Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
               />
               <div className="field">
                 <label className="field-label">Jenis Kelamin</label>

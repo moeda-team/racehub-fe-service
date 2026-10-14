@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { formatAgeClass } from "@/lib/format";
 import { api, ApiError } from "@/lib/api";
 import type {
   ApiResponse,
@@ -227,7 +228,7 @@ export default function VolunteerRPCPage() {
                 </div>
                 <p style={participantMetaStyle}>
                   {participant.registration_number}
-                  {participant.age_class ? ` · ${participant.age_class}` : ""}
+                  {participant.age_class ? ` · ${formatAgeClass(participant.age_class, participant.category_name)}` : ""}
                   {participant.gender ? ` · ${participant.gender}` : ""}
                 </p>
                 <p style={{ ...participantMetaStyle, fontFamily: "inherit", fontSize: 13 }}>

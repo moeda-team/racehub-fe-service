@@ -6,6 +6,22 @@ export function formatNumber(n: number | null | undefined): string {
   return new Intl.NumberFormat("id-ID").format(n);
 }
 
+/** Show only the age-class name; age ranges stay an internal classification detail. */
+export function formatAgeClass(
+  value: string | null | undefined,
+  categoryName?: string | null,
+): string {
+  if (categoryName && /(^|[^a-z0-9])5k([^a-z0-9]|$)/i.test(categoryName)) {
+    return "Fun Run";
+  }
+  if (!value) return "";
+  if (/^fun\s+run$/i.test(value)) return "Fun Run";
+  if (/^master\s*\+/i.test(value)) return "Master+";
+  if (/^master\b/i.test(value)) return "Master";
+  if (/^open\b/i.test(value)) return "Open";
+  return value;
+}
+
 /**
  * Format a raw digit-only string for display inside a numeric text input.
  * "1000000" → "1.000.000" (id-ID). Empty / non-numeric → "".

@@ -4,7 +4,7 @@ import { use, useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { useIdempotencyKey } from "@/lib/idempotency";
-import { formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
+import { formatAgeClass, formatRupiah, formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
 import { isValidEmail } from "@/lib/validation";
 import type {
@@ -232,7 +232,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
           >
             {isPaid ? <Badge variant="ok">E-Tiket Aktif</Badge> : <Badge variant="warn">Menunggu Pembayaran</Badge>}
             {result.is_complimentary && <Badge variant="sprint">Complimentary</Badge>}
-            {result.age_class && <Badge variant="sprint">Kelas {result.age_class}</Badge>}
+            {result.age_class && <Badge variant="sprint">Kelas {formatAgeClass(result.age_class)}</Badge>}
           </div>
           <p style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
             {isPaid
@@ -367,7 +367,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
             value={birthDate}
             onChange={setBirthDate}
             required
-            hint="Wajib — menentukan kelas usia (Open, Master, atau Master+) otomatis"
+            hint="Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
           />
           <div className="field">
             <label className="field-label">Jenis Kelamin</label>

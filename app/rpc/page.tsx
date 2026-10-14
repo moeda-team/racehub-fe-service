@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatAgeClass } from "@/lib/format";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type {
@@ -429,7 +430,7 @@ function ParticipantCard({
           style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 2 }}
         >
           {p.registration_number}
-          {p.age_class ? ` · ${p.age_class}` : ""}
+          {p.age_class ? ` · ${formatAgeClass(p.age_class, p.category_name)}` : ""}
           {p.gender ? ` · ${p.gender}` : ""}
         </div>
         <div style={{ fontSize: 13, color: "var(--color-ink-2)", marginTop: 4 }}>
