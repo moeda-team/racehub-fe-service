@@ -76,6 +76,18 @@ jobs:
           scp -P "$DEPLOY_PORT" compose.production.yml \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/compose.production.yml"
 
+      - name: Authenticate server to GHCR
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | ssh -p "$DEPLOY_PORT" \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "docker login ghcr.io -u '$GHCR_USER' --password-stdin"
+
       - name: Pull and start production container
         env:
           DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
@@ -88,6 +100,7 @@ jobs:
           ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
             "DEPLOY_PATH='$DEPLOY_PATH' IMAGE_TAG='$DEPLOY_SHA' GHCR_IMAGE='$GHCR_IMAGE' bash -s" <<'REMOTE'
           set -euo pipefail
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
           cd "$DEPLOY_PATH"
           export DEPLOY_PATH IMAGE_TAG GHCR_IMAGE
           docker compose -f compose.production.yml pull
