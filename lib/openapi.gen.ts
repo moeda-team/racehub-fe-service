@@ -645,7 +645,8 @@ export interface paths {
          * List paid participants for a published event
          * @description Public, anonymous participant directory. Returns only registrations whose
          *     current status is `paid`; refunded and unpaid registrations are excluded.
-         *     Participant name, category, and the submitted answer for the custom
+         *     Participant name, category suffixed with the compact age class when set
+         *     (for example `5K(Master+)`), and the submitted answer for the custom
          *     registration field whose slug is `asal_kabupaten` are exposed. Other custom
          *     answers, contact information, registration numbers, payment data, and
          *     check-in state are never returned.
@@ -655,9 +656,13 @@ export interface paths {
                 query?: {
                     /** @description Case-insensitive substring search across participant name and category. */
                     q?: string;
+                    /** @description Exact category name filter; omit or leave empty to include all categories. */
+                    category?: string;
+                    /** @description Exact stored age class filter; omit or leave empty to include all classes. */
+                    age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
                     page?: number;
-                    /** @description Maximum 100. */
-                    page_size?: number;
+                    /** @description Number of results per page. Use 12, 24, or 36; use `all` to return all matches. Defaults to 24. */
+                    page_size?: (12 | 24 | 36) | "all";
                 };
                 header?: never;
                 path: {
@@ -2006,8 +2011,10 @@ export interface paths {
          * Register a participant
          * @description Public participant registration — NO authentication required (FR-401).
          *     Reserves quota atomically across ticket → category → event (FR-408).
-         *     birth_date is required; for running events it sets the Open/Master age
-         *     class (FR-404). PII is encrypted at rest (NFR-206). Donation is optional
+         *     birth_date is required. For running events, a standalone case-insensitive 5K
+         *     token in the selected category sets age_class to Fun Run; other categories
+         *     use the Open/Master/Master+ age classes (FR-404). PII is encrypted at rest
+         *     (NFR-206). Donation is optional
          *     with no minimum (FR-406). No money is computed here — fees are Phase 4.
          */
         post: {
@@ -4541,7 +4548,11 @@ export interface components {
             /** @enum {string} */
             status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
             is_running_event?: boolean;
-            /** @default 40 */
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             * @default 40
+             */
             master_age_threshold: number;
             /** Format: date-time */
             refund_cutoff_date?: string;
@@ -4599,6 +4610,10 @@ export interface components {
             /** @enum {string} */
             status?: "coming_soon" | "published";
             is_running_event?: boolean;
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             */
             master_age_threshold?: number;
             /** Format: date-time */
             refund_cutoff_date?: string | null;
@@ -4722,7 +4737,7 @@ export interface components {
             name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** Format: int64 */
             donation?: number;
             /** @enum {string} */
@@ -4733,7 +4748,7 @@ export interface components {
             /** Format: date-time */
             created_at?: string;
         };
-        /** @description Public projection of a currently paid participant, including the submitted asal_kabupaten answer when configured. */
+        /** @description Public projection of a currently paid participant. Category includes the compact age class in parentheses when set, for example `5K(Master+)`. Includes the submitted asal_kabupaten answer when configured. */
         PublicPaidParticipant: {
             name: string;
             category: string;
@@ -4760,10 +4775,10 @@ export interface components {
             birth_date?: string;
             gender?: string;
             /**
-             * @description Set only for running events (FR-404)
+             * @description Running events: a standalone 5K token in the selected distance category gives Fun Run; other categories use the participant age classes (FR-404).
              * @enum {string}
              */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** Format: int64 */
             donation?: number;
             /** @enum {string} */
@@ -4910,7 +4925,7 @@ export interface components {
              */
             birth_date?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** @description Opaque token encoded into the QR for check-in (FR-604) */
             qr_token?: string;
             /** Format: date-time */
@@ -5065,7 +5080,7 @@ export interface components {
             bib_number?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             category_name?: string;
             ticket_name?: string;
             /**
@@ -5147,7 +5162,11 @@ export interface components {
             /** Format: date-time */
             event_date?: string;
             is_running_event?: boolean;
-            /** @default 40 */
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             * @default 40
+             */
             master_age_threshold: number;
             /** Format: date-time */
             refund_cutoff_date?: string;
@@ -5178,7 +5197,11 @@ export interface components {
             /** Format: date-time */
             event_date?: string;
             is_running_event?: boolean;
-            /** @default 40 */
+            /**
+             * @deprecated
+             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+             * @default 40
+             */
             master_age_threshold: number;
             /** Format: date-time */
             refund_cutoff_date?: string;
@@ -5310,7 +5333,7 @@ export interface components {
             name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** Format: uuid */
             category_id?: string;
             /** @description Event category name selected at registration. */
@@ -5414,7 +5437,7 @@ export interface components {
             category_name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "" | "Open" | "Master";
+            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             /** @description Ticket class name for non-running events; empty for running events. */
             ticket_name?: string;
             /** Format: int64 */
@@ -5429,7 +5452,7 @@ export interface components {
             name?: string;
             gender?: string;
             /** @enum {string} */
-            age_class?: "Open" | "Master";
+            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
             status?: string;
             rpc_status?: string;
             raceday_status?: string;
