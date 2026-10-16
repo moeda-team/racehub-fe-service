@@ -3760,6 +3760,117 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/{id}/participants/{participantId}/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                participantId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Get one paid participant's editable data
+         * @description Returns participant PII and registration answers only to the authenticated organizer that owns the event.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    participantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Editable participant profile and configured registration fields. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["ParticipantEditableData"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Participant is no longer paid and cannot be edited. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct one paid participant's profile data
+         * @description Updates identity, contact, demographic, and configured registration-answer fields only. Payment, ticket, category, BIB, refund, donation, and check-in data are not editable. The update and encrypted audit diff are committed atomically.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    participantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** Format: email */
+                        email: string;
+                        phone: string;
+                        /** Format: date */
+                        birth_date: string;
+                        gender: string;
+                        extra_data: {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated participant data. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: components["schemas"]["ParticipantUpdateResult"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Participant is no longer paid and cannot be edited. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
     "/events/{id}/participants/export": {
         parameters: {
             query?: never;
@@ -5460,6 +5571,37 @@ export interface components {
             ticket_name?: string;
             /** @description Private ticket access token. Returned only to the authenticated organizer who owns the event. */
             qr_token?: string;
+        };
+        ParticipantEditableField: {
+            /** Format: uuid */
+            id?: string;
+            name?: string;
+            label?: string;
+            field_type?: string;
+            /** @description Comma-separated select/radio options. */
+            options?: string;
+            placeholder?: string;
+            required?: boolean;
+            value?: string;
+        };
+        ParticipantEditableData: {
+            /** Format: uuid */
+            id?: string;
+            registration_number?: string;
+            name?: string;
+            email?: string;
+            phone?: string;
+            /** Format: date */
+            birth_date?: string;
+            gender?: string;
+            age_class?: string;
+            extra_data?: {
+                [key: string]: string;
+            };
+            fields?: components["schemas"]["ParticipantEditableField"][];
+        };
+        ParticipantUpdateResult: components["schemas"]["ParticipantEditableData"] & {
+            changed?: boolean;
         };
         /**
          * Format: int64

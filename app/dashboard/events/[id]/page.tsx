@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { api, ApiError } from "@/lib/api";
@@ -45,6 +45,8 @@ import type {
   EventDashboard,
   EventDetail,
   EventStatus,
+  ParticipantEditableData,
+  ParticipantUpdateResult,
   ParticipantRow,
   PublicEventDetail,
   RecapRow,
@@ -1171,6 +1173,20 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [refundBankAccount, setRefundBankAccount] = useState("");
   const [refundEntries, setRefundEntries] = useState<Refund[]>([]);
   const [completingRefundId, setCompletingRefundId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<ParticipantRow | null>(null);
+  const [editDraft, setEditDraft] = useState<ParticipantEditableData | null>(null);
+  const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editNotice, setEditNotice] = useState<{ type: "success" | "danger"; message: string } | null>(null);
+  const [emailTarget, setEmailTarget] = useState<ParticipantRow | null>(null);
+  const [resendingEmail, setResendingEmail] = useState(false);
+
+  useEffect(() => {
+    if (!editNotice) return;
+    const timeout = window.setTimeout(() => setEditNotice(null), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [editNotice]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1315,6 +1331,79 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     }
   }
 
+  async function openParticipantEditor(row: ParticipantRow) {
+    setEditTarget(row);
+    setEditDraft(null);
+    setEditError(null);
+    setEditNotice(null);
+    setLoadingEditId(row.id);
+    try {
+      const res = await api.get<ApiResponse<ParticipantEditableData>>(
+        `/api/v1/events/${eventId}/participants/${row.id}/data`,
+      );
+      setEditDraft(res.data);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Gagal memuat data peserta.";
+      setEditError(message);
+      setEditNotice({ type: "danger", message });
+    } finally {
+      setLoadingEditId(null);
+    }
+  }
+
+  async function saveParticipantEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editDraft) return;
+    setSavingEdit(true);
+    setEditError(null);
+    try {
+      const res = await api.patch<ApiResponse<ParticipantUpdateResult>>(
+        `/api/v1/events/${eventId}/participants/${editDraft.id}/data`,
+        {
+          name: editDraft.name,
+          email: editDraft.email,
+          phone: editDraft.phone,
+          birth_date: editDraft.birth_date,
+          gender: editDraft.gender,
+          extra_data: editDraft.extra_data,
+        },
+      );
+      const updated = res.data;
+      setRows((current) => current?.map((row) => row.id === updated.id
+        ? { ...row, name: updated.name, gender: updated.gender, age_class: updated.age_class }
+        : row) ?? null);
+      setEditNotice({
+        type: "success",
+        message: updated.changed ? "Koreksi data peserta berhasil disimpan." : "Tidak ada perubahan pada data peserta.",
+      });
+      setEditTarget(null);
+      setEditDraft(null);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Gagal menyimpan koreksi peserta.";
+      setEditError(message);
+      setEditNotice({ type: "danger", message });
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function resendParticipantEmail() {
+    if (!emailTarget) return;
+    setResendingEmail(true);
+    try {
+      await api.post<ApiResponse<{ status: string }>>(
+        `/api/v1/events/${eventId}/participants/${emailTarget.id}/emails/resend`,
+        {},
+      );
+      setEditNotice({ type: "success", message: `Email e-ticket untuk ${emailTarget.name} masuk antrean pengiriman.` });
+      setEmailTarget(null);
+    } catch (error) {
+      setEditNotice({ type: "danger", message: error instanceof ApiError ? error.message : "Gagal mengantrekan email. Coba lagi." });
+    } finally {
+      setResendingEmail(false);
+    }
+  }
+
   const runningCols: Column<ParticipantRow>[] = isRunning ? [
     {
       key: "bib",
@@ -1362,58 +1451,171 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
     ...runningCols.slice(5),
     {
-      key: "eticket",
-      header: "E-Ticket",
-      render: (r) => r.status === "paid" && r.qr_token ? (
-        <Link
-          href={`/ticket/${encodeURIComponent(r.registration_number)}?token=${encodeURIComponent(r.qr_token)}`}
-          className="btn btn-secondary btn-sm"
-          target="_blank"
-          rel="noreferrer"
-        >
-          E-Ticket
-        </Link>
-      ) : "—",
-    },
-    {
-      key: "refund",
-      header: "Refund",
+      key: "actions",
+      header: "Aksi",
       render: (r) => {
-        if (r.status === "paid") return (
-          <Button
-            variant="danger"
-            size="sm"
-            disabled={refundingId !== null}
-            onClick={() => {
-              setRefundTarget(r);
-              setRefundReason("");
-              setRefundBankAccount("");
-            }}
-          >
-            {refundingId === r.id ? "Memproses…" : "Refund"}
-          </Button>
+        const refund = r.status === "refunded"
+          ? refundEntries.find((item) => item.registration_id === r.id)
+          : undefined;
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", minWidth: 210 }}>
+            {r.status === "paid" && (
+              <>
+                <Button variant="secondary" size="sm" disabled={loadingEditId !== null} onClick={() => void openParticipantEditor(r)}>
+                  {loadingEditId === r.id ? "Memuat…" : "Edit"}
+                </Button>
+                {r.qr_token && (
+                  <Link
+                    href={`/ticket/${encodeURIComponent(r.registration_number)}?token=${encodeURIComponent(r.qr_token)}`}
+                    className="btn btn-secondary btn-sm"
+                    target="_blank"
+                    rel="noreferrer"
+                  >Lihat E-Ticket</Link>
+                )}
+                <Button variant="secondary" className="btn-email" size="sm" disabled={resendingEmail} onClick={() => setEmailTarget(r)}>
+                  Kirim Email
+                </Button>
+                <Button variant="danger" size="sm" disabled={refundingId !== null} onClick={() => {
+                  setRefundTarget(r);
+                  setRefundReason("");
+                  setRefundBankAccount("");
+                }}>
+                  {refundingId === r.id ? "Memproses…" : "Refund"}
+                </Button>
+              </>
+            )}
+            {refund?.status === "processing" && refund.mode === "manual" && (
+              <Button variant="primary" size="sm" disabled={completingRefundId !== null} onClick={() => void completeManualRefund(r, refund)}>
+                {completingRefundId === refund.id ? "Memproses…" : "Tandai Selesai"}
+              </Button>
+            )}
+            {refund?.status === "completed" && <Badge variant="ok">Refund selesai</Badge>}
+            {refund?.status === "processing" && refund.mode !== "manual" && <Badge variant="warn">Refund diproses</Badge>}
+            {r.status === "refunded" && refund?.status !== "completed" && refund?.status !== "processing" && <Badge variant="danger">Refunded</Badge>}
+            {r.status !== "paid" && r.status !== "refunded" && "—"}
+          </div>
         );
-        if (r.status !== "refunded") return "—";
-        const refund = refundEntries.find((item) => item.registration_id === r.id);
-        if (refund?.status === "processing" && refund.mode === "manual") return (
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={completingRefundId !== null}
-            onClick={() => void completeManualRefund(r, refund)}
-          >
-            {completingRefundId === refund.id ? "Memproses…" : "Tandai Selesai"}
-          </Button>
-        );
-        if (refund?.status === "completed") return <Badge variant="ok">Selesai</Badge>;
-        if (refund?.status === "processing") return <Badge variant="warn">Diproses</Badge>;
-        return <Badge variant="danger">Refunded</Badge>;
       },
     },
   ];
 
   return (
     <div>
+      {editNotice && typeof document !== "undefined" && createPortal(
+        <div style={{ position: "fixed", top: 20, right: 20, zIndex: 11000, width: "min(420px, calc(100vw - 32px))" }}>
+          <Alert variant={editNotice.type}>
+            <span aria-live="polite">{editNotice.message}</span>
+          </Alert>
+        </div>,
+        document.body,
+      )}
+      {emailTarget && typeof document !== "undefined" && createPortal(
+        <div role="dialog" aria-modal="true" aria-labelledby="resend-email-title" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !resendingEmail) setEmailTarget(null);
+        }} style={{ position: "fixed", inset: 0, zIndex: 10000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}>
+          <section style={{ width: "min(100%, 480px)", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
+            <h2 id="resend-email-title" style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 22 }}>Kirim ulang email</h2>
+            <p style={{ margin: "0 0 16px", color: "var(--color-ink-2)", fontSize: 14 }}>{emailTarget.name} · {emailTarget.registration_number}</p>
+            <div style={{ border: "1px solid var(--color-line)", borderRadius: 10, padding: 14, marginBottom: 10 }}>
+              <strong>E-ticket</strong>
+              <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 13 }}>Email berisi tautan e-ticket dan QR peserta, dikirim ke alamat email yang saat ini tersimpan.</p>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <Button variant="secondary" size="sm" disabled={resendingEmail} onClick={() => setEmailTarget(null)}>Batal</Button>
+              <Button variant="primary" size="sm" disabled={resendingEmail} onClick={() => void resendParticipantEmail()}>{resendingEmail ? "Mengantrekan…" : "Kirim e-ticket"}</Button>
+            </div>
+          </section>
+        </div>,
+        document.body,
+      )}
+      {editTarget && typeof document !== "undefined" && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="participant-edit-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !savingEdit) {
+              setEditTarget(null);
+              setEditDraft(null);
+            }
+          }}
+          style={{ position: "fixed", inset: 0, zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", overflowY: "auto", boxSizing: "border-box", padding: "24px 16px", background: "rgba(20,24,31,.78)" }}
+        >
+          <section style={{ width: "min(100%, 640px)", maxHeight: "calc(100dvh - 48px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)", boxSizing: "border-box" }}>
+            <h2 id="participant-edit-title" style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 22 }}>Koreksi data peserta</h2>
+            <p style={{ margin: "0 0 20px", color: "var(--color-ink-2)", fontSize: 14 }}>
+              {editTarget.name} · {editTarget.registration_number}
+            </p>
+            {editError && <Alert variant="danger" className="mb-4">{editError}</Alert>}
+            {loadingEditId === editTarget.id && !editDraft ? (
+              <p style={{ color: "var(--color-ink-3)" }}>Memuat data peserta…</p>
+            ) : editDraft ? (
+              <form onSubmit={(event) => void saveParticipantEdit(event)}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+                  <div>
+                    <label className="field-label" htmlFor="participant-edit-name">Nama peserta</label>
+                    <input id="participant-edit-name" className="field-input" required maxLength={200} value={editDraft.name} onChange={(event) => setEditDraft({ ...editDraft, name: event.target.value })} style={{ width: "100%" }} />
+                  </div>
+                  <div>
+                    <label className="field-label" htmlFor="participant-edit-email">Email</label>
+                    <input id="participant-edit-email" className="field-input" type="email" required value={editDraft.email} onChange={(event) => setEditDraft({ ...editDraft, email: event.target.value })} style={{ width: "100%" }} />
+                  </div>
+                  <div>
+                    <label className="field-label" htmlFor="participant-edit-phone">Nomor HP</label>
+                    <input id="participant-edit-phone" className="field-input" type="tel" required value={editDraft.phone} onChange={(event) => setEditDraft({ ...editDraft, phone: event.target.value })} style={{ width: "100%" }} />
+                  </div>
+                  <div>
+                    <label className="field-label" htmlFor="participant-edit-birth-date">Tanggal lahir</label>
+                    <input id="participant-edit-birth-date" className="field-input" type="date" required max={new Date().toISOString().slice(0, 10)} value={editDraft.birth_date} onChange={(event) => setEditDraft({ ...editDraft, birth_date: event.target.value })} style={{ width: "100%" }} />
+                  </div>
+                  <div>
+                    <label className="field-label" htmlFor="participant-edit-gender">Jenis kelamin</label>
+                    <select id="participant-edit-gender" className="field-input" required value={editDraft.gender} onChange={(event) => setEditDraft({ ...editDraft, gender: event.target.value })} style={{ width: "100%" }}>
+                      <option value="male">Laki-laki</option>
+                      <option value="female">Perempuan</option>
+                      {editDraft.gender !== "male" && editDraft.gender !== "female" && <option value={editDraft.gender}>{editDraft.gender}</option>}
+                    </select>
+                  </div>
+                  {editDraft.fields.map((field) => {
+                    const value = editDraft.extra_data[field.id] ?? "";
+                    const setValue = (next: string) => setEditDraft({
+                      ...editDraft,
+                      extra_data: { ...editDraft.extra_data, [field.id]: next },
+                    });
+                    return (
+                      <div key={field.id} style={field.field_type === "textarea" ? { gridColumn: "1 / -1" } : undefined}>
+                        <label className="field-label" htmlFor={`participant-extra-${field.id}`}>{field.label}{field.required ? " *" : ""}</label>
+                        {field.field_type === "textarea" ? (
+                          <textarea id={`participant-extra-${field.id}`} className="field-input" required={field.required} value={value} onChange={(event) => setValue(event.target.value)} rows={3} style={{ width: "100%", resize: "vertical" }} />
+                        ) : field.field_type === "select" || field.field_type === "radio" ? (
+                          <select id={`participant-extra-${field.id}`} className="field-input" required={field.required} value={value} onChange={(event) => setValue(event.target.value)} style={{ width: "100%" }}>
+                            <option value="">Pilih…</option>
+                            {field.options.split(",").map((option) => option.trim()).filter(Boolean).map((option) => <option key={option} value={option}>{option}</option>)}
+                          </select>
+                        ) : field.field_type === "checkbox" ? (
+                          <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 42 }}>
+                            <input id={`participant-extra-${field.id}`} type="checkbox" required={field.required} checked={value === "true"} onChange={(event) => setValue(event.target.checked ? "true" : "false")} />
+                            <span>{field.placeholder || field.label}</span>
+                          </label>
+                        ) : (
+                          <input id={`participant-extra-${field.id}`} className="field-input" type={field.field_type === "date" ? "date" : field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"} required={field.required} value={value} onChange={(event) => setValue(event.target.value)} style={{ width: "100%" }} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p style={{ margin: "16px 0", color: "var(--color-ink-3)", fontSize: 12 }}>
+                  Koreksi data tidak mengubah tiket, pembayaran, BIB, refund, atau status check-in. Perubahan dicatat di audit log.
+                </p>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+                  <Button type="button" variant="secondary" size="sm" disabled={savingEdit} onClick={() => { setEditTarget(null); setEditDraft(null); }}>Batal</Button>
+                  <Button type="submit" variant="primary" size="sm" disabled={savingEdit}>{savingEdit ? "Menyimpan…" : "Simpan koreksi"}</Button>
+                </div>
+              </form>
+            ) : null}
+          </section>
+        </div>
+      , document.body)}
       {refundTarget && (
         <div
           role="dialog"

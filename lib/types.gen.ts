@@ -686,6 +686,34 @@ export interface ParticipantRow {
   qr_token?: string;
 }
 
+export interface ParticipantEditableField {
+  id: string;
+  name: string;
+  label: string;
+  field_type: string;
+  options: string;
+  placeholder: string;
+  required: boolean;
+  value: string;
+}
+
+export interface ParticipantEditableData {
+  id: string;
+  registration_number: string;
+  name: string;
+  email: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  age_class: ParticipantRow["age_class"];
+  extra_data: Record<string, string>;
+  fields: ParticipantEditableField[];
+}
+
+export interface ParticipantUpdateResult extends ParticipantEditableData {
+  changed: boolean;
+}
+
 // === API Response Wrappers ===
 
 export interface ApiResponse<T> {

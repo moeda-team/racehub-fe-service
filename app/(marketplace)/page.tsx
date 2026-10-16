@@ -1,8 +1,7 @@
 import { BarChart3, Bell, CreditCard, Search, Ticket, Users } from "lucide-react";
 import ButtonLink from "@/components/ui/ButtonLink";
-import EventCard from "@/components/ui/EventCard";
+import HomeEventCarousel from "@/components/HomeEventCarousel";
 import { Eyebrow } from "@/components/ui/Layout";
-import { formatDate, formatRupiah } from "@/lib/format";
 import type { PublicEvent } from "@/lib/types.gen";
 
 type PagedEvents = { data?: PublicEvent[] };
@@ -12,16 +11,16 @@ const backendBase = (process.env.BACKEND_API_URL ?? "http://localhost:3001").rep
 // The featured card is public, non-transactional data. Rendering it on the
 // server removes a client-side request and lets visitors see it in the first
 // paint, while the short revalidation window keeps the catalogue fresh.
-async function getFeaturedEvent(): Promise<PublicEvent | null> {
+async function getFeaturedEvents(): Promise<PublicEvent[]> {
   try {
-    const response = await fetch(`${backendBase}/api/v1/events?page=1&page_size=1`, {
+    const response = await fetch(`${backendBase}/api/v1/events?page=1&page_size=5`, {
       next: { revalidate: 60 },
     });
-    if (!response.ok) return null;
+    if (!response.ok) return [];
     const payload = (await response.json()) as PagedEvents;
-    return payload.data?.[0] ?? null;
+    return payload.data ?? [];
   } catch {
-    return null;
+    return [];
   }
 }
 
@@ -65,7 +64,7 @@ const services = [
 ];
 
 export default async function HomePage() {
-  const featuredEvent = await getFeaturedEvent();
+  const featuredEvents = await getFeaturedEvents();
 
   return (
     <main className="home-page home-justify rh-reveal">
@@ -94,18 +93,8 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="home-feature-event">
-            {featuredEvent ? (
-              <EventCard
-                href={`/events/${featuredEvent.id}`}
-                title={featuredEvent.name}
-                location={featuredEvent.location || "Lokasi belum diatur"}
-                date={formatDate(featuredEvent.event_date)}
-                distances={featuredEvent.event_type === "running" ? ["Event Lari"] : []}
-                price={featuredEvent.min_price > 0 ? formatRupiah(featuredEvent.min_price) : "Gratis"}
-                bannerUrl={featuredEvent.banner_url}
-                color={featuredEvent.color || undefined}
-                comingSoon={featuredEvent.status === "coming_soon"}
-              />
+            {featuredEvents.length > 0 ? (
+              <HomeEventCarousel events={featuredEvents} />
             ) : (
               <div className="market-hero-empty">
                 <Eyebrow>Event / Preview</Eyebrow>
