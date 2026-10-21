@@ -170,6 +170,7 @@ export interface RejectEventRequest {
 // === Registration (F4) ===
 
 export interface CreateRegistrationRequest {
+  idempotency_key?: string;
   event_id: string;
   ticket_category_id: string;
   category_id: string;
@@ -180,6 +181,28 @@ export interface CreateRegistrationRequest {
   gender: string;
   donation?: number;
   extra_data?: Record<string, string>;
+}
+
+export interface OrganizerBulkRegistrationRequest {
+  participants: CreateRegistrationRequest[];
+}
+
+export interface OrganizerBulkRegistrationRowResult {
+  row: number;
+  registration?: Registration;
+  error?: string;
+}
+
+export interface OrganizerBulkRegistrationResult {
+  created: number;
+  failed: number;
+  results: OrganizerBulkRegistrationRowResult[];
+}
+
+export interface ManualPaymentRequest {
+  method: string;
+  paid_at: string;
+  reference: string;
 }
 
 export interface Registration {
@@ -382,6 +405,7 @@ export interface PaymentChargeResponse {
   registration_id: string;
   transaction_id: string;
   status: string;
+  settled_count?: number;
   expires_at?: string;
   va_number?: string;
   biller_code?: string;
@@ -481,6 +505,7 @@ export interface WalletTransactionPayment {
 
 export interface WalletTransactionDetail extends WalletHistoryEntry {
   customer?: WalletTransactionCustomer;
+  customers?: WalletTransactionCustomer[];
   payment?: WalletTransactionPayment;
 }
 
