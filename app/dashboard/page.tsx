@@ -23,8 +23,10 @@ export default function DashboardPage() {
     let cancelled = false;
     (async () => {
       try {
-        await getWallet();
-        const res = await api.get<ApiResponse<Event[]>>("/api/v1/events");
+        const [, res] = await Promise.all([
+          getWallet(),
+          api.get<ApiResponse<Event[]>>("/api/v1/events"),
+        ]);
         if (!cancelled) setEvents(res.data ?? []);
       } catch {
         if (!cancelled) setError("Gagal memuat data dashboard.");
