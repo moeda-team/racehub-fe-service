@@ -33,6 +33,8 @@ import {
 } from "@/lib/image-upload";
 import DataTable, { Column } from "@/components/ui/DataTable";
 import { CircleCheck, Image as ImageIcon, TriangleAlert } from "lucide-react";
+import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import type {
   ApiResponse,
   BibGenerationStrategy,
@@ -48,19 +50,22 @@ import type {
   ParticipantEditableData,
   ParticipantUpdateResult,
   ParticipantRow,
+  PaymentChargeResponse,
   PublicEventDetail,
+  RegistrationField,
   RecapRow,
   Refund,
   RefundSummary,
   TicketCategory,
 } from "@/lib/types.gen";
 
-type Tab = "detail" | "pendaftaran" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
+type Tab = "detail" | "pendaftaran" | "kolektif" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
 type PreviewMode = "card" | "detail" | "register";
 
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
   { id: "pendaftaran", label: "Form Pendaftaran" },
+  { id: "kolektif", label: "Pendaftaran Kolektif" },
   { id: "kategori", label: "Kategori" },
   { id: "peserta", label: "Peserta" },
   { id: "keuangan", label: "Keuangan" },
@@ -85,6 +90,7 @@ export default function EditEventPage({
   >([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("detail");
+  const [collectiveRefreshKey, setCollectiveRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     try {
@@ -160,7 +166,7 @@ export default function EditEventPage({
   const status = eventStatusDisplay(event.status);
 
   return (
-    <div className="rh-reveal" style={{ maxWidth: 1200 }}>
+    <div className="rh-reveal" style={{ maxWidth: 1200, width: "100%", minWidth: 0 }}>
       {/* Header */}
       <div
         style={{
@@ -401,6 +407,21 @@ export default function EditEventPage({
           </div>
         )}
 
+        {activeTab === "kolektif" && (
+          <div style={{display:"grid",gridTemplateColumns:"minmax(0, 1fr)",gap:24,width:"100%",minWidth:0}}>
+            <CollectiveRegistrationCard eventId={eventId} categories={detail.categories} tickets={detail.ticket_categories} onCreated={()=>setCollectiveRefreshKey((value)=>value+1)} />
+            <section style={{padding:24,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)",width:"100%",minWidth:0,boxSizing:"border-box"}}>
+              <h2 style={{fontFamily:"var(--font-display)",fontSize:20,margin:"0 0 16px"}}>Peserta Belum Lunas dan Aksi Massal</h2>
+              <ParticipantsCard eventId={eventId} isRunning={event.event_type === "running"} showBulkActions statusFilter="pending_payment" refreshKey={collectiveRefreshKey} onChanged={()=>setCollectiveRefreshKey((value)=>value+1)} />
+            </section>
+            <section style={{padding:24,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)",width:"100%",minWidth:0,boxSizing:"border-box"}}>
+              <h2 style={{fontFamily:"var(--font-display)",fontSize:20,margin:"0 0 6px"}}>Peserta Kedaluwarsa</h2>
+              <p style={{fontSize:14,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Pilih peserta untuk mengaktifkan kembali pendaftaran. Payment dibuat terpisah dari tabel peserta belum lunas jika periode penjualan dan kuota masih tersedia.</p>
+              <ParticipantsCard eventId={eventId} isRunning={event.event_type === "running"} showBulkActions statusFilter="expired" refreshKey={collectiveRefreshKey} onChanged={()=>setCollectiveRefreshKey((value)=>value+1)} />
+            </section>
+          </div>
+        )}
+
         {activeTab === "peserta" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <RegistrationStatusCard
@@ -486,11 +507,12 @@ export default function EditEventPage({
                   marginTop: 0,
                 }}
               >
-                Daftar Peserta
+                Daftar Peserta Lunas
               </h2>
               <ParticipantsCard
                 eventId={eventId}
                 isRunning={event.event_type === "running"}
+                showBulkActions={false}
               />
             </div>
           </div>
@@ -1157,7 +1179,200 @@ function BibCard({
 }
 
 // ParticipantsCard renders the participant table + CSV export.
-function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
+type CollectiveDraft = {
+  idempotency_key: string;
+  name: string; email: string; phone: string; birth_date: string; gender: string;
+  category_id: string; ticket_category_id: string; donation: string; extra_data: Record<string, string>;
+};
+const emptyCollectiveDraft = (): CollectiveDraft => ({ idempotency_key:crypto.randomUUID(), name:"", email:"", phone:"", birth_date:"", gender:"", category_id:"", ticket_category_id:"", donation:"0", extra_data:{} });
+function excelCellText(value: unknown): string {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,"0")}-${String(value.getDate()).padStart(2,"0")}`;
+  return String(value ?? "").trim();
+}
+function excelBirthDate(value: unknown): string {
+  if (typeof value === "number") {
+    const date=XLSX.SSF.parse_date_code(value);
+    if (date) return `${String(date.y).padStart(4,"0")}-${String(date.m).padStart(2,"0")}-${String(date.d).padStart(2,"0")}`;
+  }
+  const raw=excelCellText(value);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const match=raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (match) return `${match[3]}-${match[1].padStart(2,"0")}-${match[2].padStart(2,"0")}`;
+  return raw;
+}
+
+function CollectiveRegistrationCard({ eventId, categories, tickets, onCreated }: { eventId: string; categories: Category[]; tickets: TicketCategory[]; onCreated?:()=>void }) {
+  const [fields, setFields] = useState<RegistrationField[]>([]);
+  const [drafts, setDrafts] = useState<CollectiveDraft[]>([emptyCollectiveDraft()]);
+  const [fileRows, setFileRows] = useState<CollectiveDraft[] | null>(null);
+  const [rowErrors, setRowErrors] = useState<Record<number, string[]>>({});
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.get<ApiResponse<RegistrationField[]>>(`/api/v1/events/${eventId}/registration-fields`)
+      .then((res) => { if (!cancelled) setFields(res.data ?? []); })
+      .catch(() => { if (!cancelled) setError("Gagal memuat kolom form pendaftaran event."); });
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  const templateHeaders = ["name", "email", "phone", "birth_date", "gender", "category_id", "ticket_category_id", "donation", ...fields.map((field) => `${field.label}${field.required ? " *" : ""}`)];
+  const categoryOption = (category: Category) => `${category.name} [${category.id}]`;
+  const ticketOption = (ticket: TicketCategory) => `${categories.find((category) => category.id === ticket.category_id)?.name ?? "Kategori"} — ${ticket.name} [${ticket.id}]`;
+  function resolveOption(value: unknown, options: Array<{id:string; label:string}>) {
+    const text = excelCellText(value).trim();
+    return options.find((option) => option.id === text || option.label === text)?.id ?? text;
+  }
+  async function downloadTemplate() {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Pendaftaran");
+    const initialCategory = categories.find((category) => tickets.some((ticket) => ticket.category_id === category.id)) ?? categories[0];
+    const initialTicket = tickets.find((ticket) => ticket.category_id === initialCategory?.id);
+    sheet.addRow(templateHeaders);
+    sheet.addRow(["Nama peserta", "email@example.com", "08xxxxxxxxxx", "1990-01-31", "Laki-laki", initialCategory ? categoryOption(initialCategory) : "", initialTicket ? ticketOption(initialTicket) : "", 0, ...fields.map(() => "")]);
+    sheet.getRow(1).font = { bold: true };
+    sheet.views = [{ state: "frozen", ySplit: 1 }];
+    const choices = workbook.addWorksheet("Pilihan");
+    choices.addRow(["category_id", "Pilihan kategori", "ticket_category_id", "Pilihan tiket"]);
+    const rowCount = Math.max(categories.length, tickets.length);
+    for (let index = 0; index < rowCount; index++) {
+      const category = categories[index];
+      const ticket = tickets[index];
+      choices.addRow([category?.id ?? "", category ? categoryOption(category) : "", ticket?.id ?? "", ticket ? ticketOption(ticket) : ""]);
+    }
+    choices.getRow(1).font = { bold: true };
+    choices.columns = [{width:38},{width:36},{width:38},{width:55}, ...categories.map(() => ({width:55}))];
+    categories.forEach((category, index) => {
+      const column = index + 5;
+      const matchingTickets = tickets.filter((ticket) => ticket.category_id === category.id);
+      choices.getCell(1, column).value = `Pilihan tiket ${category.name}`;
+      (matchingTickets.length ? matchingTickets : [{id:"",name:"",category_id:category.id} as TicketCategory]).forEach((ticket, ticketIndex) => {
+        choices.getCell(ticketIndex + 2, column).value = ticket.id ? ticketOption(ticket) : "";
+      });
+      const namedRange = `TicketOptions_${index + 1}`;
+      workbook.definedNames.add(`'Pilihan'!$${String.fromCharCode(65 + column - 1)}$2:$${String.fromCharCode(65 + column - 1)}$${Math.max(matchingTickets.length, 1) + 1}`, namedRange);
+    });
+    choices.state = "hidden";
+    if (categories.length) workbook.definedNames.add(`'Pilihan'!$B$2:$B$${categories.length + 1}`, "CategoryOptions");
+    if (tickets.length) workbook.definedNames.add(`'Pilihan'!$D$2:$D$${tickets.length + 1}`, "TicketOptions");
+    for (let row = 2; row <= 501; row++) {
+      sheet.getCell(row, 5).dataValidation = { type:"list", formulae:['"Laki-laki,Perempuan"'], allowBlank:false, showErrorMessage:true, errorTitle:"Jenis kelamin tidak valid", error:"Pilih Laki-laki atau Perempuan." };
+      if (categories.length) sheet.getCell(row, 6).dataValidation = { type:"list", formulae:["CategoryOptions"], allowBlank:false, showErrorMessage:true, errorTitle:"Kategori tidak valid", error:"Pilih kategori dari daftar." };
+      if (tickets.length) sheet.getCell(row, 7).dataValidation = { type:"list", formulae:['INDIRECT("TicketOptions_"&MATCH(F' + row + ',CategoryOptions,0))'], allowBlank:false, showErrorMessage:true, errorTitle:"Tiket tidak valid", error:"Pilih tiket yang sesuai dengan kategori." };
+    }
+    const help = workbook.addWorksheet("Petunjuk");
+    help.addRows([["Kolom", "Keterangan"], ...templateHeaders.map((key, index) => [key, fields[index - 8]?.label ? `Isi ${fields[index - 8].label}${fields[index - 8].required ? " (wajib)" : ""}.` : key]), ["category_id", "Pilih kategori dari dropdown; kolom menyimpan label dan ID."], ["ticket_category_id", "Pilih tiket dari dropdown; kolom menyimpan label dan ID."]]);
+    help.getRow(1).font = { bold: true };
+    help.state = "hidden";
+    const buffer = await workbook.xlsx.writeBuffer();
+    const url = URL.createObjectURL(new Blob([buffer], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `template-pendaftaran-${eventId.slice(0, 8)}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function readWorkbook(file: File) {
+    setError(null); setNotice(null); setRowErrors({});
+    try {
+      if (file.size > 5 * 1024 * 1024) throw new Error("Ukuran file maksimal 5 MiB.");
+      const workbook = XLSX.read(await file.arrayBuffer(), { type:"array", cellDates:false });
+      const sheet = workbook.Sheets.Pendaftaran ?? workbook.Sheets[workbook.SheetNames[0]];
+      if (!sheet) throw new Error("Sheet Pendaftaran tidak ditemukan.");
+      const records = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header:1, defval:"", raw:true }).slice(1);
+      if (records.length < 1 || records.length > 100) throw new Error("File harus berisi 1–100 baris peserta.");
+      const parsed = records.map((record) => {
+        const extra_data: Record<string,string> = {};
+        fields.forEach((field, index) => { extra_data[field.id] = excelCellText(record[index + 8]); });
+        const ticket_category_id = resolveOption(record[6], tickets.map((ticket) => ({id:ticket.id,label:ticketOption(ticket)})));
+        const selectedCategoryId = resolveOption(record[5], categories.map((category) => ({id:category.id,label:categoryOption(category)})));
+        const selectedTicket = tickets.find((ticket) => ticket.id === ticket_category_id);
+        const genderValue = excelCellText(record[4]).trim().toLocaleLowerCase();
+        const gender = genderValue === "laki-laki" || genderValue === "male" ? "male" : genderValue === "perempuan" || genderValue === "female" ? "female" : excelCellText(record[4]);
+        return { idempotency_key:crypto.randomUUID(), name:excelCellText(record[0]), email:excelCellText(record[1]), phone:excelCellText(record[2]), birth_date:excelBirthDate(record[3]), gender, category_id:selectedTicket?.category_id ?? selectedCategoryId, ticket_category_id, donation:excelCellText(record[7] ?? "0") || "0", extra_data };
+      });
+      setFileRows(parsed);
+    } catch (e) { setFileRows(null); setError(e instanceof Error ? e.message : "File Excel tidak dapat dibaca."); }
+  }
+
+  function validateRows(rows: CollectiveDraft[]) {
+    const errors: Record<number,string[]> = {};
+    rows.forEach((row,index) => {
+      const issues: string[] = [];
+      if (!row.name || !row.email || !row.phone || !row.birth_date || !row.gender || !row.category_id || !row.ticket_category_id) issues.push("Lengkapi data dasar, kategori, dan tiket.");
+      if (!isValidEmail(row.email)) issues.push("Email tidak valid.");
+      if (!Number.isSafeInteger(Number(row.donation)) || Number(row.donation)<0) issues.push("Donasi harus berupa bilangan bulat rupiah nol atau lebih.");
+      if (!categories.some((category) => category.id === row.category_id)) issues.push("Kategori tidak dikenal.");
+      if (!tickets.some((ticket) => ticket.id === row.ticket_category_id && ticket.category_id === row.category_id)) issues.push("Tiket tidak cocok dengan kategori.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(row.birth_date)) issues.push("Tanggal lahir harus YYYY-MM-DD.");
+      for (const field of fields) if (field.required && !row.extra_data[field.id]?.trim()) issues.push(`${field.label} wajib diisi.`);
+      errors[index] = [...new Set(issues)];
+    });
+    return errors;
+  }
+
+  async function submitRows(rows: CollectiveDraft[]) {
+    const errors = validateRows(rows); setRowErrors(errors);
+    const valid = rows.filter((_,index) => errors[index].length === 0);
+    if (!valid.length) { setError("Belum ada baris valid untuk disimpan."); return; }
+    setBusy(true); setError(null); setNotice(null);
+    try {
+      const result = await api.post<ApiResponse<{created:number; failed:number; results:Array<{row:number; registration?:{registration_number:string}; error?:string}>}>>(`/api/v1/events/${eventId}/registrations/bulk`, {
+        participants:valid.map((row) => ({idempotency_key:row.idempotency_key,event_id:eventId,ticket_category_id:row.ticket_category_id,category_id:row.category_id,name:row.name,email:row.email,phone:row.phone,birth_date:row.birth_date,gender:row.gender,donation:Number(row.donation)||0,extra_data:row.extra_data})),
+      });
+      setNotice(`${result.data.created} pendaftaran tersimpan tanpa payment/email${result.data.failed ? `; ${result.data.failed} gagal` : ""}.`);
+      if (result.data.created > 0) onCreated?.();
+      const backendErrors: Record<number,string[]> = {};
+      result.data.results.forEach((item,index) => { if (item.error) backendErrors[index] = [item.error]; });
+      if (fileRows) {
+        const localInvalid = rows.map((row,index)=>({row,issues:errors[index]})).filter(({issues})=>issues.length>0);
+        const backendFailed = Object.entries(backendErrors).map(([index,issues])=>({row:valid[Number(index)],issues})).filter((item):item is {row:CollectiveDraft;issues:string[]}=>Boolean(item.row));
+        const remaining=[...localInvalid,...backendFailed];
+        setFileRows(remaining.length?remaining.map((item)=>item.row):null);
+        setRowErrors(Object.fromEntries(remaining.map((item,index)=>[index,item.issues])));
+      } else if (Object.keys(backendErrors).length) {
+        setRowErrors(backendErrors);
+      }
+      setDrafts([emptyCollectiveDraft()]);
+    } catch (e) { setError(e instanceof ApiError ? e.message : "Pendaftaran kolektif gagal disimpan."); }
+    finally { setBusy(false); }
+  }
+
+  const rows = fileRows ?? drafts;
+  const setRow = (index:number, patch:Partial<CollectiveDraft>) => {
+    if (fileRows) setFileRows(fileRows.map((row,i) => i===index ? {...row,...patch} : row));
+    else setDrafts(drafts.map((row,i) => i===index ? {...row,...patch} : row));
+  };
+  return <section className="collective-registration-card" style={{padding:24,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)",width:"100%",minWidth:0,boxSizing:"border-box"}}>
+    <h2 style={{fontFamily:"var(--font-display)",fontSize:20,margin:"0 0 6px"}}>Pendaftaran Kolektif</h2>
+    <p style={{fontSize:14,color:"var(--color-ink-3)",margin:"0 0 18px"}}>Peserta dibuat dengan status belum dibayar. Tidak ada payment atau email yang dibuat otomatis.</p>
+    {error && <Alert variant="danger" className="mb-4">{error}</Alert>}{notice && <Alert variant="info" className="mb-4">{notice}</Alert>}
+    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>
+      <Button variant="secondary" size="sm" onClick={()=>void downloadTemplate()}>Unduh template Excel</Button>
+      <label className="btn btn-secondary btn-sm" style={{cursor:"pointer"}}>Import Excel (.xlsx)<input type="file" accept=".xlsx" hidden onChange={(event)=>{const file=event.target.files?.[0]; if(file) void readWorkbook(file); event.currentTarget.value="";}} /></label>
+      {fileRows && <Button variant="ghost" size="sm" onClick={()=>{setFileRows(null);setRowErrors({});}}>Kembali ke input manual</Button>}
+    </div>
+    <p style={{fontSize:12,color:"var(--color-ink-3)",marginTop:-8,marginBottom:16}}>File Excel (.xlsx) maksimal 5 MiB dan 100 peserta per pengiriman.</p>
+    {rows.map((row,index)=><div key={index} style={{padding:16,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",marginBottom:12,minWidth:0,boxSizing:"border-box"}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><strong>Peserta {index+1}</strong>{!fileRows && drafts.length>1 && <Button variant="ghost" size="sm" onClick={()=>setDrafts(drafts.filter((_,i)=>i!==index))}>Hapus</Button>}</div>
+      <div className="collective-draft-fields" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%, 220px),1fr))",gap:10,minWidth:0}}>
+        {(["name","email","phone","birth_date","gender"] as const).map((key)=><label key={key} style={{fontSize:12,color:"var(--color-ink-3)"}}>{({name:"Nama",email:"Email",phone:"Telepon",birth_date:"Tanggal lahir",gender:"Gender"} as const)[key]}{key==="gender"?<select className="field-input" value={row.gender} onChange={(e)=>setRow(index,{gender:e.target.value})} style={{width:"100%"}}><option value="">Pilih gender</option><option value="male">Laki-laki</option><option value="female">Perempuan</option></select>:<input className="field-input" type={key==="birth_date"?"date":key==="email"?"email":"text"} value={row[key]} onChange={(e)=>setRow(index,{[key]:e.target.value})} style={{width:"100%"}} />}</label>)}
+        <label style={{fontSize:12,color:"var(--color-ink-3)"}}>Kategori<select className="field-input" value={row.category_id} onChange={(e)=>{const ticketsForCategory=tickets.filter(t=>t.category_id===e.target.value);setRow(index,{category_id:e.target.value,ticket_category_id:ticketsForCategory[0]?.id??""});}} style={{width:"100%"}}><option value="">Pilih kategori</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+        <label style={{fontSize:12,color:"var(--color-ink-3)"}}>Jenis tiket<select className="field-input" value={row.ticket_category_id} onChange={(e)=>setRow(index,{ticket_category_id:e.target.value})} style={{width:"100%"}}><option value="">Pilih tiket</option>{tickets.filter(t=>t.category_id===row.category_id).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
+        <label style={{fontSize:12,color:"var(--color-ink-3)"}}>Donasi (opsional)<input className="field-input" type="number" min="0" step="1" value={row.donation} onChange={(e)=>setRow(index,{donation:e.target.value})} style={{width:"100%"}} /></label>
+        {fields.map((field)=><label key={field.id} style={{fontSize:12,color:"var(--color-ink-3)"}}>{field.label}{field.required?" *":""}{field.field_type==="select"||field.field_type==="radio"?<select className="field-input" value={row.extra_data[field.id]??""} onChange={(e)=>setRow(index,{extra_data:{...row.extra_data,[field.id]:e.target.value}})} style={{width:"100%"}}><option value="">Pilih</option>{field.options.split(",").map(option=>option.trim()).filter(Boolean).map(option=><option key={option} value={option}>{option}</option>)}</select>:field.field_type==="checkbox"?<span style={{display:"flex",alignItems:"center",gap:8,minHeight:38}}><input type="checkbox" checked={row.extra_data[field.id]==="true"} onChange={(e)=>setRow(index,{extra_data:{...row.extra_data,[field.id]:String(e.target.checked)}})} />Setuju</span>:<input className="field-input" type={field.field_type==="date"?"date":field.field_type==="email"?"email":field.field_type==="number"?"number":"text"} value={row.extra_data[field.id]??""} onChange={(e)=>setRow(index,{extra_data:{...row.extra_data,[field.id]:e.target.value}})} style={{width:"100%"}} />}</label>)}
+      </div>
+      {rowErrors[index]?.length>0&&<p style={{color:"var(--color-danger)",fontSize:12,marginBottom:0}}>{rowErrors[index].join(" ")}</p>}
+    </div>)}
+    {!fileRows&&drafts.length<100&&<Button variant="secondary" size="sm" onClick={()=>setDrafts([...drafts,emptyCollectiveDraft()])}>Tambah peserta</Button>}
+    <div style={{display:"flex",justifyContent:"flex-end",marginTop:18}}><Button variant="primary" disabled={busy||rows.length===0} onClick={()=>void submitRows(rows)}>{busy?"Menyimpan…":`Simpan ${rows.length} peserta valid`}</Button></div>
+  </section>;
+}
+
+function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFilter, refreshKey, onChanged }: { eventId: string; isRunning: boolean; showBulkActions?: boolean; statusFilter?: string; refreshKey?: number; onChanged?:()=>void }) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -1181,6 +1396,16 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
   const [editNotice, setEditNotice] = useState<{ type: "success" | "danger"; message: string } | null>(null);
   const [emailTarget, setEmailTarget] = useState<ParticipantRow | null>(null);
   const [resendingEmail, setResendingEmail] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<Array<{id:string;label:string}>>([]);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
+  const [paymentOutcomes, setPaymentOutcomes] = useState<Array<{name:string;registrationNumber:string;payment:PaymentChargeResponse}>>([]);
+  const [bulkOutcomes, setBulkOutcomes] = useState<Array<{name:string;success:boolean;message:string}>>([]);
 
   useEffect(() => {
     if (!editNotice) return;
@@ -1190,17 +1415,28 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setErr(null);
     (async () => {
       try {
-        const res = await api.get<ApiResponse<ParticipantRow[]>>(
-          `/api/v1/events/${eventId}/participants?limit=${pageSize}&offset=${(page - 1) * pageSize}&q=${encodeURIComponent(search.trim())}`,
-        );
+        const query = `&q=${encodeURIComponent(search.trim())}${statusFilter ? `&status=${encodeURIComponent(statusFilter)}` : ""}`;
+        let data: ParticipantRow[] = [];
+        if (pageSize === 0) {
+          let offset = 0;
+          while (!cancelled) {
+            const res = await api.get<ApiResponse<ParticipantRow[]>>(`/api/v1/events/${eventId}/participants?limit=200&offset=${offset}${query}`);
+            const batch = res.data ?? [];
+            data = data.concat(batch);
+            if (batch.length < 200) break;
+            offset += batch.length;
+          }
+        } else {
+          const res = await api.get<ApiResponse<ParticipantRow[]>>(
+            `/api/v1/events/${eventId}/participants?limit=${pageSize}&offset=${(page - 1) * pageSize}${query}`,
+          );
+          data = res.data ?? [];
+        }
         if (!cancelled) {
-          const data = res.data ?? [];
           setRows(data);
-          setHasNextPage(data.length === pageSize);
+          setHasNextPage(pageSize !== 0 && data.length === pageSize);
           setLoading(false);
         }
       } catch {
@@ -1215,7 +1451,17 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
     return () => {
       cancelled = true;
     };
-  }, [eventId, page, pageSize, search]);
+  }, [eventId, page, pageSize, search, statusFilter, reloadTick, refreshKey]);
+
+
+  useEffect(() => {
+    let cancelled=false;
+    api.get<ApiResponse<Array<{id:string;label:string}>>>("/api/v1/payments/methods")
+      .then((res)=>{if(!cancelled){setPaymentMethods(res.data??[]);setPaymentMethod(res.data?.[0]?.id??"");}})
+      .catch(()=>{})
+      .finally(()=>{if(!cancelled)setLoadingPaymentMethods(false);});
+    return ()=>{cancelled=true;};
+  },[]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1372,6 +1618,8 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
       setRows((current) => current?.map((row) => row.id === updated.id
         ? { ...row, name: updated.name, gender: updated.gender, age_class: updated.age_class }
         : row) ?? null);
+      setLoading(true);
+      setReloadTick((value) => value + 1);
       setEditNotice({
         type: "success",
         message: updated.changed ? "Koreksi data peserta berhasil disimpan." : "Tidak ada perubahan pada data peserta.",
@@ -1403,6 +1651,85 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
       setResendingEmail(false);
     }
   }
+
+  const selectedRows = (rows ?? []).filter((row)=>selectedIds.includes(row.id));
+  const isExpiredTable = statusFilter === "expired";
+  const visibleParticipantIds = (rows ?? []).filter((row)=>isExpiredTable ? row.status === "expired" : (!showBulkActions||row.status==="pending_payment")).map((row)=>row.id);
+  const allVisibleSelected = visibleParticipantIds.length > 0 && visibleParticipantIds.every((id)=>selectedIds.includes(id));
+  const toggleVisibleSelection = (checked:boolean) => setSelectedIds((current)=>checked ? [...new Set([...current,...visibleParticipantIds])] : current.filter((id)=>!visibleParticipantIds.includes(id)));
+  const toggleRow = (participantId:string) => setSelectedIds((current)=>current.includes(participantId)?current.filter((id)=>id!==participantId):[...current,participantId]);
+  const runSelected = async () => {
+    const targets = selectedRows.filter((row)=>row.status==="pending_payment"||row.status==="expired");
+    if (!targets.length) return;
+    if (!paymentMethod) { setErr("Metode payment belum tersedia."); return; }
+    if (!(await confirm({title:"Buat tagihan payment?",message:`Aksi akan diproses untuk ${targets.length} peserta yang memenuhi syarat.`,confirmLabel:"Lanjutkan",variant:"primary"}))) return;
+    setBulkBusy(true);setErr(null);
+    setPaymentOutcomes([]);
+    setBulkOutcomes([]);
+    try {
+      const response=await api.post<ApiResponse<PaymentChargeResponse>>(`/api/v1/events/${eventId}/participants/payments/charge`,{registration_ids:targets.map((row)=>row.id),payment_method:paymentMethod});
+      if (response.data.status === "settlement") {
+        const message=`${response.data.settled_count ?? targets.length} peserta cocok dengan Daftar Peserta Gratis dan langsung lunas tanpa payment.`;
+        setBulkOutcomes([{name:"Peserta gratis",success:true,message}]);
+        setEditNotice({type:"success",message});
+      } else {
+        const chargedCount=targets.length-(response.data.settled_count ?? 0);
+        setPaymentOutcomes([{name:`Tagihan gabungan untuk ${chargedCount} peserta`,registrationNumber:"",payment:response.data}]);
+        const freeMessage=response.data.settled_count ? ` ${response.data.settled_count} peserta dari Daftar Peserta Gratis langsung lunas tanpa payment.` : "";
+        setBulkOutcomes([{name:"Pembayaran gabungan",success:true,message:`Payment dibuat untuk peserta yang masih perlu membayar.${freeMessage}`}]);
+        setEditNotice({type:"success",message:`Payment gabungan dibuat.${freeMessage}`});
+      }
+      setSelectedIds([]);
+      setLoading(true);
+      setReloadTick((value)=>value+1);
+    } catch(error) {
+      const message=error instanceof ApiError?error.message:"Gagal membuat tagihan payment.";
+      setBulkOutcomes([{name:"Pembayaran gabungan",success:false,message}]);
+      setEditNotice({type:"danger",message});
+      setSelectedIds([]);
+      setLoading(true);
+      setReloadTick((value)=>value+1);
+      onChanged?.();
+      if (error instanceof ApiError && error.code === "registration status does not allow payment") {
+        const refreshedMessage = "Status peserta berubah sebelum payment dibuat. Daftar telah diperbarui; pilih peserta yang masih memenuhi syarat.";
+        setBulkOutcomes([{name:"Pembayaran gabungan",success:false,message:refreshedMessage}]);
+        setSelectedIds([]);
+        setLoading(true);
+        setReloadTick((value)=>value+1);
+        setEditNotice({type:"danger",message:refreshedMessage});
+      }
+    } finally { setBulkBusy(false); }
+  };
+  const reactivateSelected = async () => {
+    const targets = selectedRows.filter((row)=>row.status === "expired");
+    if (!targets.length) return;
+    if (!(await confirm({title:"Aktifkan kembali pendaftaran?",message:`${targets.length} peserta akan diaktifkan kembali dan kuotanya dipesan selama satu jam. Payment tidak dibuat otomatis.`,confirmLabel:"Aktifkan kembali",variant:"primary"}))) return;
+    setReactivating(true); setErr(null); setBulkOutcomes([]);
+    try {
+      await api.post(`/api/v1/events/${eventId}/participants/reactivate`, {registration_ids:targets.map((row)=>row.id)});
+      setSelectedIds([]);
+      setBulkOutcomes([{name:"Aktifkan kembali",success:true,message:`${targets.length} pendaftaran aktif kembali. Pilih peserta di tabel belum lunas untuk membuat payment.`}]);
+      setEditNotice({type:"success",message:`${targets.length} pendaftaran aktif kembali.`});
+      onChanged?.();
+    } catch(error) {
+      const message=error instanceof ApiError?error.message:"Gagal mengaktifkan kembali pendaftaran.";
+      setBulkOutcomes([{name:"Aktifkan kembali",success:false,message}]);
+    } finally { setReactivating(false); }
+  };
+  const reactivateOne = async (row: ParticipantRow) => {
+    if (!(await confirm({title:"Aktifkan kembali pendaftaran?",message:`Pendaftaran ${row.name} akan aktif kembali dan kuotanya dipesan selama satu jam. Payment tidak dibuat otomatis.`,confirmLabel:"Aktifkan kembali",variant:"primary"}))) return;
+    setReactivatingId(row.id); setErr(null);
+    try {
+      await api.post(`/api/v1/events/${eventId}/participants/reactivate`, {registration_ids:[row.id]});
+      setSelectedIds((current)=>current.filter((id)=>id!==row.id));
+      setBulkOutcomes([{name:row.name,success:true,message:"Pendaftaran aktif kembali. Peserta dapat dipilih di tabel belum lunas untuk dibuatkan payment."}]);
+      setEditNotice({type:"success",message:`Pendaftaran ${row.name} aktif kembali.`});
+      onChanged?.();
+    } catch(error) {
+      const message=error instanceof ApiError?error.message:"Gagal mengaktifkan kembali pendaftaran.";
+      setBulkOutcomes([{name:row.name,success:false,message}]);
+    } finally { setReactivatingId(null); }
+  };
 
   const runningCols: Column<ParticipantRow>[] = isRunning ? [
     {
@@ -1443,13 +1770,16 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
         ),
     },
   ] : [];
+  const showRaceOperations = statusFilter !== "expired" && statusFilter !== "pending_payment";
   const cols: Column<ParticipantRow>[] = [
-    ...runningCols.slice(0, 1),
+    ...(showBulkActions ? [{ key:"select", header:<label style={{display:"inline-flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}><input type="checkbox" aria-label="Pilih semua peserta di tabel" checked={allVisibleSelected} disabled={loading||visibleParticipantIds.length===0} onChange={(event)=>toggleVisibleSelection(event.target.checked)} /> Semua</label>, render:(row: ParticipantRow)=><input type="checkbox" aria-label={`Pilih ${row.name}`} disabled={isExpiredTable ? row.status!=="expired" : row.status!=="pending_payment"} checked={selectedIds.includes(row.id)} onChange={()=>toggleRow(row.id)} /> } as Column<ParticipantRow>] : []),
+    ...(showRaceOperations ? runningCols.slice(0, 1) : []),
     { key: "reg", header: "No. Reg", render: (r) => r.registration_number, mono: true },
     { key: "name", header: "Nama", render: (r) => r.name },
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
-    ...runningCols.slice(5),
+    { key:"status", header:"Status", render:(r)=><Badge variant={r.status==="paid"?"ok":r.status==="pending_payment"?"warn":"neutral"}>{r.status==="paid"?"Lunas":r.status==="pending_payment"?"Belum dibayar":r.status==="expired"?"Kedaluwarsa":r.status}</Badge> },
+    ...(showRaceOperations ? runningCols.slice(5) : runningCols.slice(5, 7)),
     {
       key: "actions",
       header: "Aksi",
@@ -1459,11 +1789,13 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           : undefined;
         return (
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", minWidth: 210 }}>
+            {(r.status === "paid" || r.status === "pending_payment") && (
+              <Button variant="secondary" size="sm" disabled={loadingEditId !== null} onClick={() => void openParticipantEditor(r)}>
+                {loadingEditId === r.id ? "Memuat…" : "Edit"}
+              </Button>
+            )}
             {r.status === "paid" && (
               <>
-                <Button variant="secondary" size="sm" disabled={loadingEditId !== null} onClick={() => void openParticipantEditor(r)}>
-                  {loadingEditId === r.id ? "Memuat…" : "Edit"}
-                </Button>
                 {r.qr_token && (
                   <Link
                     href={`/ticket/${encodeURIComponent(r.registration_number)}?token=${encodeURIComponent(r.qr_token)}`}
@@ -1492,7 +1824,8 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
             {refund?.status === "completed" && <Badge variant="ok">Refund selesai</Badge>}
             {refund?.status === "processing" && refund.mode !== "manual" && <Badge variant="warn">Refund diproses</Badge>}
             {r.status === "refunded" && refund?.status !== "completed" && refund?.status !== "processing" && <Badge variant="danger">Refunded</Badge>}
-            {r.status !== "paid" && r.status !== "refunded" && "—"}
+            {isExpiredTable && r.status === "expired" && <Button variant="secondary" size="sm" disabled={reactivatingId !== null || reactivating} onClick={() => void reactivateOne(r)}>{reactivatingId === r.id ? "Mengaktifkan…" : "Aktifkan kembali"}</Button>}
+            {r.status !== "paid" && r.status !== "pending_payment" && r.status !== "refunded" && !(isExpiredTable && r.status === "expired") && "—"}
           </div>
         );
       },
@@ -1683,6 +2016,9 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
               onChange={(event) => {
                 setSearch(event.target.value);
                 setPage(1);
+                setSelectedIds([]);
+                setLoading(true);
+                setErr(null);
               }}
               style={{ width: "min(260px, 40vw)" }}
             />
@@ -1696,19 +2032,23 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
               onChange={(event) => {
                 setPageSize(Number(event.target.value));
                 setPage(1);
+                setSelectedIds([]);
+                setLoading(true);
+                setErr(null);
               }}
-              style={{ width: 76, padding: "6px 8px" }}
+              style={{ width: 90, padding: "6px 8px" }}
             >
               {[8, 16, 24].map((size) => (
                 <option key={size} value={size}>{size}</option>
               ))}
+              {statusFilter === "pending_payment" && <option value={0}>Semua</option>}
             </select>
             <span style={{ fontSize: 14, color: "var(--color-ink-3)" }} aria-live="polite">
-              {loading ? "Memuat peserta…" : `${rows?.length ?? 0} peserta di halaman ini`}
+              {loading ? "Memuat peserta…" : pageSize === 0 ? `${rows?.length ?? 0} peserta ditampilkan` : `${rows?.length ?? 0} peserta di halaman ini`}
             </span>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {isRunning && <Button
+          {isRunning && statusFilter !== "pending_payment" && statusFilter !== "expired" && <Button
             variant="secondary"
             size="sm"
             disabled={rpcExporting}
@@ -1716,16 +2056,24 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
           >
             {rpcExporting ? "Mengekspor…" : "Download Rekap RPC"}
           </Button>}
-          <Button
+          {statusFilter !== "pending_payment" && statusFilter !== "expired" && <Button
             variant="secondary"
             size="sm"
             disabled={exporting}
             onClick={exportCsv}
           >
             {exporting ? "Mengekspor…" : "Export CSV"}
-          </Button>
+          </Button>}
         </div>
       </div>
+      {showBulkActions && selectedRows.length>0&&<div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",padding:12,marginBottom:14,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",background:"var(--color-panel)"}}>
+        <strong style={{fontSize:13}}>{selectedRows.length} dipilih</strong>
+        {isExpiredTable ? <Button variant="secondary" size="sm" disabled={reactivating} onClick={()=>void reactivateSelected()}>{reactivating?"Mengaktifkan…":"Aktifkan kembali"}</Button> : <><select className="field-input" aria-label="Metode payment" value={paymentMethod} onChange={(event)=>setPaymentMethod(event.target.value)} disabled={loadingPaymentMethods||paymentMethods.length===0} style={{maxWidth:210}}><option value="">{loadingPaymentMethods?"Memuat metode payment…":paymentMethods.length===0?"Metode payment tidak tersedia":"Pilih metode payment"}</option>{paymentMethods.map((method)=><option key={method.id} value={method.id}>{method.label}</option>)}</select>
+        <Button variant="secondary" size="sm" disabled={bulkBusy||loadingPaymentMethods||paymentMethods.length===0} onClick={()=>void runSelected()}>{loadingPaymentMethods?"Memuat metode…":"Buat payment"}</Button></>}
+        <Button variant="ghost" size="sm" onClick={()=>setSelectedIds([])}>Batal pilih</Button>
+      </div>}
+      {showBulkActions && !isExpiredTable && paymentOutcomes.length>0&&<div style={{padding:14,marginBottom:14,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",background:"var(--color-surface)"}}><strong>Instruksi payment dibuat</strong>{paymentOutcomes.map((item)=><div key={item.payment.transaction_id} style={{fontSize:13,paddingTop:10,marginTop:10,borderTop:"1px solid var(--color-line)"}}><strong>{item.name}{item.registrationNumber?` · ${item.registrationNumber}`:""}</strong><div style={{fontFamily:"var(--font-mono)",overflowWrap:"anywhere",marginTop:4}}>{item.payment.va_number?`VA ${item.payment.va_number}`:""}{item.payment.biller_code?` · Kode perusahaan ${item.payment.biller_code}`:""}{item.payment.bill_key?` · Kode pembayaran ${item.payment.bill_key}`:""}{item.payment.payment_url?` · ${item.payment.payment_url}`:""}{item.payment.qr_string?` · QR ${item.payment.qr_string}`:""}{item.payment.deeplink_url?` · ${item.payment.deeplink_url}`:""}</div><div>Harga: Rp {item.payment.quote.price.toLocaleString("id-ID")} · Donasi: Rp {item.payment.quote.donation.toLocaleString("id-ID")} · Fee Platform: Rp {item.payment.quote.fee_platform.toLocaleString("id-ID")} · Fee Payment: Rp {item.payment.quote.fee_midtrans.toLocaleString("id-ID")}</div><strong>Subtotal: Rp {item.payment.quote.sub_total.toLocaleString("id-ID")}</strong></div>)}</div>}
+      {showBulkActions && bulkOutcomes.length>0&&<div style={{padding:14,marginBottom:14,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",background:"var(--color-surface)"}}><strong>Hasil aksi massal</strong>{bulkOutcomes.map((item,index)=><p key={`${item.name}-${index}`} style={{margin:"8px 0 0",fontSize:13,color:item.success?"var(--color-ok)":"var(--color-danger)"}}>{item.name}: {item.message}</p>)}</div>}
       {err && (
         <Alert variant="danger" className="mb-4">
           {err}
@@ -1733,7 +2081,7 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
       )}
       {!loading && rows && rows.length === 0 && page === 1 ? (
         <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-          Belum ada peserta.
+          {statusFilter === "pending_payment" ? "Tidak ada peserta yang belum lunas." : statusFilter === "expired" ? "Tidak ada peserta kedaluwarsa." : "Belum ada peserta."}
         </p>
       ) : (
         <>
@@ -1741,15 +2089,15 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
             columns={cols}
             data={loading ? [] : rows ?? []}
             keyField="id"
-            minRows={pageSize}
+            minRows={pageSize === 0 ? 8 : pageSize}
             loading={loading}
           />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}>
+          {pageSize !== 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}>
             <Button
               variant="secondary"
               size="sm"
               disabled={page === 1}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              onClick={() => { setSelectedIds([]); setLoading(true); setPage((current) => Math.max(1, current - 1)); }}
             >
               Sebelumnya
             </Button>
@@ -1760,11 +2108,11 @@ function ParticipantsCard({ eventId, isRunning }: { eventId: string; isRunning: 
               variant="secondary"
               size="sm"
               disabled={!hasNextPage}
-              onClick={() => setPage((current) => current + 1)}
+              onClick={() => { setSelectedIds([]); setLoading(true); setPage((current) => current + 1); }}
             >
               Berikutnya
             </Button>
-          </div>
+          </div>}
         </>
       )}
     </div>
@@ -2291,6 +2639,8 @@ function RefundMetric({ label, amount }: { label: string; amount: number }) {
 // ComplimentaryManager lets organizers manage the free-ticket whitelist for an event.
 function ComplimentaryManager({ eventId }: { eventId: string }) {
   const [persons, setPersons] = useState<ComplimentaryPerson[] | null>(null);
+  const [pageSize, setPageSize] = useState(5);
+  const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
   const [addErr, setAddErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -2299,12 +2649,19 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
 
+  const sortedPersons = [...(persons ?? [])].sort(
+    (a, b) => Number(a.registered) - Number(b.registered),
+  );
+  const pageCount = Math.max(1, Math.ceil(sortedPersons.length / pageSize));
+  const pagePersons = sortedPersons.slice((page - 1) * pageSize, page * pageSize);
+
   const load = useCallback(async () => {
     try {
       const res = await api.get<ApiResponse<ComplimentaryPerson[]>>(
         `/api/v1/events/${eventId}/complimentary`,
       );
       setPersons(res.data ?? []);
+      setPage(1);
       setErr(null);
     } catch {
       setErr("Gagal memuat daftar peserta gratis.");
@@ -2400,7 +2757,7 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
             gap: 6,
           }}
         >
-          {persons.map((p) => (
+          {pagePersons.map((p) => (
             <li
               key={p.id}
               style={{
@@ -2455,6 +2812,31 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
         </ul>
       ) : (
         <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>
+      )}
+
+      {persons && persons.length > 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", margin: "-4px 0 16px", color: "var(--color-ink-3)", fontSize: 13 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            Tampilkan
+            <select
+              className="field-input"
+              aria-label="Jumlah peserta gratis per halaman"
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+              style={{ width: 76, padding: "6px 8px" }}
+            >
+              {[5, 10, 15].map((size) => <option key={size} value={size}>{size}</option>)}
+            </select>
+            per halaman · {sortedPersons.length} peserta
+          </label>
+          {pageCount > 1 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button type="button" className="btn btn-secondary btn-sm" disabled={page === 1} onClick={() => setPage(page - 1)}>Sebelumnya</button>
+              <span>Halaman {page} dari {pageCount}</span>
+              <button type="button" className="btn btn-secondary btn-sm" disabled={page === pageCount} onClick={() => setPage(page + 1)}>Berikutnya</button>
+            </div>
+          )}
+        </div>
       )}
 
       {addErr && (

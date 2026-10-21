@@ -645,6 +645,7 @@ export interface paths {
          * List paid participants for a published event
          * @description Public, anonymous participant directory. Returns only registrations whose
          *     current status is `paid`; refunded and unpaid registrations are excluded.
+         *     Results are ordered by most recently created registration first.
          *     Participant name, category suffixed with the compact age class when set
          *     (for example `5K(Master+)`), and the submitted answer for the custom
          *     registration field whose slug is `asal_kabupaten` are exposed. Other custom
@@ -3727,6 +3728,8 @@ export interface paths {
                 query?: {
                     /** @description Case-insensitive substring search across participant name, registration number, BIB, category, and ticket category. */
                     q?: string;
+                    /** @description Filter by one or more comma-separated registration statuses. Omitted = paid participants only (default). For example, `pending_payment,expired` returns unpaid and expired registrations. Unknown values return 400. */
+                    status?: string;
                     limit?: number;
                     offset?: number;
                 };
@@ -3749,6 +3752,7 @@ export interface paths {
                         };
                     };
                 };
+                400: components["responses"]["BadRequest"];
                 403: components["responses"]["Forbidden"];
             };
         };
@@ -3771,7 +3775,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get one paid participant's editable data
+         * Get one paid or pending participant's editable data
          * @description Returns participant PII and registration answers only to the authenticated organizer that owns the event.
          */
         get: {
@@ -3800,7 +3804,7 @@ export interface paths {
                 401: components["responses"]["Unauthorized"];
                 403: components["responses"]["Forbidden"];
                 404: components["responses"]["NotFound"];
-                /** @description Participant is no longer paid and cannot be edited. */
+                /** @description Participant is no longer pending payment or paid and cannot be edited. */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -3815,7 +3819,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Correct one paid participant's profile data
+         * Correct one paid or pending participant's profile data
          * @description Updates identity, contact, demographic, and configured registration-answer fields only. Payment, ticket, category, BIB, refund, donation, and check-in data are not editable. The update and encrypted audit diff are committed atomically.
          */
         patch: {
@@ -3869,6 +3873,341 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/events/{id}/participants/{participantId}/emails/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend a paid participant's e-ticket
+         * @description Queues the e-ticket email to the participant's currently stored address. This does not create a payment or change registration data.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    participantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Email accepted into the delivery queue. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data?: {
+                                /** @enum {string} */
+                                status?: "queued";
+                                /** @enum {string} */
+                                email_type?: "ticket";
+                            };
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Participant is no longer paid and cannot receive an e-ticket. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/participants/{participantId}/emails/registration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a pending-registration email
+         * @description Explicitly queues the registration confirmation for an unpaid participant. Does not create payment or change status.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    participantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Email accepted into delivery queue. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Participant is not awaiting payment. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/participants/{participantId}/payments/charge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a payment for an organizer-owned participant */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    participantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        payment_method: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Provider payment instructions created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Registration already paid */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/participants/payments/charge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create one payment for multiple organizer-owned participants
+         * @description Creates one provider transaction for the billable subset of 1–100 selected pending or expired registrations. Expired registrations are reactivated atomically only when ticket/category quota remains and ticket sales are open. Unclaimed free-list invitations are claimed at charge time; zero-donation participants settle directly and are counted in settled_count, while invitations with donations are charged for the donation with ticket price and platform fee waived. No email is sent automatically.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        registration_ids: string[];
+                        payment_method: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description One provider payment instruction for all selected registrations. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description A registration is not eligible */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/participants/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reactivate expired registrations for an organizer
+         * @description Reactivates 1–100 expired registrations without creating payment or sending email. Ticket sales must be open and ticket/category quota available; successful registrations receive a renewed one-hour reservation.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        registration_ids: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Registrations reactivated; no payment was created. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Registration is not expired */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/participants/{participantId}/payments/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record an external payment as settled
+         * @description Atomically records the payment, marks the registration paid, issues an e-ticket, credits ledgers, and writes an audit record. Does not send email.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    participantId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        method: string;
+                        /** Format: date-time */
+                        paid_at: string;
+                        reference: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description External payment recorded. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description Registration cannot be marked paid in its current state. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/events/{id}/participants/export": {
@@ -4082,6 +4421,55 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events/{id}/registrations/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create multiple unpaid registrations without payment or email
+         * @description Creates up to 100 registrations for an organizer-owned published event. Each row reserves quota and validates configured registration fields. Complimentary invitations do not auto-settle in this flow. Invalid rows are reported individually; successful rows remain created.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        participants: components["schemas"]["CreateRegistrationRequest"][];
+                    };
+                };
+            };
+            responses: {
+                /** @description Per-row result; invalid rows do not roll back successful rows. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -4814,6 +5202,8 @@ export interface components {
             reason: string;
         };
         CreateRegistrationRequest: {
+            /** @description Optional per-row idempotency key for safe organizer bulk retries. */
+            idempotency_key?: string;
             /** Format: uuid */
             event_id: string;
             /** Format: uuid */
@@ -4962,7 +5352,7 @@ export interface components {
             /** @description Live iPaymu channel id. */
             payment_method: string;
         };
-        /** @description Payment instructions with the provider-confirmed final fee and total in quote. */
+        /** @description Payment instructions with the provider-confirmed final fee and total in quote. An organizer charge can instead settle a free-list participant directly; settled_count reports such participants, without creating a payment. */
         PaymentChargeResponse: {
             /** Format: uuid */
             registration_id?: string;
@@ -4970,6 +5360,8 @@ export interface components {
             transaction_id?: string;
             /** @enum {string} */
             status?: "pending" | "settlement" | "expired" | "cancelled" | "denied";
+            /** @description Organizer charge count of free-list participants settled without a provider payment. */
+            settled_count?: number;
             /**
              * Format: date-time
              * @description Provider payment deadline in RFC3339; omitted when the method has no deadline.
@@ -5126,6 +5518,8 @@ export interface components {
         };
         WalletTransactionDetail: components["schemas"]["WalletHistoryEntry"] & {
             customer?: components["schemas"]["WalletTransactionCustomer"];
+            /** @description All participants included in a grouped payment transaction. */
+            customers?: components["schemas"]["WalletTransactionCustomer"][];
             payment?: components["schemas"]["WalletTransactionPayment"];
         };
         /** @description Per-event split; donation reported separately from ticket revenue (FR-804/1405). */

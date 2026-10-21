@@ -79,6 +79,15 @@ function TransactionDetail({ detail }: { detail: WalletTransactionDetail }) {
         <Field label="Status pendaftaran" value={detail.customer.registration_status} />
       </FieldGrid> : <p style={muted}>Data pelanggan tidak tersedia untuk transaksi ini.</p>}
     </Section>
+
+    {(detail.customers?.length ?? 0) > 1 && <Section title={`Semua peserta dalam pembayaran (${detail.customers!.length})`}>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:13,minWidth:760}}>
+        <thead><tr>{["Nama", "Email", "No. HP", "No. registrasi", "Event", "Kategori", "Tiket", "Status"].map((label)=><th key={label} style={tableHead}>{label}</th>)}</tr></thead>
+        <tbody>{detail.customers!.map((customer)=><tr key={customer.registration_number}>
+          {[customer.name, customer.email, customer.phone, customer.registration_number, customer.event_name, customer.category_name, customer.ticket_name, customer.registration_status].map((value,index)=><td key={index} style={tableCell}>{value || "—"}</td>)}
+        </tr>)}</tbody>
+      </table></div>
+    </Section>}
   </div>;
 }
 
@@ -108,3 +117,5 @@ const field: React.CSSProperties = { padding: "10px 12px", border: "1px solid va
 const term: React.CSSProperties = { color: "var(--color-ink-3)", fontSize: 12, fontWeight: 700 };
 const valueStyle: React.CSSProperties = { margin: "3px 0 0", fontSize: 14, fontWeight: 650, overflowWrap: "anywhere" };
 const muted: React.CSSProperties = { margin: 0, color: "var(--color-ink-3)", fontSize: 14 };
+const tableHead: React.CSSProperties = { padding:"9px 10px",textAlign:"left",whiteSpace:"nowrap",background:"var(--color-panel)",borderBottom:"1px solid var(--color-line)",fontSize:11,textTransform:"uppercase",letterSpacing:".06em" };
+const tableCell: React.CSSProperties = { padding:"10px",textAlign:"left",borderBottom:"1px solid var(--color-line)",verticalAlign:"top" };

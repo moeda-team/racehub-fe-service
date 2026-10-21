@@ -50,6 +50,8 @@ const MESSAGES: Record<string, string> = {
     "Event harus berstatus dibatalkan untuk refund massal",
   "insufficient wallet balance": "Saldo wallet tidak mencukupi",
   "quota exhausted": "Kuota habis",
+  "registration quota exhausted; expired registration cannot be reactivated":
+    "Kuota pendaftaran sudah habis; pendaftaran kedaluwarsa tidak dapat diaktifkan kembali.",
   "refund cutoff date has passed": "Batas waktu refund sudah lewat",
   "registration already has a pending payment":
     "Registrasi sudah memiliki pembayaran yang menunggu",

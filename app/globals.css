@@ -2109,3 +2109,17 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-gold-dee
     top: 96px;
   }
 }
+.collective-registration-card,
+.collective-registration-card * {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.collective-registration-card .collective-draft-fields > label {
+  overflow-wrap: anywhere;
+}
+
+.collective-registration-card .collective-draft-fields .field-input {
+  width: 100%;
+  max-width: 100%;
+}

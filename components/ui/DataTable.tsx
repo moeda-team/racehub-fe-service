@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export interface Column<T> {
   key: string;
-  header: string;
+  header: ReactNode;
   render: (row: T) => ReactNode;
   mono?: boolean;
   bibcol?: boolean;
