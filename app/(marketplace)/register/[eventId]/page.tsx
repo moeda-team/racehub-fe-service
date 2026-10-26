@@ -71,6 +71,21 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
     };
   }, [eventId]);
 
+  useEffect(() => {
+    if (!detail) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const requestedCategoryId = searchParams.get("category");
+    const requestedTicketId = searchParams.get("ticket");
+    if (!requestedCategoryId || !requestedTicketId) return;
+    const ticket = detail.ticket_categories.find(
+      (candidate) => candidate.id === requestedTicketId && candidate.category_id === requestedCategoryId,
+    );
+    if (ticket && detail.categories.some((category) => category.id === requestedCategoryId)) {
+      setDistanceId(requestedCategoryId);
+      setTicketId(requestedTicketId);
+    }
+  }, [detail]);
+
   const ticketsForDistance = useMemo(
     () => (detail && distanceId
       ? detail.ticket_categories
