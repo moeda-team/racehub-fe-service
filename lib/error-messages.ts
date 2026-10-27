@@ -7,21 +7,19 @@
  * runs its raw message through this before it reaches a component.
  *
  * Two kinds of raw strings show up here:
- *  - Fixed strings from `writeError(w, status, "...")` — matched exactly.
+ *  - Fixed strings from `writeError(w, status, "...")` - matched exactly.
  *  - Wrapped sentinel errors from `writeError(w, status, err.Error())`, which
  *    arrive as "<context>: <sentinel message>" (the context prefix varies by
- *    call site) — matched by suffix against the sentinel's own text.
+ *    call site) - matched by suffix against the sentinel's own text.
  * Anything not in the table is returned unchanged rather than hidden, so an
  * untranslated message is still visible instead of silently disappearing.
  */
 const MESSAGES: Record<string, string> = {
   // Fixed strings (internal/handler/*.go writeError literals)
-  "file too large (max 10485760 bytes)":
-    "File terlalu besar (maks. 10 MB)",
-	"invalid multipart body": "Data unggahan tidak valid.",
-	"banner file must not be empty": "File banner tidak boleh kosong.",
-	"unsupported image type (jpeg/png/webp only)":
-		"Format banner harus JPG, PNG, atau WebP.",
+  "file too large (max 10485760 bytes)": "File terlalu besar (maks. 10 MB)",
+  "invalid multipart body": "Data unggahan tidak valid.",
+  "banner file must not be empty": "File banner tidak boleh kosong.",
+  "unsupported image type (jpeg/png/webp only)": "Format banner harus JPG, PNG, atau WebP.",
   "invalid category_id": "ID kategori tidak valid",
   "invalid event_id": "ID event tidak valid",
   "invalid payment method": "Metode pembayaran tidak valid",
@@ -34,34 +32,25 @@ const MESSAGES: Record<string, string> = {
   "invalid ticket id": "ID tiket tidak valid",
   "ticket category does not match the selected event or category":
     "Kategori tiket tidak sesuai dengan event/kategori yang dipilih",
-  "category category is in use by ticket categories":
-    "Kategori masih digunakan oleh kategori tiket lain",
-  "email already on complimentary list for this event":
-    "Email sudah ada di daftar tiket komplimen untuk event ini",
-  "complimentary participant has already registered":
-    "Peserta gratis sudah mendaftar dan tidak dapat dihapus",
+  "category category is in use by ticket categories": "Kategori masih digunakan oleh kategori tiket lain",
+  "email already on complimentary list for this event": "Email sudah ada di daftar tiket komplimen untuk event ini",
+  "complimentary participant has already registered": "Peserta gratis sudah mendaftar dan tidak dapat dihapus",
   "email already registered": "Email sudah terdaftar",
-  "event is finished and cannot be modified":
-    "Event sudah selesai dan tidak dapat diubah",
-  "event is locked and cannot be modified":
-    "Event terkunci dan tidak dapat diubah",
+  "event is finished and cannot be modified": "Event sudah selesai dan tidak dapat diubah",
+  "event is locked and cannot be modified": "Event terkunci dan tidak dapat diubah",
   "event is not open for registration": "Event tidak dibuka untuk pendaftaran",
-  "event must be cancelled for mass refund":
-    "Event harus berstatus dibatalkan untuk refund massal",
+  "event must be cancelled for mass refund": "Event harus berstatus dibatalkan untuk refund massal",
   "insufficient wallet balance": "Saldo wallet tidak mencukupi",
   "quota exhausted": "Kuota habis",
   "registration quota exhausted; expired registration cannot be reactivated":
     "Kuota pendaftaran sudah habis; pendaftaran kedaluwarsa tidak dapat diaktifkan kembali.",
   "refund cutoff date has passed": "Batas waktu refund sudah lewat",
-  "registration already has a pending payment":
-    "Registrasi sudah memiliki pembayaran yang menunggu",
+  "registration already has a pending payment": "Registrasi sudah memiliki pembayaran yang menunggu",
   "registration already paid": "Registrasi sudah dibayar",
   "registration already refunded": "Registrasi sudah di-refund",
-  "registration is not eligible for check-in":
-    "Registrasi tidak memenuhi syarat untuk check-in",
+  "registration is not eligible for check-in": "Registrasi tidak memenuhi syarat untuk check-in",
   "registration is not refundable": "Registrasi tidak dapat di-refund",
-  "registration status does not allow payment":
-    "Status registrasi tidak mengizinkan pembayaran",
+  "registration status does not allow payment": "Status registrasi tidak mengizinkan pembayaran",
   "ticket sale period is closed": "Periode penjualan tiket sudah ditutup",
   forbidden: "Anda tidak memiliki akses untuk aksi ini",
   "failed to get wallet balance": "Gagal memuat saldo wallet",
@@ -86,11 +75,9 @@ const MESSAGES: Record<string, string> = {
   "invalid status transition": "Transisi status tidak diizinkan",
   "invalid input": "Input tidak valid",
   "invalid credentials": "Email atau password salah",
-  "publish requires admin approval":
-    "Publikasi event memerlukan persetujuan admin",
+  "publish requires admin approval": "Publikasi event memerlukan persetujuan admin",
   "idempotent duplicate": "Permintaan sudah pernah diproses",
-  "bank account is required for manual refund":
-    "Nomor rekening wajib diisi untuk refund manual",
+  "bank account is required for manual refund": "Nomor rekening wajib diisi untuk refund manual",
   "registration is still open; close it before generating BIB numbers":
     "Pendaftaran masih dibuka; tutup pendaftaran sebelum membuat nomor BIB",
   "BIB numbers already generated; confirm regeneration to overwrite":

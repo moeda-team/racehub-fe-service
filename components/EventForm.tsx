@@ -13,12 +13,9 @@ import {
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import RichTextEditor from "@/components/RichTextEditor";
-import { normalizeNumberInput } from "@/lib/format";
+import { formatNumberInput, normalizeNumberInput, parseNumberInput } from "@/lib/format";
 import { api } from "@/lib/api";
-import type {
-  RegistrationField,
-  UpsertRegistrationFieldRequest,
-} from "@/lib/types.gen";
+import type { RegistrationAddonGroup, RegistrationField, UpsertRegistrationFieldRequest } from "@/lib/types.gen";
 
 export interface EventFormValues {
   name: string;
@@ -32,7 +29,7 @@ export interface EventFormValues {
   donation_enabled: boolean;
   refund_donation_on_cancel: boolean;
   platform_fee: number;
-  color: string; // "#rrggbb" — card header color when no banner image
+  color: string; // "#rrggbb" - card header color when no banner image
 }
 
 export interface RegistrationFieldPreview {
@@ -52,7 +49,7 @@ interface EventFormProps {
   submitLabel: string;
   onSubmit: (values: EventFormValues) => Promise<void>;
   platformFeeLocked?: boolean;
-  // Emits current values on every change — used for the live card preview.
+  // Emits current values on every change - used for the live card preview.
   onChange?: (values: EventFormValues) => void;
 }
 
@@ -80,7 +77,7 @@ const FIELD_TYPE_OPTIONS = [
 const REGISTRATION_FIELD_SLUG_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 
 // LabeledInput reuses the design-system .field classes and forwards any input
-// attribute (type, min, etc.) — Field only forwards a fixed prop subset.
+// attribute (type, min, etc.) - Field only forwards a fixed prop subset.
 interface LabeledInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   hint?: string;
@@ -102,13 +99,7 @@ function LabeledInput({ label, hint, error, ...rest }: LabeledInputProps) {
       <label htmlFor={id} className="field-label">
         {label}
       </label>
-      <input
-        id={id}
-        className="field-input"
-        aria-invalid={!!error || undefined}
-        {...rest}
-        onChange={onChange}
-      />
+      <input id={id} className="field-input" aria-invalid={!!error || undefined} {...rest} onChange={onChange} />
       {error ? (
         <span className="field-error" role="alert">
           {error}
@@ -167,11 +158,7 @@ interface FieldBuilderProps {
   onChange: (fields: FieldDraft[]) => void;
 }
 
-function FieldBuilder({
-  eventId,
-  fields,
-  onChange,
-}: FieldBuilderProps) {
+function FieldBuilder({ eventId, fields, onChange }: FieldBuilderProps) {
   const [expanded, setExpanded] = useState(false);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [fieldNotice, setFieldNotice] = useState<string | null>(null);
@@ -183,9 +170,7 @@ function FieldBuilder({
   const busy = isSaving;
 
   function updateField(index: number, patch: Partial<FieldDraft>) {
-    const updated = fields.map((f, i) =>
-      i === index ? { ...f, ...patch } : f,
-    );
+    const updated = fields.map((f, i) => (i === index ? { ...f, ...patch } : f));
     onChange(updated);
   }
 
@@ -218,7 +203,9 @@ function FieldBuilder({
 
   function handleDragMove(event: ReactPointerEvent<HTMLButtonElement>) {
     if (dragSource.current === null) return;
-    const row = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-registration-field-index]");
+    const row = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>("[data-registration-field-index]");
     if (row) {
       dragTarget.current = Number(row.dataset.registrationFieldIndex);
       setDragOverIndex(dragTarget.current);
@@ -288,12 +275,7 @@ function FieldBuilder({
     if (!REGISTRATION_FIELD_SLUG_PATTERN.test(slug)) {
       return "Gunakan huruf kecil, angka, - atau _ (maks. 64 karakter; harus diawali huruf).";
     }
-    if (
-      fields.some(
-        (field, fieldIndex) =>
-          fieldIndex !== index && field.name.trim() === slug,
-      )
-    ) {
+    if (fields.some((field, fieldIndex) => fieldIndex !== index && field.name.trim() === slug)) {
       return "Slug ini sudah digunakan pada kolom lain di event ini.";
     }
     return null;
@@ -321,16 +303,9 @@ function FieldBuilder({
       sort_order: index,
     };
     try {
-      const res = await api.post<{ data: RegistrationField }>(
-        `/api/v1/events/${eventId}/registration-fields`,
-        payload,
-      );
+      const res = await api.post<{ data: RegistrationField }>(`/api/v1/events/${eventId}/registration-fields`, payload);
       // Update with server-assigned id
-      onChange(
-        fields.map((prev, i) =>
-          i === index ? { ...prev, id: res.data.id } : prev,
-        ),
-      );
+      onChange(fields.map((prev, i) => (i === index ? { ...prev, id: res.data.id } : prev)));
       setFieldNotice("Kolom formulir berhasil disimpan.");
     } catch (err) {
       setFieldError(err instanceof Error ? err.message : "Kolom gagal disimpan.");
@@ -407,10 +382,10 @@ function FieldBuilder({
           {fieldError && <Alert variant="danger">{fieldError}</Alert>}
           {fieldNotice && <Alert variant="success">{fieldNotice}</Alert>}
           <p className="field-hint" style={{ margin: 0 }}>
-            Slug: maks. 64 karakter, diawali huruf kecil; hanya a-z, angka,
-            tanda hubung (<span style={{ fontFamily: "var(--font-mono)" }}>-</span>)
-            atau garis bawah (<span style={{ fontFamily: "var(--font-mono)" }}>_</span>)
-            (contoh: <span style={{ fontFamily: "var(--font-mono)" }}>shirt_size</span>).
+            Slug: maks. 64 karakter, diawali huruf kecil; hanya a-z, angka, tanda hubung (
+            <span style={{ fontFamily: "var(--font-mono)" }}>-</span>) atau garis bawah (
+            <span style={{ fontFamily: "var(--font-mono)" }}>_</span>) (contoh:{" "}
+            <span style={{ fontFamily: "var(--font-mono)" }}>shirt_size</span>).
           </p>
           {fields.length > 1 && (
             <p className="field-hint" style={{ margin: 0 }}>
@@ -419,186 +394,189 @@ function FieldBuilder({
           )}
           {fields.length === 0 && (
             <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>
-              Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di
-              bawah.
+              Belum ada kolom tambahan. Klik &ldquo;Tambah Kolom&rdquo; di bawah.
             </p>
           )}
           {fields.map((f, i) => {
             const nameError = slugError(f.name, i);
             return (
               <div
-              key={f.clientKey}
-              data-registration-field-index={i}
-              style={{
-                border: `1px solid ${dragOverIndex === i ? "var(--color-flame, #F5471D)" : "var(--color-line)"}`,
-                borderRadius: "var(--radius-sm)",
-                padding: 12,
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                background: "var(--color-surface)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <button
-                    type="button"
-                    aria-label={`Seret untuk mengurutkan pertanyaan ${f.label || i + 1}`}
-                    title="Seret untuk mengubah urutan"
-                    onPointerDown={(event) => handleDragStart(event, i)}
-                    onPointerMove={handleDragMove}
-                    onPointerUp={handleDragEnd}
-                    onPointerCancel={handleDragCancel}
-                    disabled={busy || fields.length < 2}
-                    style={{ border: "1px solid var(--color-line)", borderRadius: 6, background: "var(--color-surface-2)", padding: "4px 8px", cursor: "grab", touchAction: "none", userSelect: "none" }}
-                  >
-                    ⋮⋮
-                  </button>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>Pertanyaan {i + 1}</span>
-                </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <Button type="button" variant="secondary" size="sm" onClick={() => moveField(i, -1)} disabled={busy || i === 0} aria-label={`Naikkan pertanyaan ${f.label || i + 1}`}>
-                    Naik ↑
-                  </Button>
-                  <Button type="button" variant="secondary" size="sm" onClick={() => moveField(i, 1)} disabled={busy || i === fields.length - 1} aria-label={`Turunkan pertanyaan ${f.label || i + 1}`}>
-                    Turun ↓
-                  </Button>
-                </div>
-              </div>
-              <div
+                key={f.clientKey}
+                data-registration-field-index={i}
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
+                  border: `1px solid ${dragOverIndex === i ? "var(--color-flame, #F5471D)" : "var(--color-line)"}`,
+                  borderRadius: "var(--radius-sm)",
+                  padding: 12,
+                  display: "flex",
+                  flexDirection: "column",
                   gap: 8,
+                  background: "var(--color-surface)",
                 }}
               >
-                <div className="field">
-                  <label className="field-label">Nama kolom (slug)</label>
-                  <input
-                    className="field-input"
-                    value={f.name}
-                    onChange={(e) => updateField(i, { name: e.target.value })}
-                    placeholder="Contoh: jersey_size"
-                    aria-invalid={!!nameError || undefined}
-                  />
-                  {nameError && <span className="field-error">{nameError}</span>}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <button
+                      type="button"
+                      aria-label={`Seret untuk mengurutkan pertanyaan ${f.label || i + 1}`}
+                      title="Seret untuk mengubah urutan"
+                      onPointerDown={(event) => handleDragStart(event, i)}
+                      onPointerMove={handleDragMove}
+                      onPointerUp={handleDragEnd}
+                      onPointerCancel={handleDragCancel}
+                      disabled={busy || fields.length < 2}
+                      style={{
+                        border: "1px solid var(--color-line)",
+                        borderRadius: 6,
+                        background: "var(--color-surface-2)",
+                        padding: "4px 8px",
+                        cursor: "grab",
+                        touchAction: "none",
+                        userSelect: "none",
+                      }}
+                    >
+                      ⋮⋮
+                    </button>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>Pertanyaan {i + 1}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => moveField(i, -1)}
+                      disabled={busy || i === 0}
+                      aria-label={`Naikkan pertanyaan ${f.label || i + 1}`}
+                    >
+                      Naik ↑
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => moveField(i, 1)}
+                      disabled={busy || i === fields.length - 1}
+                      aria-label={`Turunkan pertanyaan ${f.label || i + 1}`}
+                    >
+                      Turun ↓
+                    </Button>
+                  </div>
                 </div>
-                <div className="field">
-                  <label className="field-label">Label tampilan</label>
-                  <input
-                    className="field-input"
-                    value={f.label}
-                    onChange={(e) => updateField(i, { label: e.target.value })}
-                    placeholder="Contoh: Ukuran Jersey"
-                  />
-                </div>
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 8,
-                }}
-              >
-                <div className="field">
-                  <label className="field-label">Tipe input</label>
-                  <select
-                    className="field-input"
-                    value={f.field_type}
-                    onChange={(e) =>
-                      updateField(i, { field_type: e.target.value })
-                    }
-                  >
-                    {FIELD_TYPE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field">
-                  <label className="field-label">Placeholder</label>
-                  <input
-                    className="field-input"
-                    value={f.placeholder}
-                    onChange={(e) =>
-                      updateField(i, { placeholder: e.target.value })
-                    }
-                    placeholder="Contoh: Pilih ukuran"
-                  />
-                </div>
-              </div>
-              {(f.field_type === "select" || f.field_type === "radio") && (
-                <div className="field">
-                  <label className="field-label">
-                    Opsi (pisah dengan koma)
-                  </label>
-                  <input
-                    className="field-input"
-                    value={f.options}
-                    onChange={(e) =>
-                      updateField(i, { options: e.target.value })
-                    }
-                    placeholder="Contoh: S, M, L, XL"
-                  />
-                </div>
-              )}
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <label
+                <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 13,
-                    cursor: "pointer",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 8,
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={f.required}
-                    onChange={(e) =>
-                      updateField(i, { required: e.target.checked })
-                    }
-                  />
-                  Wajib diisi
-                </label>
-              </div>
-              <div
-                style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
-              >
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="sm"
-                  onClick={() => deleteField(i)}
-                  disabled={busy}
+                  <div className="field">
+                    <label className="field-label">Nama kolom (slug)</label>
+                    <input
+                      className="field-input"
+                      value={f.name}
+                      onChange={(e) => updateField(i, { name: e.target.value })}
+                      placeholder="Contoh: jersey_size"
+                      aria-invalid={!!nameError || undefined}
+                    />
+                    {nameError && <span className="field-error">{nameError}</span>}
+                  </div>
+                  <div className="field">
+                    <label className="field-label">Label tampilan</label>
+                    <input
+                      className="field-input"
+                      value={f.label}
+                      onChange={(e) => updateField(i, { label: e.target.value })}
+                      placeholder="Contoh: Ukuran Jersey"
+                    />
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 8,
+                  }}
                 >
-                  {busy ? "Memproses…" : "Hapus"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => saveField(i)}
-                  disabled={busy || !f.name.trim() || !f.label.trim() || !!nameError}
-                >
-                  {busy ? "Memproses…" : "Simpan"}
-                </Button>
-              </div>
+                  <div className="field">
+                    <label className="field-label">Tipe input</label>
+                    <select
+                      className="field-input"
+                      value={f.field_type}
+                      onChange={(e) => updateField(i, { field_type: e.target.value })}
+                    >
+                      {FIELD_TYPE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="field-label">Placeholder</label>
+                    <input
+                      className="field-input"
+                      value={f.placeholder}
+                      onChange={(e) => updateField(i, { placeholder: e.target.value })}
+                      placeholder="Contoh: Pilih ukuran"
+                    />
+                  </div>
+                </div>
+                {(f.field_type === "select" || f.field_type === "radio") && (
+                  <div className="field">
+                    <label className="field-label">Opsi (pisah dengan koma)</label>
+                    <input
+                      className="field-input"
+                      value={f.options}
+                      onChange={(e) => updateField(i, { options: e.target.value })}
+                      placeholder="Contoh: S, M, L, XL"
+                    />
+                  </div>
+                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontSize: 13,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={f.required}
+                      onChange={(e) => updateField(i, { required: e.target.checked })}
+                    />
+                    Wajib diisi
+                  </label>
+                </div>
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                  <Button type="button" variant="danger" size="sm" onClick={() => deleteField(i)} disabled={busy}>
+                    {busy ? "Memproses…" : "Hapus"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => saveField(i)}
+                    disabled={busy || !f.name.trim() || !f.label.trim() || !!nameError}
+                  >
+                    {busy ? "Memproses…" : "Simpan"}
+                  </Button>
+                </div>
               </div>
             );
           })}
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={addField}
-            disabled={busy}
-          >
+          <Button type="button" variant="secondary" size="sm" onClick={addField} disabled={busy}>
             + Tambah Kolom
           </Button>
           {orderDirty && (
-            <Button type="button" variant="primary" size="sm" onClick={saveOrder} disabled={busy || fields.some((field) => !field.id)}>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={saveOrder}
+              disabled={busy || fields.some((field) => !field.id)}
+            >
               {busy ? "Menyimpan…" : "Simpan Urutan"}
             </Button>
           )}
@@ -624,9 +602,7 @@ export function RegistrationFieldsForm({
 
   useEffect(() => {
     api
-      .get<{ data: RegistrationField[] }>(
-        `/api/v1/events/${eventId}/registration-fields`,
-      )
+      .get<{ data: RegistrationField[] }>(`/api/v1/events/${eventId}/registration-fields`)
       .then((res) => {
         setFields(
           res.data.map((field) => ({
@@ -658,10 +634,265 @@ export function RegistrationFieldsForm({
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <FieldBuilder eventId={eventId} fields={fields} onChange={setFields} />
       <span className="field-hint">
-        Konfigurasi form dikunci setelah pendaftaran pertama agar data dan
-        ekspor peserta tetap konsisten.
+        Konfigurasi form dikunci setelah pendaftaran pertama agar data dan ekspor peserta tetap konsisten.
       </span>
     </div>
+  );
+}
+
+type AddonOptionDraft = { key: string; name: string; price: string };
+type AddonGroupDraft = { key: string; title: string; options: AddonOptionDraft[] };
+
+function addonKey() {
+  return `addon-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+export function RegistrationAddonsForm({
+  eventId,
+  onChange,
+}: {
+  eventId: string;
+  onChange?: (groups: RegistrationAddonGroup[]) => void;
+}) {
+  const [groups, setGroups] = useState<AddonGroupDraft[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .get<{ data: { groups: RegistrationAddonGroup[] } }>(`/api/v1/events/${eventId}/addons`)
+      .then(({ data }) =>
+        setGroups(
+          data.groups.map((group) => ({
+            key: group.id,
+            title: group.title,
+            options: group.options.map((option) => ({
+              key: option.id,
+              name: option.name,
+              price: String(option.price),
+            })),
+          })),
+        ),
+      )
+      .catch(() => {
+        setError("Gagal memuat custom add-ons.");
+        setLoadFailed(true);
+      })
+      .finally(() => setIsLoading(false));
+  }, [eventId]);
+
+  useEffect(() => {
+    onChange?.(
+      groups.map((group) => ({
+        id: group.key,
+        title: group.title,
+        options: group.options.map((option) => ({
+          id: option.key,
+          name: option.name,
+          price: Number(option.price) || 0,
+        })),
+      })),
+    );
+  }, [groups, onChange]);
+
+  function updateGroup(index: number, patch: Partial<AddonGroupDraft>) {
+    setGroups((current) => current.map((group, i) => (i === index ? { ...group, ...patch } : group)));
+  }
+
+  function updateOption(groupIndex: number, optionIndex: number, patch: Partial<AddonOptionDraft>) {
+    setGroups((current) =>
+      current.map((group, i) =>
+        i === groupIndex
+          ? {
+              ...group,
+              options: group.options.map((option, j) => (j === optionIndex ? { ...option, ...patch } : option)),
+            }
+          : group,
+      ),
+    );
+  }
+
+  async function save() {
+    setError(null);
+    setNotice(null);
+    for (const group of groups) {
+      if (
+        !group.title.trim() ||
+        group.options.length === 0 ||
+        group.options.some((o) => !o.name.trim() || !/^\d+$/.test(o.price) || !Number.isSafeInteger(Number(o.price)))
+      ) {
+        setError("Isi judul, minimal satu nama add-on, dan harga rupiah berupa angka nol atau lebih.");
+        return;
+      }
+    }
+    setIsSaving(true);
+    try {
+      const response = await api.put<{ data: { groups: RegistrationAddonGroup[] } }>(
+        `/api/v1/events/${eventId}/addons`,
+        {
+          groups: groups.map((group) => ({
+            title: group.title,
+            options: group.options.map((option) => ({ name: option.name, price: Number(option.price) })),
+          })),
+        },
+      );
+      setGroups(
+        response.data.groups.map((group) => ({
+          key: group.id,
+          title: group.title,
+          options: group.options.map((option) => ({ key: option.id, name: option.name, price: String(option.price) })),
+        })),
+      );
+      setNotice("Custom add-ons berhasil disimpan.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Custom add-ons gagal disimpan.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  if (isLoading) return <p style={{ color: "var(--color-ink-2)", fontSize: 13 }}>Memuat custom add-ons…</p>;
+  if (loadFailed)
+    return (
+      <section style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", padding: 16 }}>
+        <Alert variant="danger">{error}</Alert>
+      </section>
+    );
+
+  return (
+    <section
+      style={{
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-md)",
+        padding: 16,
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+      }}
+    >
+      <div>
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Custom Add-ons</h3>
+        <p className="field-hint" style={{ margin: "4px 0 0" }}>
+          Peserta dapat memilih satu add-on atau melewati tiap judul. Harga ditambahkan ke harga pendaftaran.
+        </p>
+      </div>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {notice && <Alert variant="success">{notice}</Alert>}
+      {groups.map((group, groupIndex) => (
+        <div
+          key={group.key}
+          style={{
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-sm)",
+            padding: 12,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              className="field-input"
+              aria-label={`Judul add-on ${groupIndex + 1}`}
+              placeholder="Title"
+              value={group.title}
+              onChange={(e) => updateGroup(groupIndex, { title: e.target.value })}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={isSaving}
+              onClick={() => setGroups((current) => current.filter((_, i) => i !== groupIndex))}
+            >
+              Hapus judul
+            </Button>
+          </div>
+          {group.options.map((option, optionIndex) => (
+            <div
+              key={option.key}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) minmax(140px, 0.6fr) auto",
+                gap: 8,
+                alignItems: "center",
+                paddingLeft: 12,
+              }}
+            >
+              <input
+                className="field-input"
+                aria-label={`Nama add-on ${groupIndex + 1}.${optionIndex + 1}`}
+                placeholder="Name Add-ons"
+                value={option.name}
+                onChange={(e) => updateOption(groupIndex, optionIndex, { name: e.target.value })}
+              />
+              <input
+                className="field-input"
+                aria-label={`Harga add-on ${groupIndex + 1}.${optionIndex + 1}`}
+                inputMode="numeric"
+                type="text"
+                placeholder="Harga (Rp)"
+                value={formatNumberInput(option.price)}
+                onFocus={(e) => {
+                  if (option.price === "0") updateOption(groupIndex, optionIndex, { price: "" });
+                }}
+                onBlur={(e) => {
+                  if (e.currentTarget.value === "") updateOption(groupIndex, optionIndex, { price: "0" });
+                }}
+                onChange={(e) => updateOption(groupIndex, optionIndex, { price: parseNumberInput(e.target.value) })}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={isSaving}
+                aria-label="Hapus add-on"
+                onClick={() => updateGroup(groupIndex, { options: group.options.filter((_, i) => i !== optionIndex) })}
+              >
+                Hapus
+              </Button>
+            </div>
+          ))}
+          <div style={{ paddingLeft: 12 }}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isSaving}
+              onClick={() =>
+                updateGroup(groupIndex, { options: [...group.options, { key: addonKey(), name: "", price: "0" }] })
+              }
+            >
+              + Tambah add-on
+            </Button>
+          </div>
+        </div>
+      ))}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={isSaving}
+          onClick={() =>
+            setGroups((current) => [
+              ...current,
+              { key: addonKey(), title: "", options: [{ key: addonKey(), name: "", price: "0" }] },
+            ])
+          }
+        >
+          + Tambah judul
+        </Button>
+        <Button type="button" variant="primary" disabled={isSaving} onClick={save}>
+          {isSaving ? "Menyimpan…" : "Simpan add-ons"}
+        </Button>
+      </div>
+      <span className="field-hint">
+        Konfigurasi terkunci setelah pendaftaran pertama agar harga add-on peserta tetap konsisten.
+      </span>
+    </section>
   );
 }
 
@@ -677,25 +908,13 @@ export default function EventForm({
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [location, setLocation] = useState(initial?.location ?? "");
-  const [eventDate, setEventDate] = useState(
-    toLocalInput(initial?.event_date ?? ""),
-  );
+  const [eventDate, setEventDate] = useState(toLocalInput(initial?.event_date ?? ""));
   const [eventType, setEventType] = useState(initial?.event_type ?? "custom");
-  const [refundCutoff, setRefundCutoff] = useState(
-    toLocalInput(initial?.refund_cutoff_date ?? ""),
-  );
-  const [regClose, setRegClose] = useState(
-    toLocalInput(initial?.registration_close_date ?? ""),
-  );
-  const [donationEnabled, setDonationEnabled] = useState(
-    initial?.donation_enabled ?? false,
-  );
-  const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(
-    initial?.refund_donation_on_cancel ?? false,
-  );
-  const [platformFee, setPlatformFee] = useState(
-    String(initial?.platform_fee ?? 5000),
-  );
+  const [refundCutoff, setRefundCutoff] = useState(toLocalInput(initial?.refund_cutoff_date ?? ""));
+  const [regClose, setRegClose] = useState(toLocalInput(initial?.registration_close_date ?? ""));
+  const [donationEnabled, setDonationEnabled] = useState(initial?.donation_enabled ?? false);
+  const [refundDonationOnCancel, setRefundDonationOnCancel] = useState(initial?.refund_donation_on_cancel ?? false);
+  const [platformFee, setPlatformFee] = useState(String(initial?.platform_fee ?? 5000));
   const [color, setColor] = useState(initial?.color || "#16303A");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -759,9 +978,7 @@ export default function EventForm({
     try {
       await onSubmit(buildValues());
     } catch (err) {
-      setServerError(
-        err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.",
-      );
+      setServerError(err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -824,7 +1041,8 @@ export default function EventForm({
           ))}
         </select>
         <span className="field-hint">
-          Kategori jarak bertoken 5K otomatis masuk Fun Run; kategori lain memakai kelas usia Open, Master, atau Master+.
+          Kategori jarak bertoken 5K otomatis masuk Fun Run; kategori lain memakai kelas usia Open, Master, atau
+          Master+.
         </span>
       </div>
 
@@ -837,7 +1055,11 @@ export default function EventForm({
         onChange={(e) => setPlatformFee(e.target.value)}
         error={errors.platform_fee}
         disabled={platformFeeLocked}
-        hint={platformFeeLocked ? "Platform Fee terkunci setelah event dipublikasikan." : "Default Rp5.000 per transaksi. Isi 0 untuk membebaskan Platform Fee."}
+        hint={
+          platformFeeLocked
+            ? "Platform Fee terkunci setelah event dipublikasikan."
+            : "Default Rp5.000 per transaksi. Isi 0 untuk membebaskan Platform Fee."
+        }
       />
 
       <div className="field">
@@ -870,9 +1092,7 @@ export default function EventForm({
             {color.toUpperCase()}
           </span>
         </div>
-        <span className="field-hint">
-          Dipakai sebagai warna header kartu event bila banner belum diunggah
-        </span>
+        <span className="field-hint">Dipakai sebagai warna header kartu event bila banner belum diunggah</span>
       </div>
 
       <LabeledInput

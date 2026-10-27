@@ -52,15 +52,9 @@ export interface WalletResponse {
 
 // === Event ===
 
-export type EventStatus =
-  | "draft"
-  | "coming_soon"
-  | "published"
-  | "cancelled"
-  | "finished";
+export type EventStatus = "draft" | "coming_soon" | "published" | "cancelled" | "finished";
 
-export type EventType =
-  "running" | "concert" | "seminar" | "workshop" | "cycling" | "custom";
+export type EventType = "running" | "concert" | "seminar" | "workshop" | "cycling" | "custom";
 
 export interface Event {
   id: string;
@@ -138,6 +132,23 @@ export interface PublicEventDetail {
   categories: PublicCategory[];
   ticket_categories: PublicTicket[];
   registration_fields: RegistrationField[];
+  addon_groups: RegistrationAddonGroup[];
+}
+
+export interface RegistrationAddonOption {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface RegistrationAddonGroup {
+  id: string;
+  title: string;
+  options: RegistrationAddonOption[];
+}
+
+export interface SelectedRegistrationAddon extends RegistrationAddonOption {
+  title: string;
 }
 
 export interface RegistrationField {
@@ -181,6 +192,7 @@ export interface CreateRegistrationRequest {
   gender: string;
   donation?: number;
   extra_data?: Record<string, string>;
+  addon_option_ids?: string[];
 }
 
 export interface OrganizerBulkRegistrationRequest {
@@ -221,6 +233,9 @@ export interface Registration {
   status: RegistrationStatus;
   is_complimentary?: boolean;
   extra_data?: Record<string, string>;
+  addons?: SelectedRegistrationAddon[];
+  addon_total?: number;
+  ticket_price?: number;
   qr_token?: string; // only present when status=paid
   pending_payment?: PaymentChargeResponse;
   payment_paid_at?: string;
@@ -377,6 +392,9 @@ export interface PaymentQuoteRequest {
 export interface PaymentQuoteResponse {
   registration_id: string;
   price: number;
+  ticket_price?: number;
+  addon_total?: number;
+  addons?: SelectedRegistrationAddon[];
   donation: number;
   fee_platform: number;
   fee_midtrans: number;
@@ -412,7 +430,7 @@ export interface PaymentChargeResponse {
   bill_key?: string;
   qr_string?: string;
   deeplink_url?: string;
-	payment_url?: string;
+  payment_url?: string;
   quote: PaymentQuoteResponse;
 }
 
@@ -428,6 +446,8 @@ export interface InvoiceBreakdown {
   method: string;
   payment_method_label: string;
   price: number;
+  ticket_price?: number;
+  addons?: SelectedRegistrationAddon[];
   donation: number;
   fee_platform: number;
   fee_midtrans: number;
@@ -524,7 +544,7 @@ export interface DonationLedgerEntry {
   created_at: string;
 }
 
-// PlatformRevenue is now PlatformWalletBalance — kept for backward compat with admin/platform page.
+// PlatformRevenue is now PlatformWalletBalance - kept for backward compat with admin/platform page.
 export interface PlatformRevenue {
   balance: number;
   total_collected: number;
@@ -569,6 +589,8 @@ export interface Refund {
   ticket_name?: string;
   created_at?: string;
   ticket_price?: number;
+  ticket_base_price?: number;
+  addons?: SelectedRegistrationAddon[];
   fee_platform?: number;
   payment_sub_total?: number;
   amount: number;
@@ -632,11 +654,7 @@ export interface BibResult {
   strategy: BibGenerationStrategy;
 }
 
-export type BibGenerationStrategy =
-  | "all"
-  | "category"
-  | "gender"
-  | "category_gender";
+export type BibGenerationStrategy = "all" | "category" | "gender" | "category_gender";
 
 export interface GenerateBibRequest {
   strategy?: BibGenerationStrategy;

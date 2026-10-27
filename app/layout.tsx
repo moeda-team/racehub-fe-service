@@ -13,9 +13,8 @@ import "@fontsource/jetbrains-mono/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LowkeyThings — Platform Event Indonesia",
-  description:
-    "Telusuri, daftar, dan kelola event di seluruh Indonesia. Transparan, cepat, dan aman.",
+  title: "LowkeyThings - Platform Event Indonesia",
+  description: "Telusuri, daftar, dan kelola event di seluruh Indonesia. Transparan, cepat, dan aman.",
   icons: { icon: "/lowkeythings-logo.png" },
 };
 
@@ -25,10 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="id"
-      className=""
-    >
+    <html lang="id" className="">
       <body
         className="min-h-screen antialiased"
         style={{

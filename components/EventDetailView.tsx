@@ -20,7 +20,7 @@ function getDistanceBadgeFontSize(name: string): number {
 }
 
 // EventDetailView is the shared body of the public event-detail page
-// (app/(marketplace)/events/[id]) — also rendered inside the organizer
+// (app/(marketplace)/events/[id]) - also rendered inside the organizer
 // dashboard as a live preview. `interactive` turns the register CTA into a
 // real link; the preview renders it disabled-looking but non-navigating.
 export default function EventDetailView({
@@ -32,7 +32,7 @@ export default function EventDetailView({
 }) {
   const { event, categories, ticket_categories } = detail;
   const isComingSoon = event.status === "coming_soon";
-  // Snapshot waktu saat render pertama — server tetap memvalidasi ulang periode penjualan.
+  // Snapshot waktu saat render pertama - server tetap memvalidasi ulang periode penjualan.
   const [now] = useState(() => Date.now());
 
   const ticketsByDistance = categories.map((d) => ({

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah, formatDate } from "@/lib/format";
-import type { ApiResponse, ETicket, Refund } from "@/lib/types.gen";
+import type { ApiResponse, ETicket, Refund, Registration } from "@/lib/types.gen";
 import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -20,13 +20,16 @@ const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "d
 export default function TicketPage({ params }: { params: Promise<{ number: string }> }) {
   const { number } = use(params);
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const queryToken = searchParams.get("token") ?? "";
+  const [token, setToken] = useState(queryToken);
 
   const [ticket, setTicket] = useState<ETicket | null>(null);
   const [refund, setRefund] = useState<Refund | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notReady, setNotReady] = useState(false);
   const [invalidLink, setInvalidLink] = useState(false);
+  const [ticketNotIssued, setTicketNotIssued] = useState(false);
+  const [tokenResolved, setTokenResolved] = useState(!!queryToken);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -35,9 +38,12 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
     setDownloading(true);
     setDownloadError(null);
     try {
-      const response = await fetch(`/api/v1/registrations/${encodeURIComponent(number)}/ticket.pdf?token=${encodeURIComponent(token)}`, {
-        headers: { "X-RaceHub-Public": "1" },
-      });
+      const response = await fetch(
+        `/api/v1/registrations/${encodeURIComponent(number)}/ticket.pdf?token=${encodeURIComponent(token)}`,
+        {
+          headers: { "X-RaceHub-Public": "1" },
+        },
+      );
       if (!response.ok) throw new Error("Gagal mengunduh e-tiket. Coba lagi.");
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -56,6 +62,44 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
   }
 
   useEffect(() => {
+    if (queryToken) {
+      setToken(queryToken);
+      setTokenResolved(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      let hasTicketToken = false;
+      try {
+        const response = await api.get<ApiResponse<Registration>>(`/api/v1/registrations/${number}`);
+        if (cancelled) return;
+        if (response.data.status === "paid" && response.data.qr_token) {
+          hasTicketToken = true;
+          setToken(response.data.qr_token);
+          const url = new URL(window.location.href);
+          url.searchParams.set("token", response.data.qr_token);
+          window.history.replaceState(window.history.state, "", url);
+        } else if (response.data.status === "paid") {
+          setTicketNotIssued(true);
+        } else {
+          setNotReady(true);
+        }
+      } catch {
+        if (!cancelled) setInvalidLink(true);
+      } finally {
+        if (!cancelled) {
+          setTokenResolved(true);
+          if (!hasTicketToken) setLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [number, queryToken]);
+
+  useEffect(() => {
+    if (!tokenResolved || !token) return;
     let cancelled = false;
     (async () => {
       try {
@@ -69,15 +113,14 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
             const rr = await api.get<ApiResponse<Refund>>(`/api/v1/registrations/${number}/refund`);
             if (!cancelled) setRefund(rr.data);
           } catch {
-            /* refund may still be in-flight — show ticket without it */
+            /* refund may still be in-flight - show ticket without it */
           }
         }
       } catch (err) {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
           requestAnimationFrame(() => {
-            if (!token) setInvalidLink(true);
-            else setNotReady(true);
+            setNotReady(true);
           });
         } else {
           requestAnimationFrame(() => setError("Gagal memuat e-tiket."));
@@ -89,7 +132,7 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
     return () => {
       cancelled = true;
     };
-  }, [number, token]);
+  }, [number, token, tokenResolved]);
 
   if (loading) {
     return (
@@ -113,13 +156,27 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
     return (
       <main className="max-w-xl mx-auto px-4 py-12">
         <Alert variant="warn" className="mb-4">
-          E-tiket belum terbit. Selesaikan pembayaran terlebih dahulu.
+          E-tiket belum terbit. Status pembayaran registrasi ini belum lunas.
         </Alert>
         <Link href={`/pay/${number}`}>
           <Button variant="primary" size="md" style={{ width: "100%" }}>
             Ke Halaman Pembayaran
           </Button>
         </Link>
+      </main>
+    );
+  }
+
+  if (ticketNotIssued) {
+    return (
+      <main className="max-w-xl mx-auto px-4 py-12">
+        <Alert variant="warn" className="mb-4">
+          Pembayaran tercatat lunas, tetapi e-tiket dan QR belum diterbitkan. Perubahan status payment langsung di
+          database tidak menjalankan proses settlement yang menerbitkan e-tiket.
+        </Alert>
+        <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
+          Minta organizer mencatat pembayaran melalui fitur pembayaran manual agar e-tiket diterbitkan dengan benar.
+        </p>
       </main>
     );
   }
@@ -164,7 +221,11 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
           <Button variant="primary" size="md" onClick={downloadTicket} disabled={downloading} style={{ width: "100%" }}>
             {downloading ? "Menyiapkan PDF…" : "Unduh e-tiket (PDF)"}
           </Button>
-          {downloadError && <Alert variant="danger" className="mt-2">{downloadError}</Alert>}
+          {downloadError && (
+            <Alert variant="danger" className="mt-2">
+              {downloadError}
+            </Alert>
+          )}
         </div>
       )}
 
@@ -238,7 +299,15 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
       {inv && (
         <div style={card}>
           <div style={{ fontWeight: 600, marginBottom: 8 }}>Rincian Pembayaran</div>
-          <Row label="Harga Tiket" value={formatRupiah(inv.price)} mono />
+          <Row label="Harga Event" value={formatRupiah(inv.ticket_price ?? inv.price)} mono />
+          {(inv.addons ?? []).map((addon) => (
+            <Row
+              key={addon.id}
+              label={`Add-on: ${addon.title} - ${addon.name}`}
+              value={formatRupiah(addon.price)}
+              mono
+            />
+          ))}
           {inv.donation > 0 && <Row label="Donasi" value={formatRupiah(inv.donation)} mono />}
           <Row label="Platform" value={formatRupiah(inv.fee_platform)} mono />
           <Row label="Biaya Transaksi" value={formatRupiah(inv.fee_midtrans)} mono />

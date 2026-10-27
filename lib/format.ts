@@ -7,10 +7,7 @@ export function formatNumber(n: number | null | undefined): string {
 }
 
 /** Show only the age-class name; age ranges stay an internal classification detail. */
-export function formatAgeClass(
-  value: string | null | undefined,
-  categoryName?: string | null,
-): string {
+export function formatAgeClass(value: string | null | undefined, categoryName?: string | null): string {
   if (categoryName && /(^|[^a-z0-9])5k([^a-z0-9]|$)/i.test(categoryName)) {
     return "Fun Run";
   }
@@ -41,7 +38,7 @@ export function parseNumberInput(formatted: string): string {
 }
 
 /**
- * Format Rupiah — DISPLAY ONLY.
+ * Format Rupiah - DISPLAY ONLY.
  * Menggunakan Indonesian locale. TIDAK melakukan perhitungan apapun.
  * Hanya memformat angka yang sudah diterima dari backend.
  */
@@ -59,7 +56,7 @@ export function formatRupiah(amount: number | null | undefined): string {
 /**
  * Normalize a numeric <input type="number"> value string so it never keeps a
  * leading zero: "09000" -> "9000", "007" -> "7". A lone "0" and decimals like
- * "0.5" are preserved. DISPLAY ONLY — does not coerce or compute.
+ * "0.5" are preserved. DISPLAY ONLY - does not coerce or compute.
  */
 export function normalizeNumberInput(value: string): string {
   return value.replace(/^0+(?=\d)/, "");

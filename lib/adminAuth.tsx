@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { adminApi } from "./admin";
 import type { ApiResponse } from "./types.gen";
 
@@ -23,11 +16,7 @@ interface AdminAuthState {
 }
 
 interface AdminAuthContextValue extends AdminAuthState {
-  login: (
-    email: string,
-    password: string,
-    keepSignedIn?: boolean,
-  ) => Promise<void>;
+  login: (email: string, password: string, keepSignedIn?: boolean) => Promise<void>;
   logout: () => void;
 }
 
@@ -51,21 +40,19 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        // Admin has no /me endpoint — verify by hitting a lightweight admin endpoint.
-        await adminApi.get<ApiResponse<unknown[]>>(
-          "/api/v1/admin/events?page_size=1",
-        );
+        // Admin has no /me endpoint - verify by hitting a lightweight admin endpoint.
+        await adminApi.get<ApiResponse<unknown[]>>("/api/v1/admin/events?page_size=1");
         if (!cancelled) {
-	          requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
             setProfile({ id: "", email: "" });
-	            setIsAuthenticated(true);
+            setIsAuthenticated(true);
             setIsLoading(false);
           });
         }
       } catch {
         if (!cancelled) {
-	          requestAnimationFrame(() => {
-	            setIsAuthenticated(false);
+          requestAnimationFrame(() => {
+            setIsAuthenticated(false);
             setProfile(null);
             setIsLoading(false);
           });
@@ -77,21 +64,15 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(
-    async (email: string, password: string, keepSignedIn = false) => {
-      await adminApi.post(
-        "/api/v1/admin/login",
-        { email, password, keep_signed_in: keepSignedIn },
-      );
-	      setIsAuthenticated(true);
-      setProfile({ id: "", email });
-    },
-    [],
-  );
+  const login = useCallback(async (email: string, password: string, keepSignedIn = false) => {
+    await adminApi.post("/api/v1/admin/login", { email, password, keep_signed_in: keepSignedIn });
+    setIsAuthenticated(true);
+    setProfile({ id: "", email });
+  }, []);
 
   const logout = useCallback(() => {
     void adminApi.post("/api/v1/organizers/logout").catch(() => undefined);
-	    setIsAuthenticated(false);
+    setIsAuthenticated(false);
     setProfile(null);
   }, []);
 

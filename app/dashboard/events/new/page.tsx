@@ -9,11 +9,7 @@ import EventForm, { EventFormValues } from "@/components/EventForm";
 import EventCard from "@/components/ui/EventCard";
 import EventDetailView from "@/components/EventDetailView";
 import Button from "@/components/ui/Button";
-import type {
-  ApiResponse,
-  Event,
-  PublicEventDetail,
-} from "@/lib/types.gen";
+import type { ApiResponse, Event, PublicEventDetail } from "@/lib/types.gen";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -61,8 +57,7 @@ export default function NewEventPage() {
         Buat Event Baru
       </h1>
       <p style={{ color: "var(--color-ink-3)", marginBottom: 24 }}>
-        Event dibuat sebagai draft. Tambahkan kategori & tiket, lalu ajukan
-        untuk persetujuan admin.
+        Event dibuat sebagai draft. Tambahkan kategori & tiket, lalu ajukan untuk persetujuan admin.
       </p>
       <div
         style={{
@@ -73,17 +68,9 @@ export default function NewEventPage() {
         }}
       >
         <div style={{ flex: "1 1 420px", maxWidth: 720 }}>
-          <EventForm
-            submitLabel="Buat Event"
-            onSubmit={handleSubmit}
-            onChange={setPreview}
-          />
+          <EventForm submitLabel="Buat Event" onSubmit={handleSubmit} onChange={setPreview} />
         </div>
-        <NewEventPreview
-          values={preview}
-          mode={previewMode}
-          onModeChange={setPreviewMode}
-        />
+        <NewEventPreview values={preview} mode={previewMode} onModeChange={setPreviewMode} />
       </div>
     </div>
   );
@@ -125,6 +112,7 @@ function NewEventPreview({
     categories: [],
     ticket_categories: [],
     registration_fields: [],
+    addon_groups: [],
   };
 
   const modeButton = (active: boolean): React.CSSProperties => ({
@@ -168,13 +156,28 @@ function NewEventPreview({
           Pratinjau
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
-          <button type="button" style={modeButton(mode === "card")} aria-pressed={mode === "card"} onClick={() => onModeChange("card")}>
+          <button
+            type="button"
+            style={modeButton(mode === "card")}
+            aria-pressed={mode === "card"}
+            onClick={() => onModeChange("card")}
+          >
             Kartu
           </button>
-          <button type="button" style={modeButton(mode === "detail")} aria-pressed={mode === "detail"} onClick={() => onModeChange("detail")}>
+          <button
+            type="button"
+            style={modeButton(mode === "detail")}
+            aria-pressed={mode === "detail"}
+            onClick={() => onModeChange("detail")}
+          >
             Halaman Detail
           </button>
-          <button type="button" style={modeButton(mode === "register")} aria-pressed={mode === "register"} onClick={() => onModeChange("register")}>
+          <button
+            type="button"
+            style={modeButton(mode === "register")}
+            aria-pressed={mode === "register"}
+            onClick={() => onModeChange("register")}
+          >
             Pendaftaran
           </button>
         </div>
@@ -191,8 +194,8 @@ function NewEventPreview({
             color={color}
           />
           <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 10, lineHeight: 1.5 }}>
-            Ikut berubah saat Anda mengetik &amp; memilih warna. Banner, harga,
-            dan kuota bisa diatur setelah event dibuat.
+            Ikut berubah saat Anda mengetik &amp; memilih warna. Banner, harga, dan kuota bisa diatur setelah event
+            dibuat.
           </p>
         </>
       ) : mode === "detail" ? (
@@ -242,9 +245,7 @@ function NewEventPreview({
             /register/pratinjau-event-baru
           </div>
           <div className="max-w-xl mx-auto px-4 py-8">
-            <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
-              ← {name}
-            </p>
+            <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>← {name}</p>
             <h2
               style={{
                 fontFamily: "var(--font-display)",
@@ -255,9 +256,7 @@ function NewEventPreview({
             >
               Pendaftaran
             </h2>
-            <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
-              Langkah 2 dari 3
-            </p>
+            <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>Langkah 2 dari 3</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="field">
                 <label className="field-label">Nama Lengkap</label>
@@ -275,7 +274,8 @@ function NewEventPreview({
                 <label className="field-label">Tanggal Lahir</label>
                 <input className="field-input" type="date" readOnly />
                 <span className="field-hint">
-                  Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis
+                  Wajib - kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau
+                  Master+ otomatis
                 </span>
               </div>
               <div className="field">

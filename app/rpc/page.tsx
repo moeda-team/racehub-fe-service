@@ -5,13 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatAgeClass } from "@/lib/format";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import type {
-  ApiResponse,
-  CheckinParticipant,
-  CheckinSearchPage,
-  CheckinStage,
-  Event,
-} from "@/lib/types.gen";
+import type { ApiResponse, CheckinParticipant, CheckinSearchPage, CheckinStage, Event } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import ParticipantDetailModal from "@/components/rpc/ParticipantDetailModal";
@@ -39,9 +33,7 @@ export default function RpcPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<Event[]>>(
-          "/api/v1/events?page_size=200",
-        );
+        const res = await api.get<ApiResponse<Event[]>>("/api/v1/events?page_size=200");
         if (cancelled) return;
         const list = res.data ?? [];
         setEvents(list);
@@ -56,9 +48,7 @@ export default function RpcPage() {
   }, [isAuthenticated]);
 
   if (isLoading || !isAuthenticated) {
-    return (
-      <div style={{ minHeight: "100vh", background: "var(--color-navy-deep)" }} />
-    );
+    return <div style={{ minHeight: "100vh", background: "var(--color-navy-deep)" }} />;
   }
 
   return (
@@ -90,18 +80,13 @@ export default function RpcPage() {
         >
           RPC / Check-in
         </h1>
-        <a
-          href="/dashboard"
-          style={{ color: "var(--color-ink-4)", fontSize: 14 }}
-        >
+        <a href="/dashboard" style={{ color: "var(--color-ink-4)", fontSize: 14 }}>
           Dashboard
         </a>
       </header>
 
       {events.length === 0 ? (
-        <p style={{ color: "var(--color-ink-4)" }}>
-          Belum ada event. Buat event di dashboard terlebih dahulu.
-        </p>
+        <p style={{ color: "var(--color-ink-4)" }}>Belum ada event. Buat event di dashboard terlebih dahulu.</p>
       ) : (
         <>
           {/* Event picker */}
@@ -115,11 +100,7 @@ export default function RpcPage() {
           >
             Event
           </label>
-          <select
-            value={eventId ?? ""}
-            onChange={(e) => setEventId(e.target.value || null)}
-            style={fieldStyle}
-          >
+          <select value={eventId ?? ""} onChange={(e) => setEventId(e.target.value || null)} style={fieldStyle}>
             {events.map((ev) => (
               <option key={ev.id} value={ev.id}>
                 {ev.name}
@@ -127,42 +108,20 @@ export default function RpcPage() {
             ))}
           </select>
 
-          {/* Stage toggle — two big targets */}
+          {/* Stage toggle - two big targets */}
           <div style={{ display: "flex", gap: 8, margin: "16px 0" }}>
-            <StageButton
-              active={stage === "rpc"}
-              onClick={() => setStage("rpc")}
-              label="Pengambilan perlengkapan"
-            />
-            <StageButton
-              active={stage === "raceday"}
-              onClick={() => setStage("raceday")}
-              label="Hari-H"
-            />
+            <StageButton active={stage === "rpc"} onClick={() => setStage("rpc")} label="Pengambilan perlengkapan" />
+            <StageButton active={stage === "raceday"} onClick={() => setStage("raceday")} label="Hari-H" />
           </div>
 
-          {eventId != null && (
-            <CheckinPanel
-              key={`${eventId}-${stage}`}
-              eventId={eventId}
-              stage={stage}
-            />
-          )}
+          {eventId != null && <CheckinPanel key={`${eventId}-${stage}`} eventId={eventId} stage={stage} />}
         </>
       )}
     </main>
   );
 }
 
-function StageButton({
-  active,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-}) {
+function StageButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
     <button
       type="button"
@@ -171,9 +130,7 @@ function StageButton({
         flex: 1,
         minHeight: 56,
         borderRadius: "var(--radius-md)",
-        border: active
-          ? "2px solid var(--color-gold)"
-          : "1px solid var(--color-ink-2)",
+        border: active ? "2px solid var(--color-gold)" : "1px solid var(--color-ink-2)",
         background: active ? "var(--color-gold)" : "transparent",
         color: active ? "var(--color-navy-deep)" : "var(--color-text-on-dark-muted)",
         fontSize: 15,
@@ -186,13 +143,7 @@ function StageButton({
   );
 }
 
-function CheckinPanel({
-  eventId,
-  stage,
-}: {
-  eventId: string;
-  stage: CheckinStage;
-}) {
+function CheckinPanel({ eventId, stage }: { eventId: string; stage: CheckinStage }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CheckinParticipant[]>([]);
   const [total, setTotal] = useState(0);
@@ -210,32 +161,35 @@ function CheckinPanel({
 
   useEffect(() => {
     let cancelled = false;
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      setErr(null);
-      try {
-        const params = new URLSearchParams({
-          q: q.trim(), stage, limit: String(pageSize),
-          offset: String((page - 1) * pageSize),
-        });
-        const res = await api.get<CheckinSearchPage>(
-          `/api/v1/events/${eventId}/checkin/search?${params}`,
-        );
-        if (cancelled) return;
-        setResults(res.data ?? []);
-        setTotal(res.total);
-        setPaidTotal(res.paid_total);
-        setRpcCollected(res.rpc_collected);
-        setRacedayCheckedIn(res.raceday_checked_in);
-      } catch (e) {
-        if (!cancelled) {
-          setResults([]);
-          setErr(e instanceof ApiError ? e.message : "Daftar peserta gagal dimuat.");
+    const timer = setTimeout(
+      async () => {
+        setLoading(true);
+        setErr(null);
+        try {
+          const params = new URLSearchParams({
+            q: q.trim(),
+            stage,
+            limit: String(pageSize),
+            offset: String((page - 1) * pageSize),
+          });
+          const res = await api.get<CheckinSearchPage>(`/api/v1/events/${eventId}/checkin/search?${params}`);
+          if (cancelled) return;
+          setResults(res.data ?? []);
+          setTotal(res.total);
+          setPaidTotal(res.paid_total);
+          setRpcCollected(res.rpc_collected);
+          setRacedayCheckedIn(res.raceday_checked_in);
+        } catch (e) {
+          if (!cancelled) {
+            setResults([]);
+            setErr(e instanceof ApiError ? e.message : "Daftar peserta gagal dimuat.");
+          }
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }, q ? 250 : 0);
+      },
+      q ? 250 : 0,
+    );
     return () => {
       cancelled = true;
       clearTimeout(timer);
@@ -257,13 +211,10 @@ function CheckinPanel({
     setErr(null);
     setMarkingId(p.id);
     try {
-      const res = await api.post<ApiResponse<CheckinParticipant>>(
-        `/api/v1/events/${eventId}/checkin`,
-        {
-          registration_id: p.id,
-          stage,
-        },
-      );
+      const res = await api.post<ApiResponse<CheckinParticipant>>(`/api/v1/events/${eventId}/checkin`, {
+        registration_id: p.id,
+        stage,
+      });
       setFlash(`${res.data.name} · ${stageLabel(stage)} ✓`);
       setSelected(res.data);
       beginSearch();
@@ -278,31 +229,31 @@ function CheckinPanel({
   async function markByToken(token: string) {
     setErr(null);
     try {
-      const res = await api.post<ApiResponse<CheckinParticipant>>(
-        `/api/v1/events/${eventId}/checkin/scan`,
-        {
-          qr_token: token,
-          stage,
-        },
-      );
+      const res = await api.post<ApiResponse<CheckinParticipant>>(`/api/v1/events/${eventId}/checkin/scan`, {
+        qr_token: token,
+        stage,
+      });
       setSelected(res.data);
     } catch (e) {
-      setErr(
-        e instanceof ApiError ? e.message : "QR tidak valid untuk event ini.",
-      );
+      setErr(e instanceof ApiError ? e.message : "QR tidak valid untuk event ini.");
     }
   }
 
   return (
     <div>
       <p style={{ margin: "0 0 12px", color: "var(--color-ink-4)", fontSize: 14, lineHeight: 1.5 }}>
-        {paidTotal} peserta lunas · {stage === "rpc" ? rpcCollected : racedayCheckedIn} sudah {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
+        {paidTotal} peserta lunas · {stage === "rpc" ? rpcCollected : racedayCheckedIn} sudah{" "}
+        {stage === "rpc" ? "ambil perlengkapan" : "check-in acara"}
       </p>
       <label style={{ display: "grid", gap: 6, color: "var(--color-ink-4)", fontSize: 13 }}>
         Cari peserta
         <input
           value={q}
-          onChange={(e) => { beginSearch(); setQ(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            beginSearch();
+            setQ(e.target.value);
+            setPage(1);
+          }}
           placeholder="Nama / BIB / no. registrasi"
           inputMode="search"
           autoFocus
@@ -341,55 +292,89 @@ function CheckinPanel({
           marginTop: 12,
         }}
       >
-        {loading && <p role="status" style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--color-ink-4)", fontSize: 14 }}><span className="spinner" aria-hidden="true" style={{ borderTopColor: "var(--color-gold)" }} />Memuat peserta…</p>}
-        {!loading && results.map((p) => (
-          <ParticipantCard
-            key={p.id}
-            p={p}
-            marking={markingId === p.id}
-            onOpen={() => setSelected(p)}
-          />
-        ))}
+        {loading && (
+          <p
+            role="status"
+            style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--color-ink-4)", fontSize: 14 }}
+          >
+            <span className="spinner" aria-hidden="true" style={{ borderTopColor: "var(--color-gold)" }} />
+            Memuat peserta…
+          </p>
+        )}
+        {!loading &&
+          results.map((p) => (
+            <ParticipantCard key={p.id} p={p} marking={markingId === p.id} onOpen={() => setSelected(p)} />
+          ))}
       </div>
       {!loading && total === 0 && !err && (
-        <p style={{ color: "var(--color-ink-4)", fontSize: 14, marginTop: 12 }}>
-          Tidak ada peserta yang cocok.
-        </p>
+        <p style={{ color: "var(--color-ink-4)", fontSize: 14, marginTop: 12 }}>Tidak ada peserta yang cocok.</p>
       )}
       {total > 0 && !err && (
         <nav aria-label="Halaman daftar peserta" style={paginationStyle}>
           <div style={paginationInfoStyle}>
-            <span>{rangeStart}–{rangeEnd} dari {total} peserta</span>
+            <span>
+              {rangeStart}–{rangeEnd} dari {total} peserta
+            </span>
             <select
               aria-label="Jumlah peserta per halaman"
               value={pageSize}
-              onChange={(e) => { beginSearch(); setPageSize(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => {
+                beginSearch();
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
               style={pageSizeStyle}
             >
-              {PAGE_SIZE_OPTIONS.map((size) => <option key={size} value={size}>{size} per halaman</option>)}
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size} per halaman
+                </option>
+              ))}
             </select>
           </div>
           <div style={paginationButtonsStyle}>
-            <button type="button" onClick={() => { beginSearch(); setPage(currentPage - 1); }} disabled={loading || currentPage === 1} style={{ ...pageButtonStyle, opacity: loading || currentPage === 1 ? 0.5 : 1 }}>← Sebelumnya</button>
-            <span aria-live="polite" style={{ whiteSpace: "nowrap" }}>Halaman {currentPage} dari {totalPages}</span>
-            <button type="button" onClick={() => { beginSearch(); setPage(currentPage + 1); }} disabled={loading || currentPage === totalPages} style={{ ...pageButtonStyle, opacity: loading || currentPage === totalPages ? 0.5 : 1 }}>Berikutnya →</button>
+            <button
+              type="button"
+              onClick={() => {
+                beginSearch();
+                setPage(currentPage - 1);
+              }}
+              disabled={loading || currentPage === 1}
+              style={{ ...pageButtonStyle, opacity: loading || currentPage === 1 ? 0.5 : 1 }}
+            >
+              ← Sebelumnya
+            </button>
+            <span aria-live="polite" style={{ whiteSpace: "nowrap" }}>
+              Halaman {currentPage} dari {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                beginSearch();
+                setPage(currentPage + 1);
+              }}
+              disabled={loading || currentPage === totalPages}
+              style={{ ...pageButtonStyle, opacity: loading || currentPage === totalPages ? 0.5 : 1 }}
+            >
+              Berikutnya →
+            </button>
           </div>
         </nav>
       )}
-      {selected && <ParticipantDetailModal participant={selected} stage={stage} marking={markingId === selected.id} onClose={() => setSelected(null)} onClaim={() => mark(selected)} />}
+      {selected && (
+        <ParticipantDetailModal
+          participant={selected}
+          stage={stage}
+          marking={markingId === selected.id}
+          onClose={() => setSelected(null)}
+          onClaim={() => mark(selected)}
+        />
+      )}
     </div>
   );
 }
 
-function ParticipantCard({
-  p,
-  marking,
-  onOpen,
-}: {
-  p: CheckinParticipant;
-  marking: boolean;
-  onOpen: () => void;
-}) {
+function ParticipantCard({ p, marking, onOpen }: { p: CheckinParticipant; marking: boolean; onOpen: () => void }) {
   return (
     <div
       style={{
@@ -426,9 +411,7 @@ function ParticipantCard({
             {p.name}
           </span>
         </div>
-        <div
-          style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 2 }}
-        >
+        <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: 2 }}>
           {p.registration_number}
           {p.age_class ? ` · ${formatAgeClass(p.age_class, p.category_name)}` : ""}
           {p.gender ? ` · ${p.gender}` : ""}
@@ -490,8 +473,35 @@ const fieldStyle: React.CSSProperties = {
   marginBottom: 0,
 };
 
-const paginationStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 20, color: "var(--color-ink-4)", fontSize: 13 };
+const paginationStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  marginTop: 20,
+  color: "var(--color-ink-4)",
+  fontSize: 13,
+};
 const paginationInfoStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 };
 const paginationButtonsStyle: React.CSSProperties = { display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 };
-const pageSizeStyle: React.CSSProperties = { minHeight: 40, padding: "6px 8px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", color: "var(--color-ink)", fontSize: 13 };
-const pageButtonStyle: React.CSSProperties = { minHeight: 44, padding: "6px 10px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-sm)", background: "transparent", color: "var(--color-text-on-dark)", fontSize: 13, fontWeight: 700, cursor: "pointer" };
+const pageSizeStyle: React.CSSProperties = {
+  minHeight: 40,
+  padding: "6px 8px",
+  border: "1px solid var(--color-ink-2)",
+  borderRadius: "var(--radius-sm)",
+  background: "var(--color-surface)",
+  color: "var(--color-ink)",
+  fontSize: 13,
+};
+const pageButtonStyle: React.CSSProperties = {
+  minHeight: 44,
+  padding: "6px 10px",
+  border: "1px solid var(--color-ink-2)",
+  borderRadius: "var(--radius-sm)",
+  background: "transparent",
+  color: "var(--color-text-on-dark)",
+  fontSize: 13,
+  fontWeight: 700,
+  cursor: "pointer",
+};

@@ -3,23 +3,14 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { formatRupiah } from "@/lib/format";
-import type {
-  ApiResponse,
-  Event,
-  MassRefundResult,
-  Refund,
-  RegistrationSummary,
-} from "@/lib/types.gen";
+import type { ApiResponse, Event, MassRefundResult, Refund, RegistrationSummary } from "@/lib/types.gen";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { confirm } from "@/components/ui/ConfirmDialog";
 import Badge from "@/components/ui/Badge";
 
-const REFUND_STATUS: Record<
-  string,
-  { label: string; variant: "ok" | "warn" | "danger" }
-> = {
-	requested: { label: "Menunggu Persetujuan", variant: "warn" },
+const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
+  requested: { label: "Menunggu Persetujuan", variant: "warn" },
   completed: { label: "Selesai", variant: "ok" },
   processing: { label: "Diproses", variant: "warn" },
   rejected: { label: "Ditolak", variant: "danger" },
@@ -39,16 +30,12 @@ export default function DashboardRefundPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [lookupEventId, setLookupEventId] = useState("");
-  const [registrations, setRegistrations] = useState<
-    RegistrationSummary[] | null
-  >(null);
+  const [registrations, setRegistrations] = useState<RegistrationSummary[] | null>(null);
   const [pendingRefunds, setPendingRefunds] = useState<Refund[] | null>(null);
   const [lookupBusy, setLookupBusy] = useState(false);
   const [lookupErr, setLookupErr] = useState<string | null>(null);
 
-  const [selectedReg, setSelectedReg] = useState<RegistrationSummary | null>(
-    null,
-  );
+  const [selectedReg, setSelectedReg] = useState<RegistrationSummary | null>(null);
   const [reason, setReason] = useState("");
   const [bankAccount, setBankAccount] = useState("");
   const [refund, setRefund] = useState<Refund | null>(null);
@@ -69,9 +56,7 @@ export default function DashboardRefundPage() {
         if (!cancelled) setEvents(res.data ?? []);
       } catch (e) {
         if (!cancelled) {
-          setLookupErr(
-            e instanceof ApiError ? e.message : "Gagal memuat daftar event.",
-          );
+          setLookupErr(e instanceof ApiError ? e.message : "Gagal memuat daftar event.");
         }
       } finally {
         if (!cancelled) setEventsLoading(false);
@@ -97,17 +82,13 @@ export default function DashboardRefundPage() {
     setLookupBusy(true);
     try {
       const [regRes, refRes] = await Promise.all([
-        api.get<ApiResponse<RegistrationSummary[]>>(
-          `/api/v1/events/${id}/registrations`,
-        ),
+        api.get<ApiResponse<RegistrationSummary[]>>(`/api/v1/events/${id}/registrations`),
         api.get<ApiResponse<Refund[]>>(`/api/v1/events/${id}/refunds`),
       ]);
       setRegistrations(regRes.data ?? []);
       setPendingRefunds(refRes.data ?? []);
     } catch (e) {
-      setLookupErr(
-        e instanceof ApiError ? e.message : "Gagal memuat data event.",
-      );
+      setLookupErr(e instanceof ApiError ? e.message : "Gagal memuat data event.");
     } finally {
       setLookupBusy(false);
     }
@@ -147,24 +128,26 @@ export default function DashboardRefundPage() {
     setBusy(true);
     setCompleteErr(null);
     try {
-      const res = await api.post<ApiResponse<Refund>>(
-        `/api/v1/organizer/refunds/${refundId}/complete`,
-      );
+      const res = await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refundId}/complete`);
       setRefund(res.data);
       await loadEventData();
     } catch (e) {
-      setCompleteErr(
-        e instanceof ApiError ? e.message : "Gagal menandai selesai.",
-      );
+      setCompleteErr(e instanceof ApiError ? e.message : "Gagal menandai selesai.");
     } finally {
       setBusy(false);
     }
   }
   async function approvePersonal(refundId: string) {
-    setBusy(true); setCompleteErr(null);
-    try { await api.post(`/api/v1/events/${lookupEventId.trim()}/refunds/${refundId}/approve`); await loadEventData(); }
-    catch (e) { setCompleteErr(e instanceof ApiError ? e.message : "Refund tidak dapat disetujui."); }
-    finally { setBusy(false); }
+    setBusy(true);
+    setCompleteErr(null);
+    try {
+      await api.post(`/api/v1/events/${lookupEventId.trim()}/refunds/${refundId}/approve`);
+      await loadEventData();
+    } catch (e) {
+      setCompleteErr(e instanceof ApiError ? e.message : "Refund tidak dapat disetujui.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function submitMass() {
@@ -177,20 +160,16 @@ export default function DashboardRefundPage() {
     }
     if (
       !(await confirm({
-        message:
-          "Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.",
+        message: "Refund SEMUA pendaftar berbayar untuk event ini? Tindakan ini tidak dapat dibatalkan.",
         variant: "danger",
       }))
     )
       return;
     setMassBusy(true);
     try {
-      const res = await api.post<ApiResponse<MassRefundResult>>(
-        `/api/v1/events/${id}/refund-all`,
-        {
-          reason: massReason,
-        },
-      );
+      const res = await api.post<ApiResponse<MassRefundResult>>(`/api/v1/events/${id}/refund-all`, {
+        reason: massReason,
+      });
       setMass(res.data);
       if (id === lookupEventId.trim()) {
         await loadEventData();
@@ -203,15 +182,11 @@ export default function DashboardRefundPage() {
   }
 
   const activeRefunds =
-    pendingRefunds?.filter(
-      (refundItem) =>
-        refundItem.status === "requested" || refundItem.status === "processing",
-    ) ?? [];
+    pendingRefunds?.filter((refundItem) => refundItem.status === "requested" || refundItem.status === "processing") ??
+    [];
 
   function registrationForRefund(refundItem: Refund) {
-    return registrations?.find(
-      (registration) => registration.id === refundItem.registration_id,
-    );
+    return registrations?.find((registration) => registration.id === refundItem.registration_id);
   }
 
   return (
@@ -226,19 +201,14 @@ export default function DashboardRefundPage() {
       >
         Refund
       </h1>
-      <p
-        style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}
-      >
-        Nominal refund dihitung server:{" "}
-        <code>total − biaya transaksi − donasi</code>. Donasi tidak dikembalikan
-        dan tetap disalurkan.
+      <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}>
+        Nominal refund dihitung server: <code>total − biaya transaksi − donasi</code>. Donasi tidak dikembalikan dan
+        tetap disalurkan.
       </p>
 
       {/* Event lookup */}
       <section style={card}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>
-          Pilih Event untuk Kelola Refund
-        </div>
+        <div style={{ fontWeight: 600, marginBottom: 12 }}>Pilih Event untuk Kelola Refund</div>
         {lookupErr && (
           <Alert variant="danger" className="mb-4">
             {lookupErr}
@@ -260,9 +230,7 @@ export default function DashboardRefundPage() {
               onChange={(e) => setLookupEventId(e.target.value)}
               disabled={eventsLoading}
             >
-              <option value="">
-                {eventsLoading ? "Memuat event…" : "Pilih event"}
-              </option>
+              <option value="">{eventsLoading ? "Memuat event…" : "Pilih event"}</option>
               {events.map((event) => (
                 <option key={event.id} value={event.id}>
                   {event.name}
@@ -270,12 +238,7 @@ export default function DashboardRefundPage() {
               ))}
             </select>
           </div>
-          <Button
-            variant="primary"
-            size="md"
-            disabled={lookupBusy || !lookupEventId}
-            onClick={loadEventData}
-          >
+          <Button variant="primary" size="md" disabled={lookupBusy || !lookupEventId} onClick={loadEventData}>
             {lookupBusy ? "Memuat…" : "Tampilkan Permintaan"}
           </Button>
         </div>
@@ -283,9 +246,7 @@ export default function DashboardRefundPage() {
         {registrations !== null && (
           <div style={{ marginTop: 16 }}>
             {registrations.length === 0 ? (
-              <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
-                Tidak ada pendaftar untuk event ini.
-              </p>
+              <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Tidak ada pendaftar untuk event ini.</p>
             ) : (
               <>
                 <div
@@ -295,7 +256,7 @@ export default function DashboardRefundPage() {
                     marginBottom: 8,
                   }}
                 >
-                  {registrations.length} pendaftar — klik baris untuk memilih
+                  {registrations.length} pendaftar - klik baris untuk memilih
                 </div>
                 <div style={{ overflowX: "auto" }}>
                   <table
@@ -325,10 +286,7 @@ export default function DashboardRefundPage() {
                           onClick={() => selectReg(reg)}
                           style={{
                             cursor: "pointer",
-                            backgroundColor:
-                              selectedReg?.id === reg.id
-                                ? "var(--color-info-tint)"
-                                : undefined,
+                            backgroundColor: selectedReg?.id === reg.id ? "var(--color-info-tint)" : undefined,
                             borderBottom: "1px solid var(--color-line)",
                           }}
                         >
@@ -336,12 +294,8 @@ export default function DashboardRefundPage() {
                             <code>{reg.registration_number}</code>
                           </td>
                           <td style={td}>{reg.name}</td>
-                          <td style={td}>
-                            {REG_STATUS_LABEL[reg.status] ?? reg.status}
-                          </td>
-                          <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
-                            {formatRupiah(reg.donation)}
-                          </td>
+                          <td style={td}>{REG_STATUS_LABEL[reg.status] ?? reg.status}</td>
+                          <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{formatRupiah(reg.donation)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -355,14 +309,20 @@ export default function DashboardRefundPage() {
 
       {pendingRefunds !== null && (
         <section style={{ ...card, marginTop: 16, borderColor: "var(--color-warn)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 8 }}>
+          <div
+            style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 8 }}
+          >
             <div style={{ fontWeight: 600 }}>Permintaan Refund Aktif</div>
             <Badge variant="warn">{activeRefunds.length} aktif</Badge>
           </div>
           <p style={{ color: "var(--color-ink-3)", fontSize: 13, margin: "0 0 12px" }}>
             Pengajuan personal dan refund manual yang masih membutuhkan tindakan untuk event terpilih.
           </p>
-          {completeErr && <Alert variant="danger" className="mb-4">{completeErr}</Alert>}
+          {completeErr && (
+            <Alert variant="danger" className="mb-4">
+              {completeErr}
+            </Alert>
+          )}
           {activeRefunds.length === 0 ? (
             <p style={{ color: "var(--color-ink-3)", fontSize: 14, margin: 0 }}>
               Tidak ada permintaan refund aktif untuk event ini.
@@ -376,23 +336,41 @@ export default function DashboardRefundPage() {
                   <div key={refundItem.id} style={activeRefundRow}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
-                        <strong style={{ fontSize: 14 }}>{registration?.name ?? `Refund ${refundItem.id.slice(0, 8)}…`}</strong>
+                        <strong style={{ fontSize: 14 }}>
+                          {registration?.name ?? `Refund ${refundItem.id.slice(0, 8)}…`}
+                        </strong>
                         <Badge variant={REFUND_STATUS[refundItem.status]?.variant ?? "warn"}>
                           {REFUND_STATUS[refundItem.status]?.label ?? refundItem.status}
                         </Badge>
                       </div>
-                      <div style={{ color: "var(--color-ink-3)", fontFamily: "var(--font-mono)", fontSize: 12, marginTop: 3 }}>
+                      <div
+                        style={{
+                          color: "var(--color-ink-3)",
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 12,
+                          marginTop: 3,
+                        }}
+                      >
                         {registration?.registration_number ?? refundItem.id}
-                        {" · "}{formatRupiah(refundItem.amount)}
+                        {" · "}
+                        {formatRupiah(refundItem.amount)}
                       </div>
-                      {refundItem.reason && <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginTop: 3 }}>Alasan: {refundItem.reason}</div>}
-                      {refundItem.bank_account && <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginTop: 3 }}>Rekening: {refundItem.bank_account}</div>}
+                      {refundItem.reason && (
+                        <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginTop: 3 }}>
+                          Alasan: {refundItem.reason}
+                        </div>
+                      )}
+                      {refundItem.bank_account && (
+                        <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginTop: 3 }}>
+                          Rekening: {refundItem.bank_account}
+                        </div>
+                      )}
                     </div>
                     <Button
                       variant="primary"
                       size="sm"
                       disabled={busy}
-                      onClick={() => requested ? approvePersonal(refundItem.id) : completeManual(refundItem.id)}
+                      onClick={() => (requested ? approvePersonal(refundItem.id) : completeManual(refundItem.id))}
                     >
                       {requested ? "Setujui" : "Tandai Selesai"}
                     </Button>
@@ -406,9 +384,7 @@ export default function DashboardRefundPage() {
 
       {/* Single refund form */}
       <section style={{ ...card, marginTop: 16 }}>
-        <div style={{ fontWeight: 600, marginBottom: 12 }}>
-          Proses Refund Satu Pendaftar
-        </div>
+        <div style={{ fontWeight: 600, marginBottom: 12 }}>Proses Refund Satu Pendaftar</div>
         {err && (
           <Alert variant="danger" className="mb-4">
             {err}
@@ -451,12 +427,7 @@ export default function DashboardRefundPage() {
             value={bankAccount}
             onChange={setBankAccount}
           />
-          <Button
-            variant="danger"
-            size="md"
-            disabled={busy || !selectedReg}
-            onClick={submitRefund}
-          >
+          <Button variant="danger" size="md" disabled={busy || !selectedReg} onClick={submitRefund}>
             {busy ? "Memproses…" : "Proses Refund"}
           </Button>
         </div>
@@ -477,30 +448,15 @@ export default function DashboardRefundPage() {
                 marginBottom: 8,
               }}
             >
-              <span style={{ fontWeight: 600 }}>
-                Refund #{refund.id.slice(0, 8)}…
-              </span>
+              <span style={{ fontWeight: 600 }}>Refund #{refund.id.slice(0, 8)}…</span>
               <Badge variant={REFUND_STATUS[refund.status]?.variant ?? "warn"}>
                 {REFUND_STATUS[refund.status]?.label ?? refund.status}
               </Badge>
             </div>
-            <Row
-              label="Nominal Refund"
-              value={formatRupiah(refund.amount)}
-              mono
-            />
-            <Row
-              label="Donasi (tidak dikembalikan)"
-              value={formatRupiah(refund.donation)}
-              mono
-            />
-            <Row
-              label="Metode / Mode"
-              value={`${refund.method} · ${refund.mode}`}
-            />
-            {refund.bank_account && (
-              <Row label="No. Rekening" value={refund.bank_account} mono />
-            )}
+            <Row label="Nominal Refund" value={formatRupiah(refund.amount)} mono />
+            <Row label="Donasi (tidak dikembalikan)" value={formatRupiah(refund.donation)} mono />
+            <Row label="Metode / Mode" value={`${refund.method} · ${refund.mode}`} />
+            {refund.bank_account && <Row label="No. Rekening" value={refund.bank_account} mono />}
             <Alert variant="info" className="mb-0">
               Donasi tetap disalurkan ke penyelenggara/penerima manfaat.
             </Alert>
@@ -509,12 +465,8 @@ export default function DashboardRefundPage() {
       </section>
 
       {/* Mass refund */}
-      <section
-        style={{ ...card, marginTop: 24, borderColor: "var(--color-danger)" }}
-      >
-        <div style={{ fontWeight: 600, marginBottom: 4 }}>
-          Refund Massal (Event Dibatalkan)
-        </div>
+      <section style={{ ...card, marginTop: 24, borderColor: "var(--color-danger)" }}>
+        <div style={{ fontWeight: 600, marginBottom: 4 }}>Refund Massal (Event Dibatalkan)</div>
         <p
           style={{
             fontSize: 13,
@@ -522,8 +474,7 @@ export default function DashboardRefundPage() {
             marginBottom: 12,
           }}
         >
-          Hanya untuk event berstatus <b>cancelled</b>. Merefund seluruh
-          pendaftar berbayar.
+          Hanya untuk event berstatus <b>cancelled</b>. Merefund seluruh pendaftar berbayar.
         </p>
         {massErr && (
           <Alert variant="danger" className="mb-4">
@@ -532,17 +483,13 @@ export default function DashboardRefundPage() {
         )}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: 0 }}>
-            Event terpilih: {lookupEventId
-              ? events.find((event) => event.id === lookupEventId)?.name ?? lookupEventId
+            Event terpilih:{" "}
+            {lookupEventId
+              ? (events.find((event) => event.id === lookupEventId)?.name ?? lookupEventId)
               : "Belum ada event yang dipilih"}
           </p>
           <Labeled label="Alasan" value={massReason} onChange={setMassReason} />
-          <Button
-            variant="danger"
-            size="md"
-            disabled={massBusy || !lookupEventId}
-            onClick={submitMass}
-          >
+          <Button variant="danger" size="md" disabled={massBusy || !lookupEventId} onClick={submitMass}>
             {massBusy ? "Memproses…" : "Refund Semua Pendaftar"}
           </Button>
         </div>
@@ -605,37 +552,16 @@ const activeRefundRow: React.CSSProperties = {
   borderRadius: "var(--radius-sm)",
 };
 
-function Labeled({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function Labeled({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="field">
       <label className="field-label">{label}</label>
-      <input
-        className="field-input"
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      <input className="field-input" type="text" value={value} onChange={(e) => onChange(e.target.value)} />
     </div>
   );
 }
 
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
+function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div
       style={{
@@ -647,9 +573,7 @@ function Row({
       }}
     >
       <span style={{ color: "var(--color-ink-3)" }}>{label}</span>
-      <span style={mono ? { fontFamily: "var(--font-mono)" } : undefined}>
-        {value}
-      </span>
+      <span style={mono ? { fontFamily: "var(--font-mono)" } : undefined}>{value}</span>
     </div>
   );
 }

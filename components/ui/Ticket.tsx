@@ -29,14 +29,12 @@ export default function Ticket({
   className = "",
 }: TicketProps) {
   const dashIdx = registrationNumber.indexOf("-");
-  const regPrefix =
-    dashIdx !== -1 ? registrationNumber.slice(0, dashIdx + 1) : "";
-  const regCode =
-    dashIdx !== -1 ? registrationNumber.slice(dashIdx + 1) : registrationNumber;
+  const regPrefix = dashIdx !== -1 ? registrationNumber.slice(0, dashIdx + 1) : "";
+  const regCode = dashIdx !== -1 ? registrationNumber.slice(dashIdx + 1) : registrationNumber;
 
   return (
     <div className={`ticket ${className}`}>
-      {/* Stub on the LEFT — QR + registration code, perforated right edge */}
+      {/* Stub on the LEFT - QR + registration code, perforated right edge */}
       <div className="stub">
         <div className="qr">
           <QRCodeSVG value={qrToken} size={72} level="M" />
@@ -59,13 +57,7 @@ export default function Ticket({
           {gender && (
             <div>
               <div className="k">Jenis Kelamin</div>
-              <div className="v">
-                {gender === "male"
-                  ? "Laki-laki"
-                  : gender === "female"
-                    ? "Perempuan"
-                    : gender}
-              </div>
+              <div className="v">{gender === "male" ? "Laki-laki" : gender === "female" ? "Perempuan" : gender}</div>
             </div>
           )}
           {ageClass && (

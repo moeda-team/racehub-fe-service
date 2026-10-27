@@ -84,7 +84,8 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   }, [loadRegistration]);
 
   useEffect(() => {
-    api.get<ApiResponse<PaymentMethodOption[]>>("/api/v1/payments/methods")
+    api
+      .get<ApiResponse<PaymentMethodOption[]>>("/api/v1/payments/methods")
       .then((res) => setMethodOptions(res.data ?? []))
       .catch(() => setError("Metode pembayaran sedang tidak tersedia."));
   }, []);
@@ -214,10 +215,14 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   const lines = quote
     ? [
         {
-          label: "Harga Tiket",
-          value: formatRupiah(quote.price),
+          label: "Harga Event",
+          value: formatRupiah(quote.ticket_price ?? quote.price),
           original: quote.original_price != null ? formatRupiah(quote.original_price) : undefined,
         },
+        ...(quote.addons ?? []).map((addon) => ({
+          label: `${addon.title}: ${addon.name}`,
+          value: formatRupiah(addon.price),
+        })),
         ...(quote.donation > 0 ? [{ label: "Donasi", value: formatRupiah(quote.donation) }] : []),
         {
           label: "Platform",
@@ -274,7 +279,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             fontSize: 14,
           }}
         >
-          <strong>Anda diundang — Tiket Gratis</strong> — harga tiket dan fee platform dibebaskan.
+          <strong>Anda diundang - Tiket Gratis</strong> - harga tiket dan fee platform dibebaskan.
           {reg.donation > 0
             ? " Anda hanya perlu membayar donasi dan fee transaksi."
             : " Tidak ada biaya yang perlu dibayar."}
@@ -310,7 +315,8 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
               margin: "10px 0 16px",
             }}
           >
-            ⛁ Pilih metode dulu untuk melihat estimasi biaya transaksi. Nominal final mengikuti konfirmasi provider setelah pembayaran dibuat.
+            ⛁ Pilih metode dulu untuk melihat estimasi biaya transaksi. Nominal final mengikuti konfirmasi provider
+            setelah pembayaran dibuat.
           </p>
           <Button
             variant="primary"
@@ -342,11 +348,18 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           {charge.biller_code && <Row label="Kode Biller (Mandiri)" value={charge.biller_code} mono />}
           {charge.bill_key && <Row label="Nomor Tagihan (Mandiri)" value={charge.bill_key} mono />}
           {charge.qr_string && <QrDisplay value={charge.qr_string} deeplinkUrl={charge.deeplink_url} />}
-		  {(charge.payment_url ?? charge.deeplink_url) && (
-			<a href={charge.payment_url ?? charge.deeplink_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 12 }}>
-			  <Button variant="primary" size="md" style={{ width: "100%" }}>Lanjutkan ke iPaymu</Button>
-			</a>
-		  )}
+          {(charge.payment_url ?? charge.deeplink_url) && (
+            <a
+              href={charge.payment_url ?? charge.deeplink_url}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: "block", marginTop: 12 }}
+            >
+              <Button variant="primary" size="md" style={{ width: "100%" }}>
+                Lanjutkan ke iPaymu
+              </Button>
+            </a>
+          )}
           {charge.expires_at && reg.status === "pending_payment" && <PaymentCountdown expiresAt={charge.expires_at} />}
           <hr
             style={{
@@ -356,11 +369,14 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             }}
           />
           <Row
-            label="Harga Tiket"
-            value={formatRupiah(charge.quote.price)}
+            label="Harga Event"
+            value={formatRupiah(charge.quote.ticket_price ?? charge.quote.price)}
             original={charge.quote.original_price != null ? formatRupiah(charge.quote.original_price) : undefined}
             mono
           />
+          {(charge.quote.addons ?? reg.addons ?? []).map((addon) => (
+            <Row key={addon.id} label={`${addon.title}: ${addon.name}`} value={formatRupiah(addon.price)} mono />
+          ))}
           {charge.quote.donation > 0 && <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />}
           <Row
             label="Platform"
@@ -371,11 +387,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             mono
           />
           {charge.quote.fee_midtrans_charged_to_buyer && (
-            <Row
-              label="Biaya Transaksi"
-              value={formatRupiah(charge.quote.fee_midtrans)}
-              mono
-            />
+            <Row label="Biaya Transaksi" value={formatRupiah(charge.quote.fee_midtrans)} mono />
           )}
           <hr
             style={{
@@ -485,7 +497,7 @@ function formatPaymentDate(value: string): string {
 
 // QR rendering for QRIS. iPaymu may return either a raw payload
 // (encode it client-side) or a ready-made QR image URL (e.g. GoPay
-// generate-qr-code). A URL must be shown as <img>, never re-encoded — its
+// generate-qr-code). A URL must be shown as <img>, never re-encoded - its
 // pixels already are the payment QR.
 function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string }) {
   const isUrl = /^https?:\/\//i.test(value);
@@ -506,7 +518,7 @@ function QrDisplay({ value, deeplinkUrl }: { value: string; deeplinkUrl?: string
           fontSize: 14,
         }}
       >
-        Kode QR — pindai untuk membayar
+        Kode QR - pindai untuk membayar
       </span>
       <div
         style={{

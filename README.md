@@ -1,6 +1,6 @@
 # racehub-fe-service (Frontend)
 
-Frontend web LowkeyThings — platform event Indonesia. Next.js App Router + TypeScript + Tailwind (design tokens).
+Frontend web LowkeyThings - platform event Indonesia. Next.js App Router + TypeScript + Tailwind (design tokens).
 Repo ini **konsumen API** dari [`racehub-be-service`](../racehub-be-service/); tidak memegang logika bisnis uang/kuota.
 
 ## Stack
@@ -64,7 +64,7 @@ pnpm check:api  # gagal bila output generator belum di-commit
 
 ## Dokumentasi lanjutan
 
-- [`AGENTS.md`](./AGENTS.md) — panduan AI coding agent
-- [`CLAUDE.md`](./CLAUDE.md) — alur kerja Claude Code
-- [`memory.md`](./memory.md) — memori berjalan
+- [`AGENTS.md`](./AGENTS.md) - panduan AI coding agent
+- [`CLAUDE.md`](./CLAUDE.md) - alur kerja Claude Code
+- [`memory.md`](./memory.md) - memori berjalan
 - Backend: [`racehub-be-service/AGENTS.md`](../racehub-be-service/AGENTS.md) · [`api/openapi.yaml`](../racehub-be-service/api/openapi.yaml)

@@ -25,7 +25,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const [detail, setDetail] = useState<PublicEventDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  // Snapshot waktu saat halaman dibuka — server tetap memvalidasi ulang periode penjualan saat submit.
+  // Snapshot waktu saat halaman dibuka - server tetap memvalidasi ulang periode penjualan saat submit.
   const [now] = useState(() => Date.now());
 
   // Wizard state.
@@ -40,6 +40,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const [donation, setDonation] = useState("0");
   const [extraData, setExtraData] = useState<Record<string, string>>({});
   const [extraErrors, setExtraErrors] = useState<Record<string, string>>({});
+  const [addonSelections, setAddonSelections] = useState<Record<string, string>>({});
 
   function isParticipantDataValid(): boolean {
     if (!isValidEmail(email.trim())) {
@@ -87,11 +88,12 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   }, [detail]);
 
   const ticketsForDistance = useMemo(
-    () => (detail && distanceId
-      ? detail.ticket_categories
-          .filter((t) => t.category_id === distanceId)
-          .sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }))
-      : []),
+    () =>
+      detail && distanceId
+        ? detail.ticket_categories
+            .filter((t) => t.category_id === distanceId)
+            .sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }))
+        : [],
     [detail, distanceId],
   );
   const selectedTicket = useMemo(
@@ -101,6 +103,14 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const selectedDistance = useMemo(
     () => detail?.categories.find((d) => d.id === distanceId) ?? null,
     [detail, distanceId],
+  );
+  const selectedAddons = useMemo(
+    () =>
+      (detail?.addon_groups ?? []).flatMap((group) => {
+        const option = group.options.find((candidate) => candidate.id === addonSelections[group.id]);
+        return option ? [{ ...option, title: group.title }] : [];
+      }),
+    [detail, addonSelections],
   );
 
   // Retry submit (double-click / gagal jaringan) dengan data sama tidak boleh
@@ -171,6 +181,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
         // field explicit because the backend contract still expects it.
         donation: 0,
         extra_data: extraData,
+        addon_option_ids: selectedAddons.map((addon) => addon.id),
       };
       const res = await api.post<ApiResponse<Registration>>("/api/v1/registrations", body, {
         idempotencyKey: regIdem.keyFor(body),
@@ -208,9 +219,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
         <Link href={`/events/${detail.event.id}`} style={back}>
           ← {detail.event.name}
         </Link>
-        <Alert variant="info">
-          Event ini segera hadir. Pendaftaran belum dibuka.
-        </Alert>
+        <Alert variant="info">Event ini segera hadir. Pendaftaran belum dibuka.</Alert>
       </main>
     );
   }
@@ -288,9 +297,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
         <aside className="register-event-summary" aria-label="Ringkasan event">
           <p className="register-event-summary__eyebrow">Pendaftaran event</p>
           <h2 className="register-event-summary__title">{detail.event.name}</h2>
-          {detail.event.location && (
-            <p className="register-event-summary__location">{detail.event.location}</p>
-          )}
+          {detail.event.location && <p className="register-event-summary__location">{detail.event.location}</p>}
           {detail.event.description && <RichText html={detail.event.description} />}
         </aside>
 
@@ -318,187 +325,244 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
 
           {/* Step 1: distance + ticket */}
           {step === 1 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div className="field">
-            <label className="field-label">
-              {detail.event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
-            </label>
-            <select
-              className="field-input"
-              value={distanceId ?? ""}
-              onChange={(e) => {
-                setDistanceId(e.target.value || null);
-                setTicketId(null);
-              }}
-            >
-              <option value="">{detail.event.event_type === "running" ? "Pilih jarak" : "Pilih kategori"}</option>
-              {detail.categories.map((d) => (
-                <option key={d.id} value={d.id} disabled={d.quota_remaining <= 0}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {distanceId && (
-            <div className="field">
-              <label className="field-label">Tiket</label>
-              <select
-                className="field-input"
-                value={ticketId ?? ""}
-                onChange={(e) => setTicketId(e.target.value || null)}
-              >
-                <option value="">Pilih tiket</option>
-                {ticketsForDistance.map((t) => {
-                  const expired = !!t.sale_end && new Date(t.sale_end).getTime() < now;
-                  const notStarted = !!t.sale_start && new Date(t.sale_start).getTime() > now;
-                  const soldOut = t.quota_remaining <= 0;
-                  const note = expired ? "(berakhir)" : notStarted ? "(belum dibuka)" : "";
-                  return (
-                    <option key={t.id} value={t.id} disabled={soldOut || expired || notStarted}>
-                      {t.name} — {formatRupiah(t.price)} {note}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="field">
+                <label className="field-label">
+                  {detail.event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
+                </label>
+                <select
+                  className="field-input"
+                  value={distanceId ?? ""}
+                  onChange={(e) => {
+                    setDistanceId(e.target.value || null);
+                    setTicketId(null);
+                  }}
+                >
+                  <option value="">{detail.event.event_type === "running" ? "Pilih jarak" : "Pilih kategori"}</option>
+                  {detail.categories.map((d) => (
+                    <option key={d.id} value={d.id} disabled={d.quota_remaining <= 0}>
+                      {d.name}
                     </option>
-                  );
-                })}
-              </select>
-            </div>
-          )}
+                  ))}
+                </select>
+              </div>
 
-          <Button variant="primary" size="md" disabled={!ticketId} onClick={() => setStep(2)}>
-            Lanjut
-          </Button>
-        </div>
+              {distanceId && (
+                <div className="field">
+                  <label className="field-label">Tiket</label>
+                  <select
+                    className="field-input"
+                    value={ticketId ?? ""}
+                    onChange={(e) => setTicketId(e.target.value || null)}
+                  >
+                    <option value="">Pilih tiket</option>
+                    {ticketsForDistance.map((t) => {
+                      const expired = !!t.sale_end && new Date(t.sale_end).getTime() < now;
+                      const notStarted = !!t.sale_start && new Date(t.sale_start).getTime() > now;
+                      const soldOut = t.quota_remaining <= 0;
+                      const note = expired ? "(berakhir)" : notStarted ? "(belum dibuka)" : "";
+                      return (
+                        <option key={t.id} value={t.id} disabled={soldOut || expired || notStarted}>
+                          {t.name} - {formatRupiah(t.price)} {note}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+
+              <Button variant="primary" size="md" disabled={!ticketId} onClick={() => setStep(2)}>
+                Lanjut
+              </Button>
+            </div>
           )}
 
           {/* Step 2: participant data */}
           {step === 2 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <LabeledInput label="Nama Lengkap" value={name} onChange={setName} required />
-          <LabeledInput label="Email" type="email" value={email} onChange={setEmail} required />
-          <LabeledInput label="No. HP" type="tel" value={phone} onChange={setPhone} required />
-          <LabeledInput
-            label="Tanggal Lahir"
-            type="date"
-            value={birthDate}
-            onChange={setBirthDate}
-            required
-            hint="Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
-          />
-          <div className="field">
-            <label className="field-label">Jenis Kelamin</label>
-            <select className="field-input" value={gender} onChange={(e) => setGender(e.target.value)} required>
-              <option value="">Pilih</option>
-              <option value="male">Laki-laki</option>
-              <option value="female">Perempuan</option>
-            </select>
-          </div>
-
-          {detail.registration_fields && detail.registration_fields.length > 0 && (
-            <>
-              <hr
-                style={{
-                  border: "none",
-                  borderTop: "1px solid var(--color-line)",
-                  margin: "4px 0",
-                }}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <LabeledInput label="Nama Lengkap" value={name} onChange={setName} required />
+              <LabeledInput label="Email" type="email" value={email} onChange={setEmail} required />
+              <LabeledInput label="No. HP" type="tel" value={phone} onChange={setPhone} required />
+              <LabeledInput
+                label="Tanggal Lahir"
+                type="date"
+                value={birthDate}
+                onChange={setBirthDate}
+                required
+                hint="Wajib - kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
               />
-              <p
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "var(--color-ink-2)",
-                }}
-              >
-                Data Tambahan
-              </p>
-              {detail.registration_fields.map((f) => (
-                <DynamicField
-                  key={f.id}
-                  field={f}
-                  value={extraData[f.id] ?? ""}
-                  error={extraErrors[f.id]}
-                  onChange={(v) => {
-                    setExtraData((prev) => ({ ...prev, [f.id]: v }));
-                    setExtraErrors((prev) => ({ ...prev, [f.id]: "" }));
-                  }}
-                />
-              ))}
-            </>
-          )}
+              <div className="field">
+                <label className="field-label">Jenis Kelamin</label>
+                <select className="field-input" value={gender} onChange={(e) => setGender(e.target.value)} required>
+                  <option value="">Pilih</option>
+                  <option value="male">Laki-laki</option>
+                  <option value="female">Perempuan</option>
+                </select>
+              </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button
-              variant="ghost"
-              size="md"
-              onClick={() => {
-                setStep(1);
-                setExtraData({});
-              }}
-            >
-              Kembali
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              style={{ flex: 1 }}
-              disabled={!name || !email || !phone || !birthDate || !gender}
-              onClick={() => {
-                if (isParticipantDataValid() && validateExtraFields()) setStep(3);
-              }}
-            >
-              Lanjut
-            </Button>
-          </div>
-        </div>
+              {detail.registration_fields && detail.registration_fields.length > 0 && (
+                <>
+                  <hr
+                    style={{
+                      border: "none",
+                      borderTop: "1px solid var(--color-line)",
+                      margin: "4px 0",
+                    }}
+                  />
+                  <p
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "var(--color-ink-2)",
+                    }}
+                  >
+                    Data Tambahan
+                  </p>
+                  {detail.registration_fields.map((f) => (
+                    <DynamicField
+                      key={f.id}
+                      field={f}
+                      value={extraData[f.id] ?? ""}
+                      error={extraErrors[f.id]}
+                      onChange={(v) => {
+                        setExtraData((prev) => ({ ...prev, [f.id]: v }));
+                        setExtraErrors((prev) => ({ ...prev, [f.id]: "" }));
+                      }}
+                    />
+                  ))}
+                </>
+              )}
+
+              {(detail.addon_groups ?? []).length > 0 && (
+                <>
+                  <hr style={{ border: "none", borderTop: "1px solid var(--color-line)", margin: "4px 0" }} />
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-2)", margin: 0 }}>
+                    Custom Add-ons (opsional)
+                  </p>
+                  {detail.addon_groups.map((group) => (
+                    <fieldset key={group.id} className="field" style={{ border: 0, padding: 0, margin: 0 }}>
+                      <legend className="field-label">{group.title}</legend>
+                      <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", fontSize: 14 }}>
+                        <input
+                          type="radio"
+                          name={`addon-${group.id}`}
+                          checked={!addonSelections[group.id]}
+                          onChange={() => setAddonSelections((current) => ({ ...current, [group.id]: "" }))}
+                        />
+                        Tidak memilih
+                      </label>
+                      {group.options.map((option) => (
+                        <label
+                          key={option.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 12,
+                            padding: "7px 0",
+                            fontSize: 14,
+                          }}
+                        >
+                          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <input
+                              type="radio"
+                              name={`addon-${group.id}`}
+                              checked={addonSelections[group.id] === option.id}
+                              onChange={() => setAddonSelections((current) => ({ ...current, [group.id]: option.id }))}
+                            />
+                            {option.name}
+                          </span>
+                          <span style={{ fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+                            {option.price > 0 ? `+${formatRupiah(option.price)}` : "Gratis"}
+                          </span>
+                        </label>
+                      ))}
+                    </fieldset>
+                  ))}
+                </>
+              )}
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={() => {
+                    setStep(1);
+                    setExtraData({});
+                  }}
+                >
+                  Kembali
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  style={{ flex: 1 }}
+                  disabled={!name || !email || !phone || !birthDate || !gender}
+                  onClick={() => {
+                    if (isParticipantDataValid() && validateExtraFields()) setStep(3);
+                  }}
+                >
+                  Lanjut
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* Step 3: donation + review */}
           {step === 3 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {PUBLIC_DONATIONS_ENABLED && (
-            <div className="field">
-              <label className="field-label">Donasi (opsional)</label>
-              <input
-                className="field-input"
-                type="text"
-                inputMode="numeric"
-                value={formatNumberInput(donation)}
-                onChange={(e) => setDonation(parseNumberInput(e.target.value))}
-              />
-              <span className="field-hint">Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {PUBLIC_DONATIONS_ENABLED && (
+                <div className="field">
+                  <label className="field-label">Donasi (opsional)</label>
+                  <input
+                    className="field-input"
+                    type="text"
+                    inputMode="numeric"
+                    value={formatNumberInput(donation)}
+                    onChange={(e) => setDonation(parseNumberInput(e.target.value))}
+                  />
+                  <span className="field-hint">Bebas biaya admin &amp; tidak dapat dikembalikan (non-refundable)</span>
+                </div>
+              )}
+
+              <div style={card}>
+                <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>
+                <Row label="Event" value={detail.event.name} />
+                <Row
+                  label={detail.event.event_type === "running" ? "Jarak" : "Kategori"}
+                  value={selectedDistance?.name ?? "-"}
+                />
+                <Row label="Tiket" value={selectedTicket?.name ?? "-"} />
+                <Row label="Harga tiket" value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"} mono />
+                {selectedAddons.map((addon) => (
+                  <Row
+                    key={addon.id}
+                    label={`${addon.title}: ${addon.name}`}
+                    value={addon.price > 0 ? `+${formatRupiah(addon.price)}` : "Gratis"}
+                    mono
+                  />
+                ))}
+                {PUBLIC_DONATIONS_ENABLED && <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />}
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "var(--color-ink-3)",
+                    marginTop: 8,
+                  }}
+                >
+                  Total &amp; biaya akan dihitung server pada tahap pembayaran.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <Button variant="ghost" size="md" onClick={() => setStep(2)}>
+                  Kembali
+                </Button>
+                <Button variant="primary" size="md" style={{ flex: 1 }} disabled={submitting} onClick={handleSubmit}>
+                  {submitting ? "Mendaftar…" : "Daftar Sekarang"}
+                </Button>
+              </div>
             </div>
-          )}
-
-          <div style={card}>
-            <div style={{ fontWeight: 600, marginBottom: 8 }}>Ringkasan</div>
-            <Row label="Event" value={detail.event.name} />
-            <Row
-              label={detail.event.event_type === "running" ? "Jarak" : "Kategori"}
-              value={selectedDistance?.name ?? "-"}
-            />
-            <Row label="Tiket" value={selectedTicket?.name ?? "-"} />
-            <Row label="Harga tiket" value={selectedTicket ? formatRupiah(selectedTicket.price) : "-"} mono />
-            {PUBLIC_DONATIONS_ENABLED && <Row label="Donasi" value={formatRupiah(Number(donation) || 0)} mono />}
-            <p
-              style={{
-                fontSize: 12,
-                color: "var(--color-ink-3)",
-                marginTop: 8,
-              }}
-            >
-              Total &amp; biaya akan dihitung server pada tahap pembayaran.
-            </p>
-          </div>
-
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button variant="ghost" size="md" onClick={() => setStep(2)}>
-              Kembali
-            </Button>
-            <Button variant="primary" size="md" style={{ flex: 1 }} disabled={submitting} onClick={handleSubmit}>
-              {submitting ? "Mendaftar…" : "Daftar Sekarang"}
-            </Button>
-          </div>
-        </div>
           )}
         </div>
       </div>

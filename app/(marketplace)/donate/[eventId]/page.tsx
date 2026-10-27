@@ -4,7 +4,13 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { api, ApiError } from "@/lib/api";
-import type { ApiResponse, PaymentMethod, PaymentMethodOption, PublicEventDetail, StandaloneDonation } from "@/lib/types.gen";
+import type {
+  ApiResponse,
+  PaymentMethod,
+  PaymentMethodOption,
+  PublicEventDetail,
+  StandaloneDonation,
+} from "@/lib/types.gen";
 import { formatNumberInput, formatRupiah, parseNumberInput } from "@/lib/format";
 import { PUBLIC_DONATIONS_ENABLED } from "@/lib/features";
 import Alert from "@/components/ui/Alert";
@@ -51,10 +57,7 @@ function DonationCheckout({ eventId }: { eventId: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<PublicEventDetail>>(
-          `/api/v1/events/${eventId}`,
-          { auth: false },
-        );
+        const res = await api.get<ApiResponse<PublicEventDetail>>(`/api/v1/events/${eventId}`, { auth: false });
         if (!cancelled) setEventDetail(res.data);
       } catch {
         if (!cancelled) setEventDetail(null);
@@ -67,8 +70,12 @@ function DonationCheckout({ eventId }: { eventId: string }) {
     };
   }, [eventId]);
   useEffect(() => {
-    api.get<ApiResponse<PaymentMethodOption[]>>("/api/v1/payments/methods", { auth: false })
-      .then((res) => { setMethodOptions(res.data ?? []); if (res.data?.[0]) setMethod(res.data[0].id); })
+    api
+      .get<ApiResponse<PaymentMethodOption[]>>("/api/v1/payments/methods", { auth: false })
+      .then((res) => {
+        setMethodOptions(res.data ?? []);
+        if (res.data?.[0]) setMethod(res.data[0].id);
+      })
       .catch(() => setError("Metode pembayaran sedang tidak tersedia."));
   }, []);
   async function submit(e: React.FormEvent) {
@@ -83,7 +90,14 @@ function DonationCheckout({ eventId }: { eventId: string }) {
     try {
       const res = await api.post<ApiResponse<StandaloneDonation>>(
         "/api/v1/donations/charge",
-        { event_id: eventId, amount: value, donor_name: name, donor_email: email, donor_phone: phone, payment_method: method },
+        {
+          event_id: eventId,
+          amount: value,
+          donor_name: name,
+          donor_email: email,
+          donor_phone: phone,
+          payment_method: method,
+        },
         { auth: false },
       );
       setResult(res.data);
@@ -127,12 +141,7 @@ function DonationCheckout({ eventId }: { eventId: string }) {
     );
   }
 
-  if (
-    !result &&
-    (!eventDetail ||
-      eventDetail.event.status === "coming_soon" ||
-      !eventDetail.event.donation_enabled)
-  ) {
+  if (!result && (!eventDetail || eventDetail.event.status === "coming_soon" || !eventDetail.event.donation_enabled)) {
     return (
       <main className="max-w-xl mx-auto px-4 py-10">
         <Link href={`/events/${eventId}`} style={{ color: "var(--color-sprint)", fontSize: 14 }}>
@@ -193,12 +202,14 @@ function DonationCheckout({ eventId }: { eventId: string }) {
                   Kode biller: <code>{result.biller_code}</code> · Kunci bayar: <code>{result.bill_key}</code>
                 </p>
               )}
-			  {result.qr_string && <DonationQrDisplay value={result.qr_string} />}
-			  {result.deeplink_url && (
-				<a href={result.deeplink_url} target="_blank" rel="noreferrer">
-				  <Button type="button" variant="primary">Lanjutkan ke iPaymu</Button>
-				</a>
-			  )}
+              {result.qr_string && <DonationQrDisplay value={result.qr_string} />}
+              {result.deeplink_url && (
+                <a href={result.deeplink_url} target="_blank" rel="noreferrer">
+                  <Button type="button" variant="primary">
+                    Lanjutkan ke iPaymu
+                  </Button>
+                </a>
+              )}
               {result.expires_at && (
                 <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>
                   Selesaikan sebelum {new Date(result.expires_at).toLocaleString("id-ID")}.
@@ -238,10 +249,10 @@ function DonationCheckout({ eventId }: { eventId: string }) {
             Email untuk konfirmasi (opsional)
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} style={input} />
           </label>
-		  <label style={label}>
-			Nomor telepon
-			<input inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required style={input} />
-		  </label>
+          <label style={label}>
+            Nomor telepon
+            <input inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required style={input} />
+          </label>
           <label style={label}>
             Metode pembayaran
             <select value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)} style={input}>
@@ -283,7 +294,9 @@ function SummaryRow({ label, value, mono = false }: { label: string; value: stri
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 16, fontSize: 14 }}>
       <dt style={{ color: "var(--color-ink-3)" }}>{label}</dt>
-      <dd style={{ margin: 0, textAlign: "right", fontWeight: 600, ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}>
+      <dd
+        style={{ margin: 0, textAlign: "right", fontWeight: 600, ...(mono ? { fontFamily: "var(--font-mono)" } : {}) }}
+      >
         {value}
       </dd>
     </div>
@@ -295,14 +308,25 @@ function DonationQrDisplay({ value }: { value: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, margin: "16px 0" }}>
       <span style={{ alignSelf: "flex-start", color: "var(--color-ink-3)", fontSize: 14 }}>
-        Kode QR — pindai untuk membayar
+        Kode QR - pindai untuk membayar
       </span>
       <div style={{ background: "#fff", padding: 12, borderRadius: "var(--radius-md)" }}>
         {isImageURL ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="Kode QR pembayaran" width={280} height={280} style={{ display: "block", maxWidth: "100%", height: "auto" }} />
+          <img
+            src={value}
+            alt="Kode QR pembayaran"
+            width={280}
+            height={280}
+            style={{ display: "block", maxWidth: "100%", height: "auto" }}
+          />
         ) : (
-          <QRCodeSVG value={value} size={280} level="M" style={{ display: "block", maxWidth: "100%", height: "auto" }} />
+          <QRCodeSVG
+            value={value}
+            size={280}
+            level="M"
+            style={{ display: "block", maxWidth: "100%", height: "auto" }}
+          />
         )}
       </div>
     </div>

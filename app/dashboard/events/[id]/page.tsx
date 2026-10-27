@@ -19,6 +19,7 @@ import { eventStatusDisplay } from "@/lib/event-status";
 import EventForm, {
   EventFormValues,
   RegistrationFieldPreview,
+  RegistrationAddonsForm,
   RegistrationFieldsForm,
 } from "@/components/EventForm";
 import EventDetailView from "@/components/EventDetailView";
@@ -26,12 +27,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import { confirm } from "@/components/ui/ConfirmDialog";
-import {
-  compressEventImage,
-  EVENT_IMAGE_MAX_BYTES,
-  EVENT_IMAGE_TYPES,
-  formatImageSize,
-} from "@/lib/image-upload";
+import { compressEventImage, EVENT_IMAGE_MAX_BYTES, EVENT_IMAGE_TYPES, formatImageSize } from "@/lib/image-upload";
 import DataTable, { Column } from "@/components/ui/DataTable";
 import { CircleCheck, Image as ImageIcon, TriangleAlert } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -54,6 +50,7 @@ import type {
   PaymentChargeResponse,
   PublicEventDetail,
   RegistrationField,
+  RegistrationAddonGroup,
   RecapRow,
   Refund,
   RefundSummary,
@@ -73,11 +70,7 @@ const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "komunikasi", label: "Komunikasi" },
 ];
 
-export default function EditEventPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const eventId = id;
 
@@ -86,23 +79,18 @@ export default function EditEventPage({
   const [loadError, setLoadError] = useState<string | null>(null);
   // Live values from the edit form, feeding the marketplace-card preview.
   const [formPreview, setFormPreview] = useState<EventFormValues | null>(null);
-  const [registrationFieldsPreview, setRegistrationFieldsPreview] = useState<
-    RegistrationFieldPreview[]
-  >([]);
+  const [registrationFieldsPreview, setRegistrationFieldsPreview] = useState<RegistrationFieldPreview[]>([]);
+  const [registrationAddonsPreview, setRegistrationAddonsPreview] = useState<RegistrationAddonGroup[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("detail");
   const [collectiveRefreshKey, setCollectiveRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get<ApiResponse<EventDetail>>(
-        `/api/v1/events/${eventId}`,
-      );
+      const res = await api.get<ApiResponse<EventDetail>>(`/api/v1/events/${eventId}`);
       setDetail(res.data);
     } catch {
-      setLoadError(
-        "Gagal memuat event. Mungkin event tidak ditemukan atau bukan milik Anda.",
-      );
+      setLoadError("Gagal memuat event. Mungkin event tidak ditemukan atau bukan milik Anda.");
     } finally {
       setIsLoading(false);
     }
@@ -132,8 +120,7 @@ export default function EditEventPage({
       refund_donation_on_cancel: values.refund_donation_on_cancel,
       // The backend locks this field after publication; omit it rather than
       // resubmitting the unchanged value while editing other event details.
-      platform_fee:
-        detail?.event.status === "published" ? undefined : values.platform_fee,
+      platform_fee: detail?.event.status === "published" ? undefined : values.platform_fee,
       color: values.color,
     });
     setDetail((prev) => (prev ? { ...prev, event: res.data } : prev));
@@ -177,10 +164,7 @@ export default function EditEventPage({
           marginBottom: 6,
         }}
       >
-        <Link
-          href="/dashboard/events"
-          style={{ fontSize: 14, color: "var(--color-ink-3)" }}
-        >
+        <Link href="/dashboard/events" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           ← Event Saya
         </Link>
       </div>
@@ -211,7 +195,7 @@ export default function EditEventPage({
         </Alert>
       )}
 
-      {/* Status bar — always visible */}
+      {/* Status bar - always visible */}
       <StatusSection event={event} onChanged={load} onNotice={setNotice} />
 
       {/* Tab bar */}
@@ -225,41 +209,30 @@ export default function EditEventPage({
           marginBottom: 0,
         }}
       >
-        {[
-          ...BASE_TABS,
-          ...(event.status === "cancelled"
-            ? [{ id: "refund" as Tab, label: "Refund" }]
-            : []),
-        ].map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className="event-tab"
-            onClick={() => setActiveTab(t.id)}
-            style={{
-              padding: "11px 26px",
-              fontSize: 15,
-              fontWeight: activeTab === t.id ? 600 : 400,
-              color:
-                activeTab === t.id
-                  ? "var(--color-flame)"
-                  : "var(--color-ink-2)",
-              background: "none",
-              border: "none",
-              borderBottom:
-                activeTab === t.id
-                  ? "2px solid var(--color-flame)"
-                  : "2px solid transparent",
-              cursor: "pointer",
-              marginBottom: -1,
-              transition: "color 0.15s",
-            }}
-          >
-            {t.id === "peserta" && event.event_type === "running"
-              ? "Peserta & BIB"
-              : t.label}
-          </button>
-        ))}
+        {[...BASE_TABS, ...(event.status === "cancelled" ? [{ id: "refund" as Tab, label: "Refund" }] : [])].map(
+          (t) => (
+            <button
+              key={t.id}
+              type="button"
+              className="event-tab"
+              onClick={() => setActiveTab(t.id)}
+              style={{
+                padding: "11px 26px",
+                fontSize: 15,
+                fontWeight: activeTab === t.id ? 600 : 400,
+                color: activeTab === t.id ? "var(--color-flame)" : "var(--color-ink-2)",
+                background: "none",
+                border: "none",
+                borderBottom: activeTab === t.id ? "2px solid var(--color-flame)" : "2px solid transparent",
+                cursor: "pointer",
+                marginBottom: -1,
+                transition: "color 0.15s",
+              }}
+            >
+              {t.id === "peserta" && event.event_type === "running" ? "Peserta & BIB" : t.label}
+            </button>
+          ),
+        )}
       </div>
 
       {/* Tab panels */}
@@ -276,9 +249,7 @@ export default function EditEventPage({
             <div style={{ flex: "1 1 420px", maxWidth: 720 }}>
               <BannerUploader
                 event={event}
-                onUploaded={(ev) =>
-                  setDetail((prev) => (prev ? { ...prev, event: ev } : prev))
-                }
+                onUploaded={(ev) => setDetail((prev) => (prev ? { ...prev, event: ev } : prev))}
               />
               <EventForm
                 eventId={eventId}
@@ -293,8 +264,7 @@ export default function EditEventPage({
                   refund_cutoff_date: event.refund_cutoff_date ?? "",
                   registration_close_date: event.registration_close_date ?? "",
                   donation_enabled: event.donation_enabled,
-                  refund_donation_on_cancel:
-                    event.refund_donation_on_cancel ?? false,
+                  refund_donation_on_cancel: event.refund_donation_on_cancel ?? false,
                   platform_fee: event.platform_fee,
                   color: event.color,
                 }}
@@ -307,6 +277,7 @@ export default function EditEventPage({
               detail={detail}
               live={formPreview}
               registrationFields={registrationFieldsPreview}
+              addonGroups={registrationAddonsPreview}
               availableModes={["card", "detail"]}
             />
           </div>
@@ -338,15 +309,14 @@ export default function EditEventPage({
               <p style={{ fontSize: 14, color: "var(--color-ink-3)", marginTop: 0, marginBottom: 20 }}>
                 Atur kolom tambahan yang harus diisi peserta saat mendaftar.
               </p>
-              <RegistrationFieldsForm
-                eventId={eventId}
-                onChange={setRegistrationFieldsPreview}
-              />
+              <RegistrationFieldsForm eventId={eventId} onChange={setRegistrationFieldsPreview} />
+              <RegistrationAddonsForm eventId={eventId} onChange={setRegistrationAddonsPreview} />
             </div>
             <CardPreview
               detail={detail}
               live={formPreview}
               registrationFields={registrationFieldsPreview}
+              addonGroups={registrationAddonsPreview}
               availableModes={["register"]}
             />
           </div>
@@ -373,11 +343,7 @@ export default function EditEventPage({
               >
                 {event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
               </h2>
-              <DistanceManager
-                eventId={eventId}
-                distances={detail.categories}
-                onChanged={load}
-              />
+              <DistanceManager eventId={eventId} distances={detail.categories} onChanged={load} />
             </div>
             <div
               style={{
@@ -409,27 +375,69 @@ export default function EditEventPage({
         )}
 
         {activeTab === "kolektif" && (
-          <div style={{display:"grid",gridTemplateColumns:"minmax(0, 1fr)",gap:24,width:"100%",minWidth:0}}>
-            <CollectiveRegistrationCard eventId={eventId} categories={detail.categories} tickets={detail.ticket_categories} onCreated={()=>setCollectiveRefreshKey((value)=>value+1)} />
-            <section style={{padding:24,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)",width:"100%",minWidth:0,boxSizing:"border-box"}}>
-              <h2 style={{fontFamily:"var(--font-display)",fontSize:20,margin:"0 0 16px"}}>Peserta Belum Lunas dan Aksi Massal</h2>
-              <ParticipantsCard eventId={eventId} isRunning={event.event_type === "running"} showBulkActions statusFilter="pending_payment" refreshKey={collectiveRefreshKey} onChanged={()=>setCollectiveRefreshKey((value)=>value+1)} />
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 24, width: "100%", minWidth: 0 }}>
+            <CollectiveRegistrationCard
+              eventId={eventId}
+              categories={detail.categories}
+              tickets={detail.ticket_categories}
+              onCreated={() => setCollectiveRefreshKey((value) => value + 1)}
+            />
+            <section
+              style={{
+                padding: 24,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                background: "var(--color-surface)",
+                width: "100%",
+                minWidth: 0,
+                boxSizing: "border-box",
+              }}
+            >
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: "0 0 16px" }}>
+                Peserta Belum Lunas dan Aksi Massal
+              </h2>
+              <ParticipantsCard
+                eventId={eventId}
+                isRunning={event.event_type === "running"}
+                showBulkActions
+                statusFilter="pending_payment"
+                refreshKey={collectiveRefreshKey}
+                onChanged={() => setCollectiveRefreshKey((value) => value + 1)}
+              />
             </section>
-            <section style={{padding:24,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)",width:"100%",minWidth:0,boxSizing:"border-box"}}>
-              <h2 style={{fontFamily:"var(--font-display)",fontSize:20,margin:"0 0 6px"}}>Peserta Kedaluwarsa</h2>
-              <p style={{fontSize:14,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Pilih peserta untuk mengaktifkan kembali pendaftaran. Payment dibuat terpisah dari tabel peserta belum lunas jika periode penjualan dan kuota masih tersedia.</p>
-              <ParticipantsCard eventId={eventId} isRunning={event.event_type === "running"} showBulkActions statusFilter="expired" refreshKey={collectiveRefreshKey} onChanged={()=>setCollectiveRefreshKey((value)=>value+1)} />
+            <section
+              style={{
+                padding: 24,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                background: "var(--color-surface)",
+                width: "100%",
+                minWidth: 0,
+                boxSizing: "border-box",
+              }}
+            >
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: "0 0 6px" }}>
+                Peserta Kedaluwarsa
+              </h2>
+              <p style={{ fontSize: 14, color: "var(--color-ink-3)", margin: "0 0 16px" }}>
+                Pilih peserta untuk mengaktifkan kembali pendaftaran. Payment dibuat terpisah dari tabel peserta belum
+                lunas jika periode penjualan dan kuota masih tersedia.
+              </p>
+              <ParticipantsCard
+                eventId={eventId}
+                isRunning={event.event_type === "running"}
+                showBulkActions
+                statusFilter="expired"
+                refreshKey={collectiveRefreshKey}
+                onChanged={() => setCollectiveRefreshKey((value) => value + 1)}
+              />
             </section>
           </div>
         )}
 
         {activeTab === "peserta" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <RegistrationStatusCard
-              event={event}
-              eventId={eventId}
-              onChanged={load}
-            />
+            <RegistrationStatusCard event={event} eventId={eventId} onChanged={load} />
             <RPCAccessCard eventId={eventId} />
             <div
               style={{
@@ -458,39 +466,39 @@ export default function EditEventPage({
                   marginBottom: 20,
                 }}
               >
-                Email yang terdaftar di sini mendapat tiket gratis: harga tiket dan
-                fee platform Rp0. Tanpa donasi, peserta langsung menerima e-tiket
-                tanpa melalui payment gateway. Jika memilih donasi, peserta hanya
-                membayar donasi dan biaya transaksi; harga tiket serta fee
-                platform tetap Rp0.
+                Email yang terdaftar di sini mendapat tiket gratis: harga tiket dan fee platform Rp0. Tanpa donasi,
+                peserta langsung menerima e-tiket tanpa melalui payment gateway. Jika memilih donasi, peserta hanya
+                membayar donasi dan biaya transaksi; harga tiket serta fee platform tetap Rp0.
               </p>
               <ComplimentaryManager eventId={eventId} />
             </div>
-            {event.event_type === "running" && <div
-              style={{
-                padding: 28,
-                border: "1px solid var(--color-line)",
-                borderRadius: "var(--radius-md)",
-                backgroundColor: "var(--color-surface)",
-              }}
-            >
-              <h2
+            {event.event_type === "running" && (
+              <div
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 18,
-                  fontWeight: 600,
-                  marginBottom: 16,
-                  marginTop: 0,
+                  padding: 28,
+                  border: "1px solid var(--color-line)",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "var(--color-surface)",
                 }}
               >
-                Nomor BIB
-              </h2>
-              <BibCard
-                eventId={eventId}
-                hasCloseDate={!!event.registration_close_date}
-                categories={detail.categories}
-              />
-            </div>}
+                <h2
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: 18,
+                    fontWeight: 600,
+                    marginBottom: 16,
+                    marginTop: 0,
+                  }}
+                >
+                  Nomor BIB
+                </h2>
+                <BibCard
+                  eventId={eventId}
+                  hasCloseDate={!!event.registration_close_date}
+                  categories={detail.categories}
+                />
+              </div>
+            )}
             <div
               style={{
                 padding: 28,
@@ -510,11 +518,7 @@ export default function EditEventPage({
               >
                 Daftar Peserta Lunas
               </h2>
-              <ParticipantsCard
-                eventId={eventId}
-                isRunning={event.event_type === "running"}
-                showBulkActions={false}
-              />
+              <ParticipantsCard eventId={eventId} isRunning={event.event_type === "running"} showBulkActions={false} />
             </div>
           </div>
         )}
@@ -546,7 +550,14 @@ export default function EditEventPage({
         )}
 
         {activeTab === "komunikasi" && (
-          <div style={{ padding: 28, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", backgroundColor: "var(--color-surface)" }}>
+          <div
+            style={{
+              padding: 28,
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-md)",
+              backgroundColor: "var(--color-surface)",
+            }}
+          >
             <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, marginTop: 0 }}>Email peserta terjadwal</h2>
             <CampaignCard eventId={eventId} />
           </div>
@@ -616,10 +627,7 @@ export default function EditEventPage({
               >
                 Rekap per Kategori
               </h2>
-              <RecapTable
-                eventId={eventId}
-                isRunning={event.event_type === "running"}
-              />
+              <RecapTable eventId={eventId} isRunning={event.event_type === "running"} />
             </div>
             <div
               style={{
@@ -662,23 +670,228 @@ export default function EditEventPage({
   );
 }
 
-type EmailCampaign = { id: string; subject: string; content: string; audience: "paid" | "pending_payment"; send_at: string; status: string };
+type EmailCampaign = {
+  id: string;
+  subject: string;
+  content: string;
+  audience: "paid" | "pending_payment";
+  send_at: string;
+  status: string;
+};
 function CampaignCard({ eventId }: { eventId: string }) {
-  const [items, setItems] = useState<EmailCampaign[]>([]); const [subject,setSubject]=useState(""); const [content,setContent]=useState(""); const [audience,setAudience]=useState<EmailCampaign["audience"]>("paid"); const [sendAt,setSendAt]=useState(""); const [error,setError]=useState<string|null>(null);
-  const load = useCallback(async()=>{ try { const r=await api.get<ApiResponse<EmailCampaign[]>>(`/api/v1/events/${eventId}/email-campaigns`);setItems(r.data??[]);}catch(e){setError(e instanceof ApiError?e.message:"Gagal memuat kampanye.");}},[eventId]);
-  useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
-  async function create(){setError(null);try{await api.post(`/api/v1/events/${eventId}/email-campaigns`,{subject,content,audience,send_at:new Date(sendAt).toISOString()});setSubject("");setContent("");setSendAt("");await load();}catch(e){setError(e instanceof ApiError?e.message:"Kampanye gagal dijadwalkan.");}}
-  async function cancel(id:string){try{await api.delete(`/api/v1/events/${eventId}/email-campaigns/${id}`);await load();}catch(e){setError(e instanceof ApiError?e.message:"Tidak dapat membatalkan kampanye.");}}
-  return <div>{error&&<Alert variant="danger" className="mb-4">{error}</Alert>}<div style={{display:"grid",gap:12,maxWidth:680}}><input className="field-input" placeholder="Subjek email" value={subject} onChange={e=>setSubject(e.target.value)}/><textarea className="field-input" placeholder="Informasi untuk peserta" value={content} onChange={e=>setContent(e.target.value)} style={{minHeight:110}}/><div style={{display:"flex",gap:12,flexWrap:"wrap"}}><select className="field-input" value={audience} onChange={e=>setAudience(e.target.value as EmailCampaign["audience"])} style={{maxWidth:220}}><option value="paid">Peserta lunas</option><option value="pending_payment">Menunggu pembayaran</option></select><input className="field-input" type="datetime-local" value={sendAt} onChange={e=>setSendAt(e.target.value)} style={{maxWidth:240}}/><Button variant="primary" onClick={create} disabled={!subject||!content||!sendAt}>Jadwalkan</Button></div></div><div style={{marginTop:24,display:"grid",gap:8}}>{items.map(c=><div key={c.id} style={{padding:12,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",display:"flex",justifyContent:"space-between",gap:12}}><span><b>{c.subject}</b><br/><small>{c.audience==="paid"?"Peserta lunas":"Menunggu pembayaran"} · {new Date(c.send_at).toLocaleString("id-ID")} · {c.status}</small></span>{c.status==="scheduled"&&<Button variant="ghost" size="sm" onClick={()=>cancel(c.id)}>Batalkan</Button>}</div>)}</div></div>;
+  const [items, setItems] = useState<EmailCampaign[]>([]);
+  const [subject, setSubject] = useState("");
+  const [content, setContent] = useState("");
+  const [audience, setAudience] = useState<EmailCampaign["audience"]>("paid");
+  const [sendAt, setSendAt] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    try {
+      const r = await api.get<ApiResponse<EmailCampaign[]>>(`/api/v1/events/${eventId}/email-campaigns`);
+      setItems(r.data ?? []);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Gagal memuat kampanye.");
+    }
+  }, [eventId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+  async function create() {
+    setError(null);
+    try {
+      await api.post(`/api/v1/events/${eventId}/email-campaigns`, {
+        subject,
+        content,
+        audience,
+        send_at: new Date(sendAt).toISOString(),
+      });
+      setSubject("");
+      setContent("");
+      setSendAt("");
+      await load();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Kampanye gagal dijadwalkan.");
+    }
+  }
+  async function cancel(id: string) {
+    try {
+      await api.delete(`/api/v1/events/${eventId}/email-campaigns/${id}`);
+      await load();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Tidak dapat membatalkan kampanye.");
+    }
+  }
+  return (
+    <div>
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
+      <div style={{ display: "grid", gap: 12, maxWidth: 680 }}>
+        <input
+          className="field-input"
+          placeholder="Subjek email"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+        />
+        <textarea
+          className="field-input"
+          placeholder="Informasi untuk peserta"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          style={{ minHeight: 110 }}
+        />
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <select
+            className="field-input"
+            value={audience}
+            onChange={(e) => setAudience(e.target.value as EmailCampaign["audience"])}
+            style={{ maxWidth: 220 }}
+          >
+            <option value="paid">Peserta lunas</option>
+            <option value="pending_payment">Menunggu pembayaran</option>
+          </select>
+          <input
+            className="field-input"
+            type="datetime-local"
+            value={sendAt}
+            onChange={(e) => setSendAt(e.target.value)}
+            style={{ maxWidth: 240 }}
+          />
+          <Button variant="primary" onClick={create} disabled={!subject || !content || !sendAt}>
+            Jadwalkan
+          </Button>
+        </div>
+      </div>
+      <div style={{ marginTop: 24, display: "grid", gap: 8 }}>
+        {items.map((c) => (
+          <div
+            key={c.id}
+            style={{
+              padding: 12,
+              border: "1px solid var(--color-line)",
+              borderRadius: "var(--radius-sm)",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <span>
+              <b>{c.subject}</b>
+              <br />
+              <small>
+                {c.audience === "paid" ? "Peserta lunas" : "Menunggu pembayaran"} ·{" "}
+                {new Date(c.send_at).toLocaleString("id-ID")} · {c.status}
+              </small>
+            </span>
+            {c.status === "scheduled" && (
+              <Button variant="ghost" size="sm" onClick={() => cancel(c.id)}>
+                Batalkan
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function RPCAccessCard({ eventId }: { eventId: string }) {
-  const [code,setCode]=useState<string|null>(null);const [active,setActive]=useState(false);const [error,setError]=useState<string|null>(null);
-  const load=useCallback(async()=>{try{const r=await api.get<ApiResponse<{active:boolean;access_code:string}>>(`/api/v1/events/${eventId}/rpc-access`);setActive(r.data.active);setCode(r.data.access_code||null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal memuat kode akses.")}},[eventId]);
-  useEffect(()=>{const timer=window.setTimeout(()=>{void load();},0);return()=>window.clearTimeout(timer);},[load]);
-  async function rotate(){try{const r=await api.post<ApiResponse<{access_code:string}>>(`/api/v1/events/${eventId}/rpc-access/rotate`);setCode(r.data.access_code);setActive(true);setError(null)}catch(e){setError(e instanceof ApiError?e.message:"Gagal membuat kode akses.")}}
-  async function revoke(){try{await api.delete(`/api/v1/events/${eventId}/rpc-access`);setCode(null);setActive(false)}catch(e){setError(e instanceof ApiError?e.message:"Gagal mencabut akses.")}}
-  return <div style={{padding:20,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)"}}><h2 style={{fontFamily:"var(--font-display)",fontSize:18,margin:"0 0 8px"}}>Akses volunteer pengambilan perlengkapan</h2><p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Satu kode aktif untuk satu event. Volunteer dapat memverifikasi peserta dan menandai pengambilan perlengkapan, tanpa akses ke wallet atau dashboard.</p>{error&&<Alert variant="danger" className="mb-3">{error}</Alert>}{code&&<p style={{padding:12,margin:"0 0 16px",background:"var(--color-panel)",borderRadius:8,fontFamily:"var(--font-mono)",wordBreak:"break-all"}}>Kode: <b>{code}</b></p>}{active&&!code&&<p style={{fontSize:13,color:"var(--color-ink-3)",margin:"0 0 16px"}}>Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.</p>}<div style={{display:"flex",gap:8,flexWrap:"wrap"}}><Button variant="secondary" onClick={rotate}>{active?"Putar kode":"Buat kode akses"}</Button>{active&&<Button variant="danger" onClick={revoke}>Cabut akses</Button>}</div></div>;
+  const [code, setCode] = useState<string | null>(null);
+  const [active, setActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    try {
+      const r = await api.get<ApiResponse<{ active: boolean; access_code: string }>>(
+        `/api/v1/events/${eventId}/rpc-access`,
+      );
+      setActive(r.data.active);
+      setCode(r.data.access_code || null);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Gagal memuat kode akses.");
+    }
+  }, [eventId]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+  async function rotate() {
+    try {
+      const r = await api.post<ApiResponse<{ access_code: string }>>(`/api/v1/events/${eventId}/rpc-access/rotate`);
+      setCode(r.data.access_code);
+      setActive(true);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Gagal membuat kode akses.");
+    }
+  }
+  async function revoke() {
+    try {
+      await api.delete(`/api/v1/events/${eventId}/rpc-access`);
+      setCode(null);
+      setActive(false);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Gagal mencabut akses.");
+    }
+  }
+  return (
+    <div
+      style={{
+        padding: 20,
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-md)",
+        background: "var(--color-surface)",
+      }}
+    >
+      <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, margin: "0 0 8px" }}>
+        Akses volunteer pengambilan perlengkapan
+      </h2>
+      <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: "0 0 16px" }}>
+        Satu kode aktif untuk satu event. Volunteer dapat memverifikasi peserta dan menandai pengambilan perlengkapan,
+        tanpa akses ke wallet atau dashboard.
+      </p>
+      {error && (
+        <Alert variant="danger" className="mb-3">
+          {error}
+        </Alert>
+      )}
+      {code && (
+        <p
+          style={{
+            padding: 12,
+            margin: "0 0 16px",
+            background: "var(--color-panel)",
+            borderRadius: 8,
+            fontFamily: "var(--font-mono)",
+            wordBreak: "break-all",
+          }}
+        >
+          Kode: <b>{code}</b>
+        </p>
+      )}
+      {active && !code && (
+        <p style={{ fontSize: 13, color: "var(--color-ink-3)", margin: "0 0 16px" }}>
+          Kode lama aktif tetapi tidak dapat ditampilkan kembali. Putar kode untuk membuat kode baru.
+        </p>
+      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <Button variant="secondary" onClick={rotate}>
+          {active ? "Putar kode" : "Buat kode akses"}
+        </Button>
+        {active && (
+          <Button variant="danger" onClick={revoke}>
+            Cabut akses
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // RegistrationStatusCard shows whether registration is open or closed and lets
@@ -696,16 +909,14 @@ function RegistrationStatusCard({
   const [err, setErr] = useState<string | null>(null);
 
   // Mirror backend resolveRegistrationClose: prefer explicit close date, fall back to event date.
-  const closeDateStr =
-    event.registration_close_date ?? event.event_date ?? null;
+  const closeDateStr = event.registration_close_date ?? event.event_date ?? null;
   const closeDate = closeDateStr ? new Date(closeDateStr) : null;
   const isClosed = !!closeDate && closeDate <= new Date();
 
   async function closeNow() {
     if (
       !(await confirm({
-        message:
-          "Tutup pendaftaran sekarang? Peserta baru tidak dapat mendaftar setelah ini.",
+        message: "Tutup pendaftaran sekarang? Peserta baru tidak dapat mendaftar setelah ini.",
         variant: "primary",
       }))
     )
@@ -748,30 +959,27 @@ function RegistrationStatusCard({
     >
       <div>
         <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>
-          {isClosed ? <><CircleCheck size={16} aria-hidden /> Pendaftaran ditutup</> : <><TriangleAlert size={16} aria-hidden /> Pendaftaran masih terbuka</>}
+          {isClosed ? (
+            <>
+              <CircleCheck size={16} aria-hidden /> Pendaftaran ditutup
+            </>
+          ) : (
+            <>
+              <TriangleAlert size={16} aria-hidden /> Pendaftaran masih terbuka
+            </>
+          )}
         </div>
         <div style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
           {isClosed && closeDate
             ? `Ditutup sejak ${closeDate.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}`
             : closeDate
               ? `Akan tutup otomatis ${closeDate.toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" })}`
-              : "Belum ada tanggal penutupan — atur di tab Detail atau tutup manual di sini."}
+              : "Belum ada tanggal penutupan - atur di tab Detail atau tutup manual di sini."}
         </div>
-        {err && (
-          <div
-            style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 4 }}
-          >
-            {err}
-          </div>
-        )}
+        {err && <div style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 4 }}>{err}</div>}
       </div>
       {!isClosed && (
-        <Button
-          variant="secondary"
-          size="sm"
-          disabled={busy}
-          onClick={closeNow}
-        >
+        <Button variant="secondary" size="sm" disabled={busy} onClick={closeNow}>
           {busy ? "Menutup…" : "Tutup Pendaftaran Sekarang"}
         </Button>
       )}
@@ -800,8 +1008,7 @@ function DashboardCard({ eventId }: { eventId: string }) {
     };
   }, [eventId]);
 
-  if (!d)
-    return <p style={{ color: "var(--color-ink-3)" }}>Memuat ringkasan…</p>;
+  if (!d) return <p style={{ color: "var(--color-ink-3)" }}>Memuat ringkasan…</p>;
 
   const cells: { label: string; value: string }[] = [
     { label: "Total Pembeli", value: String(d.paid_count) },
@@ -854,9 +1061,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<RecapRow[]>>(
-          `/api/v1/events/${eventId}/recap`,
-        );
+        const res = await api.get<ApiResponse<RecapRow[]>>(`/api/v1/events/${eventId}/recap`);
         if (!cancelled) setRows(res.data ?? []);
       } catch {
         if (!cancelled) setRows([]);
@@ -867,27 +1072,29 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     };
   }, [eventId]);
 
-  if (!rows)
-    return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
+  if (!rows) return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
   if (rows.length === 0)
-    return (
-      <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-        Belum ada kategori tiket untuk direkap.
-      </p>
-    );
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada kategori tiket untuk direkap.</p>;
 
   const cols: Column<RecapRow>[] = [
-    { key: "distance", header: "Kategori", render: (r) => r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name },
-    { key: "gender", header: "Gender", render: (r) => r.category_id === "total" ? "" : r.gender || "—" },
+    {
+      key: "distance",
+      header: "Kategori",
+      render: (r) => (r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name),
+    },
+    { key: "gender", header: "Gender", render: (r) => (r.category_id === "total" ? "" : r.gender || "—") },
     {
       key: "class",
       header: "Kelas",
-      render: (r) => r.category_id === "total" ? "" : (isRunning ? formatAgeClass(r.age_class, r.category_name) : r.ticket_name) || "—",
+      render: (r) =>
+        r.category_id === "total"
+          ? ""
+          : (isRunning ? formatAgeClass(r.age_class, r.category_name) : r.ticket_name) || "—",
     },
     {
       key: "total",
       header: isRunning ? "Jumlah" : "Jumlah Terjual",
-      render: (r) => r.category_id === "total" ? <strong>{r.total}</strong> : r.total,
+      render: (r) => (r.category_id === "total" ? <strong>{r.total}</strong> : r.total),
       mono: true,
     },
   ];
@@ -923,10 +1130,7 @@ function BibCard({
   const [busy, setBusy] = useState(false);
   const [strategy, setStrategy] = useState<BibGenerationStrategy>("all");
 
-  const strategyCopy: Record<
-    BibGenerationStrategy,
-    { label: string; preview: string; description: string }
-  > = {
+  const strategyCopy: Record<BibGenerationStrategy, { label: string; preview: string; description: string }> = {
     all: {
       label: "Semua peserta",
       preview: "0001, 0002, 0003, …",
@@ -941,14 +1145,12 @@ function BibCard({
     gender: {
       label: "Gender",
       preview: "M-0001, F-0001, O-0001, …",
-      description:
-        "M untuk male, F untuk female, dan O untuk nilai gender lainnya.",
+      description: "M untuk male, F untuk female, dan O untuk nilai gender lainnya.",
     },
     category_gender: {
       label: "Kategori + Gender",
       preview: "01-M-0001, 01-F-0001, 02-M-0001, …",
-      description:
-        "Paling tepat untuk membedakan peserta seperti 5K Male, 5K Female, 10K Male, dan 10K Female.",
+      description: "Paling tepat untuk membedakan peserta seperti 5K Male, 5K Female, 10K Male, dan 10K Female.",
     },
   };
 
@@ -961,9 +1163,7 @@ function BibCard({
         `/api/v1/events/${eventId}/bibs/generate${regenerate ? "?regenerate=true" : ""}`,
         { strategy },
       );
-      setMsg(
-        `${res.data.generated} nomor BIB berhasil dibuat dengan pola ${strategyCopy[res.data.strategy].preview}`,
-      );
+      setMsg(`${res.data.generated} nomor BIB berhasil dibuat dengan pola ${strategyCopy[res.data.strategy].preview}`);
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         if (
@@ -973,8 +1173,7 @@ function BibCard({
         ) {
           if (
             await confirm({
-              message:
-                "Nomor BIB sudah pernah dibuat. Buat ulang dari awal? Nomor lama akan ditimpa.",
+              message: "Nomor BIB sudah pernah dibuat. Buat ulang dari awal? Nomor lama akan ditimpa.",
               variant: "danger",
             })
           ) {
@@ -1003,11 +1202,9 @@ function BibCard({
           marginBottom: 16,
         }}
       >
-        Pilih pola nomor BIB, lalu sistem mengurutkan peserta berdasarkan waktu
-        pendaftaran di dalam setiap kelompok. Hanya bisa dibuat{" "}
-        <b>setelah pendaftaran ditutup</b>.
-        {!hasCloseDate &&
-          ' Atur "Penutupan Pendaftaran" di tab Detail, atau ini memakai tanggal event.'}
+        Pilih pola nomor BIB, lalu sistem mengurutkan peserta berdasarkan waktu pendaftaran di dalam setiap kelompok.
+        Hanya bisa dibuat <b>setelah pendaftaran ditutup</b>.
+        {!hasCloseDate && ' Atur "Penutupan Pendaftaran" di tab Detail, atau ini memakai tanggal event.'}
       </p>
       {msg && (
         <Alert variant="info" className="mb-4">
@@ -1091,9 +1288,7 @@ function BibCard({
               className="field-input"
               value={strategy}
               disabled={busy}
-              onChange={(e) =>
-                setStrategy(e.target.value as BibGenerationStrategy)
-              }
+              onChange={(e) => setStrategy(e.target.value as BibGenerationStrategy)}
               style={{
                 appearance: "none",
                 minHeight: 48,
@@ -1137,9 +1332,7 @@ function BibCard({
             fontSize: 14,
           }}
         >
-          <div style={{ marginBottom: 3, fontSize: 12, fontWeight: 700 }}>
-            FORMAT YANG AKAN DIBUAT
-          </div>
+          <div style={{ marginBottom: 3, fontSize: 12, fontWeight: 700 }}>FORMAT YANG AKAN DIBUAT</div>
           <div
             style={{
               fontFamily: "var(--font-mono)",
@@ -1152,27 +1345,20 @@ function BibCard({
             {strategyCopy[strategy].preview}
           </div>
           <span>{strategyCopy[strategy].description}</span>
-          {(strategy === "category" || strategy === "category_gender") &&
-            categories.length > 0 && (
-              <div style={{ marginTop: 8 }}>
-                Kode kategori: {categories.map((category, index) => (
-                  <span key={category.id} style={{ marginRight: 10 }}>
-                    <span style={{ fontFamily: "var(--font-mono)" }}>
-                      {String(index + 1).padStart(2, "0")}
-                    </span>{" "}
-                    {category.name}
-                  </span>
-                ))}
-              </div>
-            )}
+          {(strategy === "category" || strategy === "category_gender") && categories.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              Kode kategori:{" "}
+              {categories.map((category, index) => (
+                <span key={category.id} style={{ marginRight: 10 }}>
+                  <span style={{ fontFamily: "var(--font-mono)" }}>{String(index + 1).padStart(2, "0")}</span>{" "}
+                  {category.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      <Button
-        variant="primary"
-        size="md"
-        disabled={busy}
-        onClick={() => generate(false)}
-      >
+      <Button variant="primary" size="md" disabled={busy} onClick={() => generate(false)}>
         {busy ? "Memproses…" : "Generate Nomor BIB"}
       </Button>
     </div>
@@ -1182,27 +1368,57 @@ function BibCard({
 // ParticipantsCard renders the participant table + CSV export.
 type CollectiveDraft = {
   idempotency_key: string;
-  name: string; email: string; phone: string; birth_date: string; gender: string;
-  category_id: string; ticket_category_id: string; donation: string; extra_data: Record<string, string>;
+  name: string;
+  email: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  category_id: string;
+  ticket_category_id: string;
+  donation: string;
+  extra_data: Record<string, string>;
 };
-const emptyCollectiveDraft = (): CollectiveDraft => ({ idempotency_key:crypto.randomUUID(), name:"", email:"", phone:"", birth_date:"", gender:"", category_id:"", ticket_category_id:"", donation:"0", extra_data:{} });
+const emptyCollectiveDraft = (): CollectiveDraft => ({
+  idempotency_key: crypto.randomUUID(),
+  name: "",
+  email: "",
+  phone: "",
+  birth_date: "",
+  gender: "",
+  category_id: "",
+  ticket_category_id: "",
+  donation: "0",
+  extra_data: {},
+});
 function excelCellText(value: unknown): string {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,"0")}-${String(value.getDate()).padStart(2,"0")}`;
+  if (value instanceof Date && !Number.isNaN(value.getTime()))
+    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
   return String(value ?? "").trim();
 }
 function excelBirthDate(value: unknown): string {
   if (typeof value === "number") {
-    const date=XLSX.SSF.parse_date_code(value);
-    if (date) return `${String(date.y).padStart(4,"0")}-${String(date.m).padStart(2,"0")}-${String(date.d).padStart(2,"0")}`;
+    const date = XLSX.SSF.parse_date_code(value);
+    if (date)
+      return `${String(date.y).padStart(4, "0")}-${String(date.m).padStart(2, "0")}-${String(date.d).padStart(2, "0")}`;
   }
-  const raw=excelCellText(value);
+  const raw = excelCellText(value);
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-  const match=raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-  if (match) return `${match[3]}-${match[1].padStart(2,"0")}-${match[2].padStart(2,"0")}`;
+  const match = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (match) return `${match[3]}-${match[1].padStart(2, "0")}-${match[2].padStart(2, "0")}`;
   return raw;
 }
 
-function CollectiveRegistrationCard({ eventId, categories, tickets, onCreated }: { eventId: string; categories: Category[]; tickets: TicketCategory[]; onCreated?:()=>void }) {
+function CollectiveRegistrationCard({
+  eventId,
+  categories,
+  tickets,
+  onCreated,
+}: {
+  eventId: string;
+  categories: Category[];
+  tickets: TicketCategory[];
+  onCreated?: () => void;
+}) {
   const [fields, setFields] = useState<RegistrationField[]>([]);
   const [drafts, setDrafts] = useState<CollectiveDraft[]>([emptyCollectiveDraft()]);
   const [fileRows, setFileRows] = useState<CollectiveDraft[] | null>(null);
@@ -1213,26 +1429,55 @@ function CollectiveRegistrationCard({ eventId, categories, tickets, onCreated }:
 
   useEffect(() => {
     let cancelled = false;
-    api.get<ApiResponse<RegistrationField[]>>(`/api/v1/events/${eventId}/registration-fields`)
-      .then((res) => { if (!cancelled) setFields(res.data ?? []); })
-      .catch(() => { if (!cancelled) setError("Gagal memuat kolom form pendaftaran event."); });
-    return () => { cancelled = true; };
+    api
+      .get<ApiResponse<RegistrationField[]>>(`/api/v1/events/${eventId}/registration-fields`)
+      .then((res) => {
+        if (!cancelled) setFields(res.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Gagal memuat kolom form pendaftaran event.");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [eventId]);
 
-  const templateHeaders = ["name", "email", "phone", "birth_date", "gender", "category_id", "ticket_category_id", "donation", ...fields.map((field) => `${field.label}${field.required ? " *" : ""}`)];
+  const templateHeaders = [
+    "name",
+    "email",
+    "phone",
+    "birth_date",
+    "gender",
+    "category_id",
+    "ticket_category_id",
+    "donation",
+    ...fields.map((field) => `${field.label}${field.required ? " *" : ""}`),
+  ];
   const categoryOption = (category: Category) => `${category.name} [${category.id}]`;
-  const ticketOption = (ticket: TicketCategory) => `${categories.find((category) => category.id === ticket.category_id)?.name ?? "Kategori"} — ${ticket.name} [${ticket.id}]`;
-  function resolveOption(value: unknown, options: Array<{id:string; label:string}>) {
+  const ticketOption = (ticket: TicketCategory) =>
+    `${categories.find((category) => category.id === ticket.category_id)?.name ?? "Kategori"} - ${ticket.name} [${ticket.id}]`;
+  function resolveOption(value: unknown, options: Array<{ id: string; label: string }>) {
     const text = excelCellText(value).trim();
     return options.find((option) => option.id === text || option.label === text)?.id ?? text;
   }
   async function downloadTemplate() {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Pendaftaran");
-    const initialCategory = categories.find((category) => tickets.some((ticket) => ticket.category_id === category.id)) ?? categories[0];
+    const initialCategory =
+      categories.find((category) => tickets.some((ticket) => ticket.category_id === category.id)) ?? categories[0];
     const initialTicket = tickets.find((ticket) => ticket.category_id === initialCategory?.id);
     sheet.addRow(templateHeaders);
-    sheet.addRow(["Nama peserta", "email@example.com", "08xxxxxxxxxx", "1990-01-31", "Laki-laki", initialCategory ? categoryOption(initialCategory) : "", initialTicket ? ticketOption(initialTicket) : "", 0, ...fields.map(() => "")]);
+    sheet.addRow([
+      "Nama peserta",
+      "email@example.com",
+      "08xxxxxxxxxx",
+      "1990-01-31",
+      "Laki-laki",
+      initialCategory ? categoryOption(initialCategory) : "",
+      initialTicket ? ticketOption(initialTicket) : "",
+      0,
+      ...fields.map(() => ""),
+    ]);
     sheet.getRow(1).font = { bold: true };
     sheet.views = [{ state: "frozen", ySplit: 1 }];
     const choices = workbook.addWorksheet("Pilihan");
@@ -1241,34 +1486,86 @@ function CollectiveRegistrationCard({ eventId, categories, tickets, onCreated }:
     for (let index = 0; index < rowCount; index++) {
       const category = categories[index];
       const ticket = tickets[index];
-      choices.addRow([category?.id ?? "", category ? categoryOption(category) : "", ticket?.id ?? "", ticket ? ticketOption(ticket) : ""]);
+      choices.addRow([
+        category?.id ?? "",
+        category ? categoryOption(category) : "",
+        ticket?.id ?? "",
+        ticket ? ticketOption(ticket) : "",
+      ]);
     }
     choices.getRow(1).font = { bold: true };
-    choices.columns = [{width:38},{width:36},{width:38},{width:55}, ...categories.map(() => ({width:55}))];
+    choices.columns = [
+      { width: 38 },
+      { width: 36 },
+      { width: 38 },
+      { width: 55 },
+      ...categories.map(() => ({ width: 55 })),
+    ];
     categories.forEach((category, index) => {
       const column = index + 5;
       const matchingTickets = tickets.filter((ticket) => ticket.category_id === category.id);
       choices.getCell(1, column).value = `Pilihan tiket ${category.name}`;
-      (matchingTickets.length ? matchingTickets : [{id:"",name:"",category_id:category.id} as TicketCategory]).forEach((ticket, ticketIndex) => {
+      (matchingTickets.length
+        ? matchingTickets
+        : [{ id: "", name: "", category_id: category.id } as TicketCategory]
+      ).forEach((ticket, ticketIndex) => {
         choices.getCell(ticketIndex + 2, column).value = ticket.id ? ticketOption(ticket) : "";
       });
       const namedRange = `TicketOptions_${index + 1}`;
-      workbook.definedNames.add(`'Pilihan'!$${String.fromCharCode(65 + column - 1)}$2:$${String.fromCharCode(65 + column - 1)}$${Math.max(matchingTickets.length, 1) + 1}`, namedRange);
+      workbook.definedNames.add(
+        `'Pilihan'!$${String.fromCharCode(65 + column - 1)}$2:$${String.fromCharCode(65 + column - 1)}$${Math.max(matchingTickets.length, 1) + 1}`,
+        namedRange,
+      );
     });
     choices.state = "hidden";
     if (categories.length) workbook.definedNames.add(`'Pilihan'!$B$2:$B$${categories.length + 1}`, "CategoryOptions");
     if (tickets.length) workbook.definedNames.add(`'Pilihan'!$D$2:$D$${tickets.length + 1}`, "TicketOptions");
     for (let row = 2; row <= 501; row++) {
-      sheet.getCell(row, 5).dataValidation = { type:"list", formulae:['"Laki-laki,Perempuan"'], allowBlank:false, showErrorMessage:true, errorTitle:"Jenis kelamin tidak valid", error:"Pilih Laki-laki atau Perempuan." };
-      if (categories.length) sheet.getCell(row, 6).dataValidation = { type:"list", formulae:["CategoryOptions"], allowBlank:false, showErrorMessage:true, errorTitle:"Kategori tidak valid", error:"Pilih kategori dari daftar." };
-      if (tickets.length) sheet.getCell(row, 7).dataValidation = { type:"list", formulae:['INDIRECT("TicketOptions_"&MATCH(F' + row + ',CategoryOptions,0))'], allowBlank:false, showErrorMessage:true, errorTitle:"Tiket tidak valid", error:"Pilih tiket yang sesuai dengan kategori." };
+      sheet.getCell(row, 5).dataValidation = {
+        type: "list",
+        formulae: ['"Laki-laki,Perempuan"'],
+        allowBlank: false,
+        showErrorMessage: true,
+        errorTitle: "Jenis kelamin tidak valid",
+        error: "Pilih Laki-laki atau Perempuan.",
+      };
+      if (categories.length)
+        sheet.getCell(row, 6).dataValidation = {
+          type: "list",
+          formulae: ["CategoryOptions"],
+          allowBlank: false,
+          showErrorMessage: true,
+          errorTitle: "Kategori tidak valid",
+          error: "Pilih kategori dari daftar.",
+        };
+      if (tickets.length)
+        sheet.getCell(row, 7).dataValidation = {
+          type: "list",
+          formulae: ['INDIRECT("TicketOptions_"&MATCH(F' + row + ",CategoryOptions,0))"],
+          allowBlank: false,
+          showErrorMessage: true,
+          errorTitle: "Tiket tidak valid",
+          error: "Pilih tiket yang sesuai dengan kategori.",
+        };
     }
     const help = workbook.addWorksheet("Petunjuk");
-    help.addRows([["Kolom", "Keterangan"], ...templateHeaders.map((key, index) => [key, fields[index - 8]?.label ? `Isi ${fields[index - 8].label}${fields[index - 8].required ? " (wajib)" : ""}.` : key]), ["category_id", "Pilih kategori dari dropdown; kolom menyimpan label dan ID."], ["ticket_category_id", "Pilih tiket dari dropdown; kolom menyimpan label dan ID."]]);
+    help.addRows([
+      ["Kolom", "Keterangan"],
+      ...templateHeaders.map((key, index) => [
+        key,
+        fields[index - 8]?.label
+          ? `Isi ${fields[index - 8].label}${fields[index - 8].required ? " (wajib)" : ""}.`
+          : key,
+      ]),
+      ["category_id", "Pilih kategori dari dropdown; kolom menyimpan label dan ID."],
+      ["ticket_category_id", "Pilih tiket dari dropdown; kolom menyimpan label dan ID."],
+    ]);
     help.getRow(1).font = { bold: true };
     help.state = "hidden";
     const buffer = await workbook.xlsx.writeBuffer();
-    const url = URL.createObjectURL(new Blob([buffer], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    const url = URL.createObjectURL(
+      new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    );
     const link = document.createElement("a");
     link.href = url;
     link.download = `template-pendaftaran-${eventId.slice(0, 8)}.xlsx`;
@@ -1277,103 +1574,412 @@ function CollectiveRegistrationCard({ eventId, categories, tickets, onCreated }:
   }
 
   async function readWorkbook(file: File) {
-    setError(null); setNotice(null); setRowErrors({});
+    setError(null);
+    setNotice(null);
+    setRowErrors({});
     try {
       if (file.size > 5 * 1024 * 1024) throw new Error("Ukuran file maksimal 5 MiB.");
-      const workbook = XLSX.read(await file.arrayBuffer(), { type:"array", cellDates:false });
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: false });
       const sheet = workbook.Sheets.Pendaftaran ?? workbook.Sheets[workbook.SheetNames[0]];
       if (!sheet) throw new Error("Sheet Pendaftaran tidak ditemukan.");
-      const records = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header:1, defval:"", raw:true }).slice(1);
+      const records = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", raw: true }).slice(1);
       if (records.length < 1 || records.length > 100) throw new Error("File harus berisi 1–100 baris peserta.");
       const parsed = records.map((record) => {
-        const extra_data: Record<string,string> = {};
-        fields.forEach((field, index) => { extra_data[field.id] = excelCellText(record[index + 8]); });
-        const ticket_category_id = resolveOption(record[6], tickets.map((ticket) => ({id:ticket.id,label:ticketOption(ticket)})));
-        const selectedCategoryId = resolveOption(record[5], categories.map((category) => ({id:category.id,label:categoryOption(category)})));
+        const extra_data: Record<string, string> = {};
+        fields.forEach((field, index) => {
+          extra_data[field.id] = excelCellText(record[index + 8]);
+        });
+        const ticket_category_id = resolveOption(
+          record[6],
+          tickets.map((ticket) => ({ id: ticket.id, label: ticketOption(ticket) })),
+        );
+        const selectedCategoryId = resolveOption(
+          record[5],
+          categories.map((category) => ({ id: category.id, label: categoryOption(category) })),
+        );
         const selectedTicket = tickets.find((ticket) => ticket.id === ticket_category_id);
         const genderValue = excelCellText(record[4]).trim().toLocaleLowerCase();
-        const gender = genderValue === "laki-laki" || genderValue === "male" ? "male" : genderValue === "perempuan" || genderValue === "female" ? "female" : excelCellText(record[4]);
-        return { idempotency_key:crypto.randomUUID(), name:excelCellText(record[0]), email:excelCellText(record[1]), phone:excelCellText(record[2]), birth_date:excelBirthDate(record[3]), gender, category_id:selectedTicket?.category_id ?? selectedCategoryId, ticket_category_id, donation:excelCellText(record[7] ?? "0") || "0", extra_data };
+        const gender =
+          genderValue === "laki-laki" || genderValue === "male"
+            ? "male"
+            : genderValue === "perempuan" || genderValue === "female"
+              ? "female"
+              : excelCellText(record[4]);
+        return {
+          idempotency_key: crypto.randomUUID(),
+          name: excelCellText(record[0]),
+          email: excelCellText(record[1]),
+          phone: excelCellText(record[2]),
+          birth_date: excelBirthDate(record[3]),
+          gender,
+          category_id: selectedTicket?.category_id ?? selectedCategoryId,
+          ticket_category_id,
+          donation: excelCellText(record[7] ?? "0") || "0",
+          extra_data,
+        };
       });
       setFileRows(parsed);
-    } catch (e) { setFileRows(null); setError(e instanceof Error ? e.message : "File Excel tidak dapat dibaca."); }
+    } catch (e) {
+      setFileRows(null);
+      setError(e instanceof Error ? e.message : "File Excel tidak dapat dibaca.");
+    }
   }
 
   function validateRows(rows: CollectiveDraft[]) {
-    const errors: Record<number,string[]> = {};
-    rows.forEach((row,index) => {
+    const errors: Record<number, string[]> = {};
+    rows.forEach((row, index) => {
       const issues: string[] = [];
-      if (!row.name || !row.email || !row.phone || !row.birth_date || !row.gender || !row.category_id || !row.ticket_category_id) issues.push("Lengkapi data dasar, kategori, dan tiket.");
+      if (
+        !row.name ||
+        !row.email ||
+        !row.phone ||
+        !row.birth_date ||
+        !row.gender ||
+        !row.category_id ||
+        !row.ticket_category_id
+      )
+        issues.push("Lengkapi data dasar, kategori, dan tiket.");
       if (!isValidEmail(row.email)) issues.push("Email tidak valid.");
-      if (!Number.isSafeInteger(Number(row.donation)) || Number(row.donation)<0) issues.push("Donasi harus berupa bilangan bulat rupiah nol atau lebih.");
+      if (!Number.isSafeInteger(Number(row.donation)) || Number(row.donation) < 0)
+        issues.push("Donasi harus berupa bilangan bulat rupiah nol atau lebih.");
       if (!categories.some((category) => category.id === row.category_id)) issues.push("Kategori tidak dikenal.");
-      if (!tickets.some((ticket) => ticket.id === row.ticket_category_id && ticket.category_id === row.category_id)) issues.push("Tiket tidak cocok dengan kategori.");
+      if (!tickets.some((ticket) => ticket.id === row.ticket_category_id && ticket.category_id === row.category_id))
+        issues.push("Tiket tidak cocok dengan kategori.");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(row.birth_date)) issues.push("Tanggal lahir harus YYYY-MM-DD.");
-      for (const field of fields) if (field.required && !row.extra_data[field.id]?.trim()) issues.push(`${field.label} wajib diisi.`);
+      for (const field of fields)
+        if (field.required && !row.extra_data[field.id]?.trim()) issues.push(`${field.label} wajib diisi.`);
       errors[index] = [...new Set(issues)];
     });
     return errors;
   }
 
   async function submitRows(rows: CollectiveDraft[]) {
-    const errors = validateRows(rows); setRowErrors(errors);
-    const valid = rows.filter((_,index) => errors[index].length === 0);
-    if (!valid.length) { setError("Belum ada baris valid untuk disimpan."); return; }
-    setBusy(true); setError(null); setNotice(null);
+    const errors = validateRows(rows);
+    setRowErrors(errors);
+    const valid = rows.filter((_, index) => errors[index].length === 0);
+    if (!valid.length) {
+      setError("Belum ada baris valid untuk disimpan.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setNotice(null);
     try {
-      const result = await api.post<ApiResponse<{created:number; failed:number; results:Array<{row:number; registration?:{registration_number:string}; error?:string}>}>>(`/api/v1/events/${eventId}/registrations/bulk`, {
-        participants:valid.map((row) => ({idempotency_key:row.idempotency_key,event_id:eventId,ticket_category_id:row.ticket_category_id,category_id:row.category_id,name:row.name,email:row.email,phone:row.phone,birth_date:row.birth_date,gender:row.gender,donation:Number(row.donation)||0,extra_data:row.extra_data})),
+      const result = await api.post<
+        ApiResponse<{
+          created: number;
+          failed: number;
+          results: Array<{ row: number; registration?: { registration_number: string }; error?: string }>;
+        }>
+      >(`/api/v1/events/${eventId}/registrations/bulk`, {
+        participants: valid.map((row) => ({
+          idempotency_key: row.idempotency_key,
+          event_id: eventId,
+          ticket_category_id: row.ticket_category_id,
+          category_id: row.category_id,
+          name: row.name,
+          email: row.email,
+          phone: row.phone,
+          birth_date: row.birth_date,
+          gender: row.gender,
+          donation: Number(row.donation) || 0,
+          extra_data: row.extra_data,
+        })),
       });
-      setNotice(`${result.data.created} pendaftaran tersimpan tanpa payment/email${result.data.failed ? `; ${result.data.failed} gagal` : ""}.`);
+      setNotice(
+        `${result.data.created} pendaftaran tersimpan tanpa payment/email${result.data.failed ? `; ${result.data.failed} gagal` : ""}.`,
+      );
       if (result.data.created > 0) onCreated?.();
-      const backendErrors: Record<number,string[]> = {};
-      result.data.results.forEach((item,index) => { if (item.error) backendErrors[index] = [item.error]; });
+      const backendErrors: Record<number, string[]> = {};
+      result.data.results.forEach((item, index) => {
+        if (item.error) backendErrors[index] = [item.error];
+      });
       if (fileRows) {
-        const localInvalid = rows.map((row,index)=>({row,issues:errors[index]})).filter(({issues})=>issues.length>0);
-        const backendFailed = Object.entries(backendErrors).map(([index,issues])=>({row:valid[Number(index)],issues})).filter((item):item is {row:CollectiveDraft;issues:string[]}=>Boolean(item.row));
-        const remaining=[...localInvalid,...backendFailed];
-        setFileRows(remaining.length?remaining.map((item)=>item.row):null);
-        setRowErrors(Object.fromEntries(remaining.map((item,index)=>[index,item.issues])));
+        const localInvalid = rows
+          .map((row, index) => ({ row, issues: errors[index] }))
+          .filter(({ issues }) => issues.length > 0);
+        const backendFailed = Object.entries(backendErrors)
+          .map(([index, issues]) => ({ row: valid[Number(index)], issues }))
+          .filter((item): item is { row: CollectiveDraft; issues: string[] } => Boolean(item.row));
+        const remaining = [...localInvalid, ...backendFailed];
+        setFileRows(remaining.length ? remaining.map((item) => item.row) : null);
+        setRowErrors(Object.fromEntries(remaining.map((item, index) => [index, item.issues])));
       } else if (Object.keys(backendErrors).length) {
         setRowErrors(backendErrors);
       }
       setDrafts([emptyCollectiveDraft()]);
-    } catch (e) { setError(e instanceof ApiError ? e.message : "Pendaftaran kolektif gagal disimpan."); }
-    finally { setBusy(false); }
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Pendaftaran kolektif gagal disimpan.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const rows = fileRows ?? drafts;
-  const setRow = (index:number, patch:Partial<CollectiveDraft>) => {
-    if (fileRows) setFileRows(fileRows.map((row,i) => i===index ? {...row,...patch} : row));
-    else setDrafts(drafts.map((row,i) => i===index ? {...row,...patch} : row));
+  const setRow = (index: number, patch: Partial<CollectiveDraft>) => {
+    if (fileRows) setFileRows(fileRows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+    else setDrafts(drafts.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   };
-  return <section className="collective-registration-card" style={{padding:24,border:"1px solid var(--color-line)",borderRadius:"var(--radius-md)",background:"var(--color-surface)",width:"100%",minWidth:0,boxSizing:"border-box"}}>
-    <h2 style={{fontFamily:"var(--font-display)",fontSize:20,margin:"0 0 6px"}}>Pendaftaran Kolektif</h2>
-    <p style={{fontSize:14,color:"var(--color-ink-3)",margin:"0 0 18px"}}>Peserta dibuat dengan status belum dibayar. Tidak ada payment atau email yang dibuat otomatis.</p>
-    {error && <Alert variant="danger" className="mb-4">{error}</Alert>}{notice && <Alert variant="info" className="mb-4">{notice}</Alert>}
-    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:18}}>
-      <Button variant="secondary" size="sm" onClick={()=>void downloadTemplate()}>Unduh template Excel</Button>
-      <label className="btn btn-secondary btn-sm" style={{cursor:"pointer"}}>Import Excel (.xlsx)<input type="file" accept=".xlsx" hidden onChange={(event)=>{const file=event.target.files?.[0]; if(file) void readWorkbook(file); event.currentTarget.value="";}} /></label>
-      {fileRows && <Button variant="ghost" size="sm" onClick={()=>{setFileRows(null);setRowErrors({});}}>Kembali ke input manual</Button>}
-    </div>
-    <p style={{fontSize:12,color:"var(--color-ink-3)",marginTop:-8,marginBottom:16}}>File Excel (.xlsx) maksimal 5 MiB dan 100 peserta per pengiriman.</p>
-    {rows.map((row,index)=><div key={index} style={{padding:16,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",marginBottom:12,minWidth:0,boxSizing:"border-box"}}>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}><strong>Peserta {index+1}</strong>{!fileRows && drafts.length>1 && <Button variant="ghost" size="sm" onClick={()=>setDrafts(drafts.filter((_,i)=>i!==index))}>Hapus</Button>}</div>
-      <div className="collective-draft-fields" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%, 220px),1fr))",gap:10,minWidth:0}}>
-        {(["name","email","phone","birth_date","gender"] as const).map((key)=><label key={key} style={{fontSize:12,color:"var(--color-ink-3)"}}>{({name:"Nama",email:"Email",phone:"Telepon",birth_date:"Tanggal lahir",gender:"Gender"} as const)[key]}{key==="gender"?<select className="field-input" value={row.gender} onChange={(e)=>setRow(index,{gender:e.target.value})} style={{width:"100%"}}><option value="">Pilih gender</option><option value="male">Laki-laki</option><option value="female">Perempuan</option></select>:<input className="field-input" type={key==="birth_date"?"date":key==="email"?"email":"text"} value={row[key]} onChange={(e)=>setRow(index,{[key]:e.target.value})} style={{width:"100%"}} />}</label>)}
-        <label style={{fontSize:12,color:"var(--color-ink-3)"}}>Kategori<select className="field-input" value={row.category_id} onChange={(e)=>{const ticketsForCategory=tickets.filter(t=>t.category_id===e.target.value);setRow(index,{category_id:e.target.value,ticket_category_id:ticketsForCategory[0]?.id??""});}} style={{width:"100%"}}><option value="">Pilih kategori</option>{categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
-        <label style={{fontSize:12,color:"var(--color-ink-3)"}}>Jenis tiket<select className="field-input" value={row.ticket_category_id} onChange={(e)=>setRow(index,{ticket_category_id:e.target.value})} style={{width:"100%"}}><option value="">Pilih tiket</option>{tickets.filter(t=>t.category_id===row.category_id).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
-        <label style={{fontSize:12,color:"var(--color-ink-3)"}}>Donasi (opsional)<input className="field-input" type="number" min="0" step="1" value={row.donation} onChange={(e)=>setRow(index,{donation:e.target.value})} style={{width:"100%"}} /></label>
-        {fields.map((field)=><label key={field.id} style={{fontSize:12,color:"var(--color-ink-3)"}}>{field.label}{field.required?" *":""}{field.field_type==="select"||field.field_type==="radio"?<select className="field-input" value={row.extra_data[field.id]??""} onChange={(e)=>setRow(index,{extra_data:{...row.extra_data,[field.id]:e.target.value}})} style={{width:"100%"}}><option value="">Pilih</option>{field.options.split(",").map(option=>option.trim()).filter(Boolean).map(option=><option key={option} value={option}>{option}</option>)}</select>:field.field_type==="checkbox"?<span style={{display:"flex",alignItems:"center",gap:8,minHeight:38}}><input type="checkbox" checked={row.extra_data[field.id]==="true"} onChange={(e)=>setRow(index,{extra_data:{...row.extra_data,[field.id]:String(e.target.checked)}})} />Setuju</span>:<input className="field-input" type={field.field_type==="date"?"date":field.field_type==="email"?"email":field.field_type==="number"?"number":"text"} value={row.extra_data[field.id]??""} onChange={(e)=>setRow(index,{extra_data:{...row.extra_data,[field.id]:e.target.value}})} style={{width:"100%"}} />}</label>)}
+  return (
+    <section
+      className="collective-registration-card"
+      style={{
+        padding: 24,
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-md)",
+        background: "var(--color-surface)",
+        width: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
+      }}
+    >
+      <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: "0 0 6px" }}>Pendaftaran Kolektif</h2>
+      <p style={{ fontSize: 14, color: "var(--color-ink-3)", margin: "0 0 18px" }}>
+        Peserta dibuat dengan status belum dibayar. Tidak ada payment atau email yang dibuat otomatis.
+      </p>
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
+      {notice && (
+        <Alert variant="info" className="mb-4">
+          {notice}
+        </Alert>
+      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
+        <Button variant="secondary" size="sm" onClick={() => void downloadTemplate()}>
+          Unduh template Excel
+        </Button>
+        <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer" }}>
+          Import Excel (.xlsx)
+          <input
+            type="file"
+            accept=".xlsx"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void readWorkbook(file);
+              event.currentTarget.value = "";
+            }}
+          />
+        </label>
+        {fileRows && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setFileRows(null);
+              setRowErrors({});
+            }}
+          >
+            Kembali ke input manual
+          </Button>
+        )}
       </div>
-      {rowErrors[index]?.length>0&&<p style={{color:"var(--color-danger)",fontSize:12,marginBottom:0}}>{rowErrors[index].join(" ")}</p>}
-    </div>)}
-    {!fileRows&&drafts.length<100&&<Button variant="secondary" size="sm" onClick={()=>setDrafts([...drafts,emptyCollectiveDraft()])}>Tambah peserta</Button>}
-    <div style={{display:"flex",justifyContent:"flex-end",marginTop:18}}><Button variant="primary" disabled={busy||rows.length===0} onClick={()=>void submitRows(rows)}>{busy?"Menyimpan…":`Simpan ${rows.length} peserta valid`}</Button></div>
-  </section>;
+      <p style={{ fontSize: 12, color: "var(--color-ink-3)", marginTop: -8, marginBottom: 16 }}>
+        File Excel (.xlsx) maksimal 5 MiB dan 100 peserta per pengiriman.
+      </p>
+      {rows.map((row, index) => (
+        <div
+          key={index}
+          style={{
+            padding: 16,
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-sm)",
+            marginBottom: 12,
+            minWidth: 0,
+            boxSizing: "border-box",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <strong>Peserta {index + 1}</strong>
+            {!fileRows && drafts.length > 1 && (
+              <Button variant="ghost" size="sm" onClick={() => setDrafts(drafts.filter((_, i) => i !== index))}>
+                Hapus
+              </Button>
+            )}
+          </div>
+          <div
+            className="collective-draft-fields"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(min(100%, 220px),1fr))",
+              gap: 10,
+              minWidth: 0,
+            }}
+          >
+            {(["name", "email", "phone", "birth_date", "gender"] as const).map((key) => (
+              <label key={key} style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+                {
+                  (
+                    {
+                      name: "Nama",
+                      email: "Email",
+                      phone: "Telepon",
+                      birth_date: "Tanggal lahir",
+                      gender: "Gender",
+                    } as const
+                  )[key]
+                }
+                {key === "gender" ? (
+                  <select
+                    className="field-input"
+                    value={row.gender}
+                    onChange={(e) => setRow(index, { gender: e.target.value })}
+                    style={{ width: "100%" }}
+                  >
+                    <option value="">Pilih gender</option>
+                    <option value="male">Laki-laki</option>
+                    <option value="female">Perempuan</option>
+                  </select>
+                ) : (
+                  <input
+                    className="field-input"
+                    type={key === "birth_date" ? "date" : key === "email" ? "email" : "text"}
+                    value={row[key]}
+                    onChange={(e) => setRow(index, { [key]: e.target.value })}
+                    style={{ width: "100%" }}
+                  />
+                )}
+              </label>
+            ))}
+            <label style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+              Kategori
+              <select
+                className="field-input"
+                value={row.category_id}
+                onChange={(e) => {
+                  const ticketsForCategory = tickets.filter((t) => t.category_id === e.target.value);
+                  setRow(index, { category_id: e.target.value, ticket_category_id: ticketsForCategory[0]?.id ?? "" });
+                }}
+                style={{ width: "100%" }}
+              >
+                <option value="">Pilih kategori</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+              Jenis tiket
+              <select
+                className="field-input"
+                value={row.ticket_category_id}
+                onChange={(e) => setRow(index, { ticket_category_id: e.target.value })}
+                style={{ width: "100%" }}
+              >
+                <option value="">Pilih tiket</option>
+                {tickets
+                  .filter((t) => t.category_id === row.category_id)
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+              Donasi (opsional)
+              <input
+                className="field-input"
+                type="number"
+                min="0"
+                step="1"
+                value={row.donation}
+                onChange={(e) => setRow(index, { donation: e.target.value })}
+                style={{ width: "100%" }}
+              />
+            </label>
+            {fields.map((field) => (
+              <label key={field.id} style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+                {field.label}
+                {field.required ? " *" : ""}
+                {field.field_type === "select" || field.field_type === "radio" ? (
+                  <select
+                    className="field-input"
+                    value={row.extra_data[field.id] ?? ""}
+                    onChange={(e) => setRow(index, { extra_data: { ...row.extra_data, [field.id]: e.target.value } })}
+                    style={{ width: "100%" }}
+                  >
+                    <option value="">Pilih</option>
+                    {field.options
+                      .split(",")
+                      .map((option) => option.trim())
+                      .filter(Boolean)
+                      .map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                  </select>
+                ) : field.field_type === "checkbox" ? (
+                  <span style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 38 }}>
+                    <input
+                      type="checkbox"
+                      checked={row.extra_data[field.id] === "true"}
+                      onChange={(e) =>
+                        setRow(index, { extra_data: { ...row.extra_data, [field.id]: String(e.target.checked) } })
+                      }
+                    />
+                    Setuju
+                  </span>
+                ) : (
+                  <input
+                    className="field-input"
+                    type={
+                      field.field_type === "date"
+                        ? "date"
+                        : field.field_type === "email"
+                          ? "email"
+                          : field.field_type === "number"
+                            ? "number"
+                            : "text"
+                    }
+                    value={row.extra_data[field.id] ?? ""}
+                    onChange={(e) => setRow(index, { extra_data: { ...row.extra_data, [field.id]: e.target.value } })}
+                    style={{ width: "100%" }}
+                  />
+                )}
+              </label>
+            ))}
+          </div>
+          {rowErrors[index]?.length > 0 && (
+            <p style={{ color: "var(--color-danger)", fontSize: 12, marginBottom: 0 }}>{rowErrors[index].join(" ")}</p>
+          )}
+        </div>
+      ))}
+      {!fileRows && drafts.length < 100 && (
+        <Button variant="secondary" size="sm" onClick={() => setDrafts([...drafts, emptyCollectiveDraft()])}>
+          Tambah peserta
+        </Button>
+      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 18 }}>
+        <Button variant="primary" disabled={busy || rows.length === 0} onClick={() => void submitRows(rows)}>
+          {busy ? "Menyimpan…" : `Simpan ${rows.length} peserta valid`}
+        </Button>
+      </div>
+    </section>
+  );
 }
 
-function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFilter, refreshKey, onChanged }: { eventId: string; isRunning: boolean; showBulkActions?: boolean; statusFilter?: string; refreshKey?: number; onChanged?:()=>void }) {
+function ParticipantsCard({
+  eventId,
+  isRunning,
+  showBulkActions = true,
+  statusFilter,
+  refreshKey,
+  onChanged,
+}: {
+  eventId: string;
+  isRunning: boolean;
+  showBulkActions?: boolean;
+  statusFilter?: string;
+  refreshKey?: number;
+  onChanged?: () => void;
+}) {
   const [rows, setRows] = useState<ParticipantRow[] | null>(null);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -1398,15 +2004,17 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
   const [emailTarget, setEmailTarget] = useState<ParticipantRow | null>(null);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<Array<{id:string;label:string}>>([]);
+  const [paymentMethods, setPaymentMethods] = useState<Array<{ id: string; label: string }>>([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reactivating, setReactivating] = useState(false);
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
-  const [paymentOutcomes, setPaymentOutcomes] = useState<Array<{name:string;registrationNumber:string;payment:PaymentChargeResponse}>>([]);
-  const [bulkOutcomes, setBulkOutcomes] = useState<Array<{name:string;success:boolean;message:string}>>([]);
+  const [paymentOutcomes, setPaymentOutcomes] = useState<
+    Array<{ name: string; registrationNumber: string; payment: PaymentChargeResponse }>
+  >([]);
+  const [bulkOutcomes, setBulkOutcomes] = useState<Array<{ name: string; success: boolean; message: string }>>([]);
 
   useEffect(() => {
     if (!editNotice) return;
@@ -1423,7 +2031,9 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
         if (pageSize === 0) {
           let offset = 0;
           while (!cancelled) {
-            const res = await api.get<ApiResponse<ParticipantRow[]>>(`/api/v1/events/${eventId}/participants?limit=200&offset=${offset}${query}`);
+            const res = await api.get<ApiResponse<ParticipantRow[]>>(
+              `/api/v1/events/${eventId}/participants?limit=200&offset=${offset}${query}`,
+            );
             const batch = res.data ?? [];
             data = data.concat(batch);
             if (batch.length < 200) break;
@@ -1454,22 +2064,38 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
     };
   }, [eventId, page, pageSize, search, statusFilter, reloadTick, refreshKey]);
 
-
   useEffect(() => {
-    let cancelled=false;
-    api.get<ApiResponse<Array<{id:string;label:string}>>>("/api/v1/payments/methods")
-      .then((res)=>{if(!cancelled){setPaymentMethods(res.data??[]);setPaymentMethod(res.data?.[0]?.id??"");}})
-      .catch(()=>{})
-      .finally(()=>{if(!cancelled)setLoadingPaymentMethods(false);});
-    return ()=>{cancelled=true;};
-  },[]);
+    let cancelled = false;
+    api
+      .get<ApiResponse<Array<{ id: string; label: string }>>>("/api/v1/payments/methods")
+      .then((res) => {
+        if (!cancelled) {
+          setPaymentMethods(res.data ?? []);
+          setPaymentMethod(res.data?.[0]?.id ?? "");
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoadingPaymentMethods(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    void api.get<ApiResponse<Refund[]>>(`/api/v1/events/${eventId}/refunds`)
-      .then((res) => { if (!cancelled) setRefundEntries(res.data ?? []); })
-      .catch(() => { if (!cancelled) setRefundEntries([]); });
-    return () => { cancelled = true; };
+    void api
+      .get<ApiResponse<Refund[]>>(`/api/v1/events/${eventId}/refunds`)
+      .then((res) => {
+        if (!cancelled) setRefundEntries(res.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setRefundEntries([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [eventId]);
 
   async function exportCsv() {
@@ -1477,10 +2103,7 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
     setExporting(true);
     try {
       const base = "";
-      const res = await fetch(
-        `${base}/api/v1/events/${eventId}/participants/export`,
-        { credentials: "same-origin" },
-      );
+      const res = await fetch(`${base}/api/v1/events/${eventId}/participants/export`, { credentials: "same-origin" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -1525,12 +2148,15 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
 
   async function refundParticipant() {
     if (!refundTarget) return;
-    if (!(await confirm({
-      title: "Refund peserta?",
-      message: `Refund tiket ${refundTarget.registration_number} akan diproses melalui sistem pembayaran. Tindakan ini tidak dapat dibatalkan.`,
-      confirmLabel: "Proses refund",
-      variant: "danger",
-    }))) return;
+    if (
+      !(await confirm({
+        title: "Refund peserta?",
+        message: `Refund tiket ${refundTarget.registration_number} akan diproses melalui sistem pembayaran. Tindakan ini tidak dapat dibatalkan.`,
+        confirmLabel: "Proses refund",
+        variant: "danger",
+      }))
+    )
+      return;
 
     setErr(null);
     setRefundingId(refundTarget.id);
@@ -1543,9 +2169,12 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
         ...current.filter((item) => item.registration_id !== refundTarget.id),
         { ...res.data, registration_id: refundTarget.id, registration_number: refundTarget.registration_number },
       ]);
-      setRows((current) => current?.map((item) => item.id === refundTarget.id
-        ? { ...item, status: "refunded", qr_token: undefined }
-        : item) ?? null);
+      setRows(
+        (current) =>
+          current?.map((item) =>
+            item.id === refundTarget.id ? { ...item, status: "refunded", qr_token: undefined } : item,
+          ) ?? null,
+      );
       setRefundTarget(null);
       setRefundReason("");
       setRefundBankAccount("");
@@ -1557,20 +2186,23 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
   }
 
   async function completeManualRefund(row: ParticipantRow, refund: Refund) {
-    if (!(await confirm({
-      title: "Tandai refund selesai?",
-      message: `Pastikan transfer refund untuk ${row.registration_number} sudah benar-benar dilakukan sebelum menandai selesai.`,
-      confirmLabel: "Tandai Selesai",
-      variant: "primary",
-    }))) return;
+    if (
+      !(await confirm({
+        title: "Tandai refund selesai?",
+        message: `Pastikan transfer refund untuk ${row.registration_number} sudah benar-benar dilakukan sebelum menandai selesai.`,
+        confirmLabel: "Tandai Selesai",
+        variant: "primary",
+      }))
+    )
+      return;
 
     setErr(null);
     setCompletingRefundId(refund.id);
     try {
       await api.post<ApiResponse<Refund>>(`/api/v1/organizer/refunds/${refund.id}/complete`);
-      setRefundEntries((current) => current.map((item) => item.id === refund.id
-        ? { ...item, status: "completed" }
-        : item));
+      setRefundEntries((current) =>
+        current.map((item) => (item.id === refund.id ? { ...item, status: "completed" } : item)),
+      );
     } catch (error) {
       setErr(error instanceof ApiError ? error.message : "Gagal menandai refund selesai.");
     } finally {
@@ -1616,9 +2248,14 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
         },
       );
       const updated = res.data;
-      setRows((current) => current?.map((row) => row.id === updated.id
-        ? { ...row, name: updated.name, gender: updated.gender, age_class: updated.age_class }
-        : row) ?? null);
+      setRows(
+        (current) =>
+          current?.map((row) =>
+            row.id === updated.id
+              ? { ...row, name: updated.name, gender: updated.gender, age_class: updated.age_class }
+              : row,
+          ) ?? null,
+      );
       setLoading(true);
       setReloadTick((value) => value + 1);
       setEditNotice({
@@ -1647,151 +2284,269 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
       setEditNotice({ type: "success", message: `Email e-ticket untuk ${emailTarget.name} masuk antrean pengiriman.` });
       setEmailTarget(null);
     } catch (error) {
-      setEditNotice({ type: "danger", message: error instanceof ApiError ? error.message : "Gagal mengantrekan email. Coba lagi." });
+      setEditNotice({
+        type: "danger",
+        message: error instanceof ApiError ? error.message : "Gagal mengantrekan email. Coba lagi.",
+      });
     } finally {
       setResendingEmail(false);
     }
   }
 
-  const selectedRows = (rows ?? []).filter((row)=>selectedIds.includes(row.id));
+  const selectedRows = (rows ?? []).filter((row) => selectedIds.includes(row.id));
   const isExpiredTable = statusFilter === "expired";
-  const visibleParticipantIds = (rows ?? []).filter((row)=>isExpiredTable ? row.status === "expired" : (!showBulkActions||row.status==="pending_payment")).map((row)=>row.id);
-  const allVisibleSelected = visibleParticipantIds.length > 0 && visibleParticipantIds.every((id)=>selectedIds.includes(id));
-  const toggleVisibleSelection = (checked:boolean) => setSelectedIds((current)=>checked ? [...new Set([...current,...visibleParticipantIds])] : current.filter((id)=>!visibleParticipantIds.includes(id)));
-  const toggleRow = (participantId:string) => setSelectedIds((current)=>current.includes(participantId)?current.filter((id)=>id!==participantId):[...current,participantId]);
+  const visibleParticipantIds = (rows ?? [])
+    .filter((row) => (isExpiredTable ? row.status === "expired" : !showBulkActions || row.status === "pending_payment"))
+    .map((row) => row.id);
+  const allVisibleSelected =
+    visibleParticipantIds.length > 0 && visibleParticipantIds.every((id) => selectedIds.includes(id));
+  const toggleVisibleSelection = (checked: boolean) =>
+    setSelectedIds((current) =>
+      checked
+        ? [...new Set([...current, ...visibleParticipantIds])]
+        : current.filter((id) => !visibleParticipantIds.includes(id)),
+    );
+  const toggleRow = (participantId: string) =>
+    setSelectedIds((current) =>
+      current.includes(participantId) ? current.filter((id) => id !== participantId) : [...current, participantId],
+    );
   const runSelected = async () => {
-    const targets = selectedRows.filter((row)=>row.status==="pending_payment"||row.status==="expired");
+    const targets = selectedRows.filter((row) => row.status === "pending_payment" || row.status === "expired");
     if (!targets.length) return;
-    if (!paymentMethod) { setErr("Metode payment belum tersedia."); return; }
-    if (!(await confirm({title:"Buat tagihan payment?",message:`Aksi akan diproses untuk ${targets.length} peserta yang memenuhi syarat.`,confirmLabel:"Lanjutkan",variant:"primary"}))) return;
-    setBulkBusy(true);setErr(null);
+    if (!paymentMethod) {
+      setErr("Metode payment belum tersedia.");
+      return;
+    }
+    if (
+      !(await confirm({
+        title: "Buat tagihan payment?",
+        message: `Aksi akan diproses untuk ${targets.length} peserta yang memenuhi syarat.`,
+        confirmLabel: "Lanjutkan",
+        variant: "primary",
+      }))
+    )
+      return;
+    setBulkBusy(true);
+    setErr(null);
     setPaymentOutcomes([]);
     setBulkOutcomes([]);
     try {
-      const response=await api.post<ApiResponse<PaymentChargeResponse>>(`/api/v1/events/${eventId}/participants/payments/charge`,{registration_ids:targets.map((row)=>row.id),payment_method:paymentMethod});
+      const response = await api.post<ApiResponse<PaymentChargeResponse>>(
+        `/api/v1/events/${eventId}/participants/payments/charge`,
+        { registration_ids: targets.map((row) => row.id), payment_method: paymentMethod },
+      );
       if (response.data.status === "settlement") {
-        const message=`${response.data.settled_count ?? targets.length} peserta cocok dengan Daftar Peserta Gratis dan langsung lunas tanpa payment.`;
-        setBulkOutcomes([{name:"Peserta gratis",success:true,message}]);
-        setEditNotice({type:"success",message});
+        const message = `${response.data.settled_count ?? targets.length} peserta cocok dengan Daftar Peserta Gratis dan langsung lunas tanpa payment.`;
+        setBulkOutcomes([{ name: "Peserta gratis", success: true, message }]);
+        setEditNotice({ type: "success", message });
       } else {
-        const chargedCount=targets.length-(response.data.settled_count ?? 0);
-        setPaymentOutcomes([{name:`Tagihan gabungan untuk ${chargedCount} peserta`,registrationNumber:"",payment:response.data}]);
-        const freeMessage=response.data.settled_count ? ` ${response.data.settled_count} peserta dari Daftar Peserta Gratis langsung lunas tanpa payment.` : "";
-        setBulkOutcomes([{name:"Pembayaran gabungan",success:true,message:`Payment dibuat untuk peserta yang masih perlu membayar.${freeMessage}`}]);
-        setEditNotice({type:"success",message:`Payment gabungan dibuat.${freeMessage}`});
+        const chargedCount = targets.length - (response.data.settled_count ?? 0);
+        setPaymentOutcomes([
+          { name: `Tagihan gabungan untuk ${chargedCount} peserta`, registrationNumber: "", payment: response.data },
+        ]);
+        const freeMessage = response.data.settled_count
+          ? ` ${response.data.settled_count} peserta dari Daftar Peserta Gratis langsung lunas tanpa payment.`
+          : "";
+        setBulkOutcomes([
+          {
+            name: "Pembayaran gabungan",
+            success: true,
+            message: `Payment dibuat untuk peserta yang masih perlu membayar.${freeMessage}`,
+          },
+        ]);
+        setEditNotice({ type: "success", message: `Payment gabungan dibuat.${freeMessage}` });
       }
       setSelectedIds([]);
       setLoading(true);
-      setReloadTick((value)=>value+1);
-    } catch(error) {
-      const message=error instanceof ApiError?error.message:"Gagal membuat tagihan payment.";
-      setBulkOutcomes([{name:"Pembayaran gabungan",success:false,message}]);
-      setEditNotice({type:"danger",message});
+      setReloadTick((value) => value + 1);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Gagal membuat tagihan payment.";
+      setBulkOutcomes([{ name: "Pembayaran gabungan", success: false, message }]);
+      setEditNotice({ type: "danger", message });
       setSelectedIds([]);
       setLoading(true);
-      setReloadTick((value)=>value+1);
+      setReloadTick((value) => value + 1);
       onChanged?.();
       if (error instanceof ApiError && error.code === "registration status does not allow payment") {
-        const refreshedMessage = "Status peserta berubah sebelum payment dibuat. Daftar telah diperbarui; pilih peserta yang masih memenuhi syarat.";
-        setBulkOutcomes([{name:"Pembayaran gabungan",success:false,message:refreshedMessage}]);
+        const refreshedMessage =
+          "Status peserta berubah sebelum payment dibuat. Daftar telah diperbarui; pilih peserta yang masih memenuhi syarat.";
+        setBulkOutcomes([{ name: "Pembayaran gabungan", success: false, message: refreshedMessage }]);
         setSelectedIds([]);
         setLoading(true);
-        setReloadTick((value)=>value+1);
-        setEditNotice({type:"danger",message:refreshedMessage});
+        setReloadTick((value) => value + 1);
+        setEditNotice({ type: "danger", message: refreshedMessage });
       }
-    } finally { setBulkBusy(false); }
+    } finally {
+      setBulkBusy(false);
+    }
   };
   const reactivateSelected = async () => {
-    const targets = selectedRows.filter((row)=>row.status === "expired");
+    const targets = selectedRows.filter((row) => row.status === "expired");
     if (!targets.length) return;
-    if (!(await confirm({title:"Aktifkan kembali pendaftaran?",message:`${targets.length} peserta akan diaktifkan kembali dan kuotanya dipesan selama satu jam. Payment tidak dibuat otomatis.`,confirmLabel:"Aktifkan kembali",variant:"primary"}))) return;
-    setReactivating(true); setErr(null); setBulkOutcomes([]);
+    if (
+      !(await confirm({
+        title: "Aktifkan kembali pendaftaran?",
+        message: `${targets.length} peserta akan diaktifkan kembali dan kuotanya dipesan selama satu jam. Payment tidak dibuat otomatis.`,
+        confirmLabel: "Aktifkan kembali",
+        variant: "primary",
+      }))
+    )
+      return;
+    setReactivating(true);
+    setErr(null);
+    setBulkOutcomes([]);
     try {
-      await api.post(`/api/v1/events/${eventId}/participants/reactivate`, {registration_ids:targets.map((row)=>row.id)});
+      await api.post(`/api/v1/events/${eventId}/participants/reactivate`, {
+        registration_ids: targets.map((row) => row.id),
+      });
       setSelectedIds([]);
-      setBulkOutcomes([{name:"Aktifkan kembali",success:true,message:`${targets.length} pendaftaran aktif kembali. Pilih peserta di tabel belum lunas untuk membuat payment.`}]);
-      setEditNotice({type:"success",message:`${targets.length} pendaftaran aktif kembali.`});
+      setBulkOutcomes([
+        {
+          name: "Aktifkan kembali",
+          success: true,
+          message: `${targets.length} pendaftaran aktif kembali. Pilih peserta di tabel belum lunas untuk membuat payment.`,
+        },
+      ]);
+      setEditNotice({ type: "success", message: `${targets.length} pendaftaran aktif kembali.` });
       onChanged?.();
-    } catch(error) {
-      const message=error instanceof ApiError?error.message:"Gagal mengaktifkan kembali pendaftaran.";
-      setBulkOutcomes([{name:"Aktifkan kembali",success:false,message}]);
-    } finally { setReactivating(false); }
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Gagal mengaktifkan kembali pendaftaran.";
+      setBulkOutcomes([{ name: "Aktifkan kembali", success: false, message }]);
+    } finally {
+      setReactivating(false);
+    }
   };
   const reactivateOne = async (row: ParticipantRow) => {
-    if (!(await confirm({title:"Aktifkan kembali pendaftaran?",message:`Pendaftaran ${row.name} akan aktif kembali dan kuotanya dipesan selama satu jam. Payment tidak dibuat otomatis.`,confirmLabel:"Aktifkan kembali",variant:"primary"}))) return;
-    setReactivatingId(row.id); setErr(null);
+    if (
+      !(await confirm({
+        title: "Aktifkan kembali pendaftaran?",
+        message: `Pendaftaran ${row.name} akan aktif kembali dan kuotanya dipesan selama satu jam. Payment tidak dibuat otomatis.`,
+        confirmLabel: "Aktifkan kembali",
+        variant: "primary",
+      }))
+    )
+      return;
+    setReactivatingId(row.id);
+    setErr(null);
     try {
-      await api.post(`/api/v1/events/${eventId}/participants/reactivate`, {registration_ids:[row.id]});
-      setSelectedIds((current)=>current.filter((id)=>id!==row.id));
-      setBulkOutcomes([{name:row.name,success:true,message:"Pendaftaran aktif kembali. Peserta dapat dipilih di tabel belum lunas untuk dibuatkan payment."}]);
-      setEditNotice({type:"success",message:`Pendaftaran ${row.name} aktif kembali.`});
+      await api.post(`/api/v1/events/${eventId}/participants/reactivate`, { registration_ids: [row.id] });
+      setSelectedIds((current) => current.filter((id) => id !== row.id));
+      setBulkOutcomes([
+        {
+          name: row.name,
+          success: true,
+          message: "Pendaftaran aktif kembali. Peserta dapat dipilih di tabel belum lunas untuk dibuatkan payment.",
+        },
+      ]);
+      setEditNotice({ type: "success", message: `Pendaftaran ${row.name} aktif kembali.` });
       onChanged?.();
-    } catch(error) {
-      const message=error instanceof ApiError?error.message:"Gagal mengaktifkan kembali pendaftaran.";
-      setBulkOutcomes([{name:row.name,success:false,message}]);
-    } finally { setReactivatingId(null); }
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : "Gagal mengaktifkan kembali pendaftaran.";
+      setBulkOutcomes([{ name: row.name, success: false, message }]);
+    } finally {
+      setReactivatingId(null);
+    }
   };
 
-  const runningCols: Column<ParticipantRow>[] = isRunning ? [
-    {
-      key: "bib",
-      header: "BIB",
-      render: (r) => r.bib_number || "—",
-      bibcol: true,
-    },
-    {
-      key: "reg",
-      header: "No. Reg",
-      render: (r) => r.registration_number,
-      mono: true,
-    },
-    { key: "name", header: "Nama", render: (r) => r.name },
-    { key: "distance", header: "Kategori", render: (r) => r.category_name },
-    { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
-    { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
-    { key: "age", header: "Kelas", render: (r) => formatAgeClass(r.age_class, r.category_name) || "—" },
-    {
-      key: "rpc",
-      header: "RPC",
-      render: (r) =>
-        r.rpc_status ? (
-          <Badge variant="ok">✓</Badge>
-        ) : (
-          <span style={{ color: "var(--color-ink-3)" }}>—</span>
-        ),
-    },
-    {
-      key: "raceday",
-      header: "Hari-H",
-      render: (r) =>
-        r.raceday_status ? (
-          <Badge variant="ok">✓</Badge>
-        ) : (
-          <span style={{ color: "var(--color-ink-3)" }}>—</span>
-        ),
-    },
-  ] : [];
+  const runningCols: Column<ParticipantRow>[] = isRunning
+    ? [
+        {
+          key: "bib",
+          header: "BIB",
+          render: (r) => r.bib_number || "—",
+          bibcol: true,
+        },
+        {
+          key: "reg",
+          header: "No. Reg",
+          render: (r) => r.registration_number,
+          mono: true,
+        },
+        { key: "name", header: "Nama", render: (r) => r.name },
+        { key: "distance", header: "Kategori", render: (r) => r.category_name },
+        { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
+        { key: "gender", header: "Gender", render: (r) => r.gender || "—" },
+        { key: "age", header: "Kelas", render: (r) => formatAgeClass(r.age_class, r.category_name) || "—" },
+        {
+          key: "rpc",
+          header: "RPC",
+          render: (r) =>
+            r.rpc_status ? <Badge variant="ok">✓</Badge> : <span style={{ color: "var(--color-ink-3)" }}>—</span>,
+        },
+        {
+          key: "raceday",
+          header: "Hari-H",
+          render: (r) =>
+            r.raceday_status ? <Badge variant="ok">✓</Badge> : <span style={{ color: "var(--color-ink-3)" }}>—</span>,
+        },
+      ]
+    : [];
   const showRaceOperations = statusFilter !== "expired" && statusFilter !== "pending_payment";
   const cols: Column<ParticipantRow>[] = [
-    ...(showBulkActions ? [{ key:"select", header:<label style={{display:"inline-flex",alignItems:"center",gap:6,whiteSpace:"nowrap"}}><input type="checkbox" aria-label="Pilih semua peserta di tabel" checked={allVisibleSelected} disabled={loading||visibleParticipantIds.length===0} onChange={(event)=>toggleVisibleSelection(event.target.checked)} /> Semua</label>, render:(row: ParticipantRow)=><input type="checkbox" aria-label={`Pilih ${row.name}`} disabled={isExpiredTable ? row.status!=="expired" : row.status!=="pending_payment"} checked={selectedIds.includes(row.id)} onChange={()=>toggleRow(row.id)} /> } as Column<ParticipantRow>] : []),
+    ...(showBulkActions
+      ? [
+          {
+            key: "select",
+            header: (
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                <input
+                  type="checkbox"
+                  aria-label="Pilih semua peserta di tabel"
+                  checked={allVisibleSelected}
+                  disabled={loading || visibleParticipantIds.length === 0}
+                  onChange={(event) => toggleVisibleSelection(event.target.checked)}
+                />{" "}
+                Semua
+              </label>
+            ),
+            render: (row: ParticipantRow) => (
+              <input
+                type="checkbox"
+                aria-label={`Pilih ${row.name}`}
+                disabled={isExpiredTable ? row.status !== "expired" : row.status !== "pending_payment"}
+                checked={selectedIds.includes(row.id)}
+                onChange={() => toggleRow(row.id)}
+              />
+            ),
+          } as Column<ParticipantRow>,
+        ]
+      : []),
     ...(showRaceOperations ? runningCols.slice(0, 1) : []),
     { key: "reg", header: "No. Reg", render: (r) => r.registration_number, mono: true },
     { key: "name", header: "Nama", render: (r) => r.name },
     { key: "distance", header: "Kategori", render: (r) => r.category_name },
     { key: "ticket", header: "Tiket", render: (r) => r.ticket_name },
-    { key:"status", header:"Status", render:(r)=><Badge variant={r.status==="paid"?"ok":r.status==="pending_payment"?"warn":"neutral"}>{r.status==="paid"?"Lunas":r.status==="pending_payment"?"Belum dibayar":r.status==="expired"?"Kedaluwarsa":r.status}</Badge> },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => (
+        <Badge variant={r.status === "paid" ? "ok" : r.status === "pending_payment" ? "warn" : "neutral"}>
+          {r.status === "paid"
+            ? "Lunas"
+            : r.status === "pending_payment"
+              ? "Belum dibayar"
+              : r.status === "expired"
+                ? "Kedaluwarsa"
+                : r.status}
+        </Badge>
+      ),
+    },
     ...(showRaceOperations ? runningCols.slice(5) : runningCols.slice(5, 7)),
     {
       key: "actions",
       header: "Aksi",
       render: (r) => {
-        const refund = r.status === "refunded"
-          ? refundEntries.find((item) => item.registration_id === r.id)
-          : undefined;
+        const refund =
+          r.status === "refunded" ? refundEntries.find((item) => item.registration_id === r.id) : undefined;
         return (
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", minWidth: 210 }}>
             {(r.status === "paid" || r.status === "pending_payment") && (
-              <Button variant="secondary" size="sm" disabled={loadingEditId !== null} onClick={() => void openParticipantEditor(r)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={loadingEditId !== null}
+                onClick={() => void openParticipantEditor(r)}
+              >
                 {loadingEditId === r.id ? "Memuat…" : "Edit"}
               </Button>
             )}
@@ -1803,30 +2558,65 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
                     className="btn btn-secondary btn-sm"
                     target="_blank"
                     rel="noreferrer"
-                  >Lihat E-Ticket</Link>
+                  >
+                    Lihat E-Ticket
+                  </Link>
                 )}
-                <Button variant="secondary" className="btn-email" size="sm" disabled={resendingEmail} onClick={() => setEmailTarget(r)}>
+                <Button
+                  variant="secondary"
+                  className="btn-email"
+                  size="sm"
+                  disabled={resendingEmail}
+                  onClick={() => setEmailTarget(r)}
+                >
                   Kirim Email
                 </Button>
-                <Button variant="danger" size="sm" disabled={refundingId !== null} onClick={() => {
-                  setRefundTarget(r);
-                  setRefundReason("");
-                  setRefundBankAccount("");
-                }}>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  disabled={refundingId !== null}
+                  onClick={() => {
+                    setRefundTarget(r);
+                    setRefundReason("");
+                    setRefundBankAccount("");
+                  }}
+                >
                   {refundingId === r.id ? "Memproses…" : "Refund"}
                 </Button>
               </>
             )}
             {refund?.status === "processing" && refund.mode === "manual" && (
-              <Button variant="primary" size="sm" disabled={completingRefundId !== null} onClick={() => void completeManualRefund(r, refund)}>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={completingRefundId !== null}
+                onClick={() => void completeManualRefund(r, refund)}
+              >
                 {completingRefundId === refund.id ? "Memproses…" : "Tandai Selesai"}
               </Button>
             )}
             {refund?.status === "completed" && <Badge variant="ok">Refund selesai</Badge>}
-            {refund?.status === "processing" && refund.mode !== "manual" && <Badge variant="warn">Refund diproses</Badge>}
-            {r.status === "refunded" && refund?.status !== "completed" && refund?.status !== "processing" && <Badge variant="danger">Refunded</Badge>}
-            {isExpiredTable && r.status === "expired" && <Button variant="secondary" size="sm" disabled={reactivatingId !== null || reactivating} onClick={() => void reactivateOne(r)}>{reactivatingId === r.id ? "Mengaktifkan…" : "Aktifkan kembali"}</Button>}
-            {r.status !== "paid" && r.status !== "pending_payment" && r.status !== "refunded" && !(isExpiredTable && r.status === "expired") && "—"}
+            {refund?.status === "processing" && refund.mode !== "manual" && (
+              <Badge variant="warn">Refund diproses</Badge>
+            )}
+            {r.status === "refunded" && refund?.status !== "completed" && refund?.status !== "processing" && (
+              <Badge variant="danger">Refunded</Badge>
+            )}
+            {isExpiredTable && r.status === "expired" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={reactivatingId !== null || reactivating}
+                onClick={() => void reactivateOne(r)}
+              >
+                {reactivatingId === r.id ? "Mengaktifkan…" : "Aktifkan kembali"}
+              </Button>
+            )}
+            {r.status !== "paid" &&
+              r.status !== "pending_payment" &&
+              r.status !== "refunded" &&
+              !(isExpiredTable && r.status === "expired") &&
+              "—"}
           </div>
         );
       },
@@ -1835,121 +2625,325 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
 
   return (
     <div>
-      {editNotice && typeof document !== "undefined" && createPortal(
-        <div style={{ position: "fixed", top: 20, right: 20, zIndex: 11000, width: "min(420px, calc(100vw - 32px))" }}>
-          <Alert variant={editNotice.type}>
-            <span aria-live="polite">{editNotice.message}</span>
-          </Alert>
-        </div>,
-        document.body,
-      )}
-      {emailTarget && typeof document !== "undefined" && createPortal(
-        <div role="dialog" aria-modal="true" aria-labelledby="resend-email-title" onMouseDown={(event) => {
-          if (event.target === event.currentTarget && !resendingEmail) setEmailTarget(null);
-        }} style={{ position: "fixed", inset: 0, zIndex: 10000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}>
-          <section style={{ width: "min(100%, 480px)", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
-            <h2 id="resend-email-title" style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 22 }}>Kirim ulang email</h2>
-            <p style={{ margin: "0 0 16px", color: "var(--color-ink-2)", fontSize: 14 }}>{emailTarget.name} · {emailTarget.registration_number}</p>
-            <div style={{ border: "1px solid var(--color-line)", borderRadius: 10, padding: 14, marginBottom: 10 }}>
-              <strong>E-ticket</strong>
-              <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 13 }}>Email berisi tautan e-ticket dan QR peserta, dikirim ke alamat email yang saat ini tersimpan.</p>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-              <Button variant="secondary" size="sm" disabled={resendingEmail} onClick={() => setEmailTarget(null)}>Batal</Button>
-              <Button variant="primary" size="sm" disabled={resendingEmail} onClick={() => void resendParticipantEmail()}>{resendingEmail ? "Mengantrekan…" : "Kirim e-ticket"}</Button>
-            </div>
-          </section>
-        </div>,
-        document.body,
-      )}
-      {editTarget && typeof document !== "undefined" && createPortal(
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="participant-edit-title"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !savingEdit) {
-              setEditTarget(null);
-              setEditDraft(null);
-            }
-          }}
-          style={{ position: "fixed", inset: 0, zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", overflowY: "auto", boxSizing: "border-box", padding: "24px 16px", background: "rgba(20,24,31,.78)" }}
-        >
-          <section style={{ width: "min(100%, 640px)", maxHeight: "calc(100dvh - 48px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)", boxSizing: "border-box" }}>
-            <h2 id="participant-edit-title" style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 22 }}>Koreksi data peserta</h2>
-            <p style={{ margin: "0 0 20px", color: "var(--color-ink-2)", fontSize: 14 }}>
-              {editTarget.name} · {editTarget.registration_number}
-            </p>
-            {editError && <Alert variant="danger" className="mb-4">{editError}</Alert>}
-            {loadingEditId === editTarget.id && !editDraft ? (
-              <p style={{ color: "var(--color-ink-3)" }}>Memuat data peserta…</p>
-            ) : editDraft ? (
-              <form onSubmit={(event) => void saveParticipantEdit(event)}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-                  <div>
-                    <label className="field-label" htmlFor="participant-edit-name">Nama peserta</label>
-                    <input id="participant-edit-name" className="field-input" required maxLength={200} value={editDraft.name} onChange={(event) => setEditDraft({ ...editDraft, name: event.target.value })} style={{ width: "100%" }} />
-                  </div>
-                  <div>
-                    <label className="field-label" htmlFor="participant-edit-email">Email</label>
-                    <input id="participant-edit-email" className="field-input" type="email" required value={editDraft.email} onChange={(event) => setEditDraft({ ...editDraft, email: event.target.value })} style={{ width: "100%" }} />
-                  </div>
-                  <div>
-                    <label className="field-label" htmlFor="participant-edit-phone">Nomor HP</label>
-                    <input id="participant-edit-phone" className="field-input" type="tel" required value={editDraft.phone} onChange={(event) => setEditDraft({ ...editDraft, phone: event.target.value })} style={{ width: "100%" }} />
-                  </div>
-                  <div>
-                    <label className="field-label" htmlFor="participant-edit-birth-date">Tanggal lahir</label>
-                    <input id="participant-edit-birth-date" className="field-input" type="date" required max={new Date().toISOString().slice(0, 10)} value={editDraft.birth_date} onChange={(event) => setEditDraft({ ...editDraft, birth_date: event.target.value })} style={{ width: "100%" }} />
-                  </div>
-                  <div>
-                    <label className="field-label" htmlFor="participant-edit-gender">Jenis kelamin</label>
-                    <select id="participant-edit-gender" className="field-input" required value={editDraft.gender} onChange={(event) => setEditDraft({ ...editDraft, gender: event.target.value })} style={{ width: "100%" }}>
-                      <option value="male">Laki-laki</option>
-                      <option value="female">Perempuan</option>
-                      {editDraft.gender !== "male" && editDraft.gender !== "female" && <option value={editDraft.gender}>{editDraft.gender}</option>}
-                    </select>
-                  </div>
-                  {editDraft.fields.map((field) => {
-                    const value = editDraft.extra_data[field.id] ?? "";
-                    const setValue = (next: string) => setEditDraft({
-                      ...editDraft,
-                      extra_data: { ...editDraft.extra_data, [field.id]: next },
-                    });
-                    return (
-                      <div key={field.id} style={field.field_type === "textarea" ? { gridColumn: "1 / -1" } : undefined}>
-                        <label className="field-label" htmlFor={`participant-extra-${field.id}`}>{field.label}{field.required ? " *" : ""}</label>
-                        {field.field_type === "textarea" ? (
-                          <textarea id={`participant-extra-${field.id}`} className="field-input" required={field.required} value={value} onChange={(event) => setValue(event.target.value)} rows={3} style={{ width: "100%", resize: "vertical" }} />
-                        ) : field.field_type === "select" || field.field_type === "radio" ? (
-                          <select id={`participant-extra-${field.id}`} className="field-input" required={field.required} value={value} onChange={(event) => setValue(event.target.value)} style={{ width: "100%" }}>
-                            <option value="">Pilih…</option>
-                            {field.options.split(",").map((option) => option.trim()).filter(Boolean).map((option) => <option key={option} value={option}>{option}</option>)}
-                          </select>
-                        ) : field.field_type === "checkbox" ? (
-                          <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 42 }}>
-                            <input id={`participant-extra-${field.id}`} type="checkbox" required={field.required} checked={value === "true"} onChange={(event) => setValue(event.target.checked ? "true" : "false")} />
-                            <span>{field.placeholder || field.label}</span>
-                          </label>
-                        ) : (
-                          <input id={`participant-extra-${field.id}`} className="field-input" type={field.field_type === "date" ? "date" : field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"} required={field.required} value={value} onChange={(event) => setValue(event.target.value)} style={{ width: "100%" }} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <p style={{ margin: "16px 0", color: "var(--color-ink-3)", fontSize: 12 }}>
-                  Koreksi data tidak mengubah tiket, pembayaran, BIB, refund, atau status check-in. Perubahan dicatat di audit log.
+      {editNotice &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            style={{ position: "fixed", top: 20, right: 20, zIndex: 11000, width: "min(420px, calc(100vw - 32px))" }}
+          >
+            <Alert variant={editNotice.type}>
+              <span aria-live="polite">{editNotice.message}</span>
+            </Alert>
+          </div>,
+          document.body,
+        )}
+      {emailTarget &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="resend-email-title"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && !resendingEmail) setEmailTarget(null);
+            }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 10000,
+              display: "grid",
+              placeItems: "center",
+              padding: 16,
+              background: "rgba(20,24,31,.78)",
+            }}
+          >
+            <section
+              style={{
+                width: "min(100%, 480px)",
+                padding: 24,
+                borderRadius: "var(--radius-lg)",
+                background: "var(--color-panel)",
+                color: "var(--color-ink)",
+                border: "1px solid var(--color-line)",
+                boxShadow: "var(--shadow-sh-3)",
+              }}
+            >
+              <h2
+                id="resend-email-title"
+                style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 22 }}
+              >
+                Kirim ulang email
+              </h2>
+              <p style={{ margin: "0 0 16px", color: "var(--color-ink-2)", fontSize: 14 }}>
+                {emailTarget.name} · {emailTarget.registration_number}
+              </p>
+              <div style={{ border: "1px solid var(--color-line)", borderRadius: 10, padding: 14, marginBottom: 10 }}>
+                <strong>E-ticket</strong>
+                <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 13 }}>
+                  Email berisi tautan e-ticket dan QR peserta, dikirim ke alamat email yang saat ini tersimpan.
                 </p>
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
-                  <Button type="button" variant="secondary" size="sm" disabled={savingEdit} onClick={() => { setEditTarget(null); setEditDraft(null); }}>Batal</Button>
-                  <Button type="submit" variant="primary" size="sm" disabled={savingEdit}>{savingEdit ? "Menyimpan…" : "Simpan koreksi"}</Button>
-                </div>
-              </form>
-            ) : null}
-          </section>
-        </div>
-      , document.body)}
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                <Button variant="secondary" size="sm" disabled={resendingEmail} onClick={() => setEmailTarget(null)}>
+                  Batal
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  disabled={resendingEmail}
+                  onClick={() => void resendParticipantEmail()}
+                >
+                  {resendingEmail ? "Mengantrekan…" : "Kirim e-ticket"}
+                </Button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
+      {editTarget &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="participant-edit-title"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && !savingEdit) {
+                setEditTarget(null);
+                setEditDraft(null);
+              }
+            }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 10000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflowY: "auto",
+              boxSizing: "border-box",
+              padding: "24px 16px",
+              background: "rgba(20,24,31,.78)",
+            }}
+          >
+            <section
+              style={{
+                width: "min(100%, 640px)",
+                maxHeight: "calc(100dvh - 48px)",
+                overflowY: "auto",
+                padding: 24,
+                borderRadius: "var(--radius-lg)",
+                background: "var(--color-panel)",
+                color: "var(--color-ink)",
+                border: "1px solid var(--color-line)",
+                boxShadow: "var(--shadow-sh-3)",
+                boxSizing: "border-box",
+              }}
+            >
+              <h2
+                id="participant-edit-title"
+                style={{ margin: "0 0 6px", fontFamily: "var(--font-display)", fontSize: 22 }}
+              >
+                Koreksi data peserta
+              </h2>
+              <p style={{ margin: "0 0 20px", color: "var(--color-ink-2)", fontSize: 14 }}>
+                {editTarget.name} · {editTarget.registration_number}
+              </p>
+              {editError && (
+                <Alert variant="danger" className="mb-4">
+                  {editError}
+                </Alert>
+              )}
+              {loadingEditId === editTarget.id && !editDraft ? (
+                <p style={{ color: "var(--color-ink-3)" }}>Memuat data peserta…</p>
+              ) : editDraft ? (
+                <form onSubmit={(event) => void saveParticipantEdit(event)}>
+                  <div
+                    style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}
+                  >
+                    <div>
+                      <label className="field-label" htmlFor="participant-edit-name">
+                        Nama peserta
+                      </label>
+                      <input
+                        id="participant-edit-name"
+                        className="field-input"
+                        required
+                        maxLength={200}
+                        value={editDraft.name}
+                        onChange={(event) => setEditDraft({ ...editDraft, name: event.target.value })}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label" htmlFor="participant-edit-email">
+                        Email
+                      </label>
+                      <input
+                        id="participant-edit-email"
+                        className="field-input"
+                        type="email"
+                        required
+                        value={editDraft.email}
+                        onChange={(event) => setEditDraft({ ...editDraft, email: event.target.value })}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label" htmlFor="participant-edit-phone">
+                        Nomor HP
+                      </label>
+                      <input
+                        id="participant-edit-phone"
+                        className="field-input"
+                        type="tel"
+                        required
+                        value={editDraft.phone}
+                        onChange={(event) => setEditDraft({ ...editDraft, phone: event.target.value })}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label" htmlFor="participant-edit-birth-date">
+                        Tanggal lahir
+                      </label>
+                      <input
+                        id="participant-edit-birth-date"
+                        className="field-input"
+                        type="date"
+                        required
+                        max={new Date().toISOString().slice(0, 10)}
+                        value={editDraft.birth_date}
+                        onChange={(event) => setEditDraft({ ...editDraft, birth_date: event.target.value })}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="field-label" htmlFor="participant-edit-gender">
+                        Jenis kelamin
+                      </label>
+                      <select
+                        id="participant-edit-gender"
+                        className="field-input"
+                        required
+                        value={editDraft.gender}
+                        onChange={(event) => setEditDraft({ ...editDraft, gender: event.target.value })}
+                        style={{ width: "100%" }}
+                      >
+                        <option value="male">Laki-laki</option>
+                        <option value="female">Perempuan</option>
+                        {editDraft.gender !== "male" && editDraft.gender !== "female" && (
+                          <option value={editDraft.gender}>{editDraft.gender}</option>
+                        )}
+                      </select>
+                    </div>
+                    {editDraft.fields.map((field) => {
+                      const value = editDraft.extra_data[field.id] ?? "";
+                      const setValue = (next: string) =>
+                        setEditDraft({
+                          ...editDraft,
+                          extra_data: { ...editDraft.extra_data, [field.id]: next },
+                        });
+                      return (
+                        <div
+                          key={field.id}
+                          style={field.field_type === "textarea" ? { gridColumn: "1 / -1" } : undefined}
+                        >
+                          <label className="field-label" htmlFor={`participant-extra-${field.id}`}>
+                            {field.label}
+                            {field.required ? " *" : ""}
+                          </label>
+                          {field.field_type === "textarea" ? (
+                            <textarea
+                              id={`participant-extra-${field.id}`}
+                              className="field-input"
+                              required={field.required}
+                              value={value}
+                              onChange={(event) => setValue(event.target.value)}
+                              rows={3}
+                              style={{ width: "100%", resize: "vertical" }}
+                            />
+                          ) : field.field_type === "select" || field.field_type === "radio" ? (
+                            <select
+                              id={`participant-extra-${field.id}`}
+                              className="field-input"
+                              required={field.required}
+                              value={value}
+                              onChange={(event) => setValue(event.target.value)}
+                              style={{ width: "100%" }}
+                            >
+                              <option value="">Pilih…</option>
+                              {field.options
+                                .split(",")
+                                .map((option) => option.trim())
+                                .filter(Boolean)
+                                .map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                            </select>
+                          ) : field.field_type === "checkbox" ? (
+                            <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 42 }}>
+                              <input
+                                id={`participant-extra-${field.id}`}
+                                type="checkbox"
+                                required={field.required}
+                                checked={value === "true"}
+                                onChange={(event) => setValue(event.target.checked ? "true" : "false")}
+                              />
+                              <span>{field.placeholder || field.label}</span>
+                            </label>
+                          ) : (
+                            <input
+                              id={`participant-extra-${field.id}`}
+                              className="field-input"
+                              type={
+                                field.field_type === "date"
+                                  ? "date"
+                                  : field.field_type === "email"
+                                    ? "email"
+                                    : field.field_type === "number"
+                                      ? "number"
+                                      : "text"
+                              }
+                              required={field.required}
+                              value={value}
+                              onChange={(event) => setValue(event.target.value)}
+                              style={{ width: "100%" }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p style={{ margin: "16px 0", color: "var(--color-ink-3)", fontSize: 12 }}>
+                    Koreksi data tidak mengubah tiket, pembayaran, BIB, refund, atau status check-in. Perubahan dicatat
+                    di audit log.
+                  </p>
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={savingEdit}
+                      onClick={() => {
+                        setEditTarget(null);
+                        setEditDraft(null);
+                      }}
+                    >
+                      Batal
+                    </Button>
+                    <Button type="submit" variant="primary" size="sm" disabled={savingEdit}>
+                      {savingEdit ? "Menyimpan…" : "Simpan koreksi"}
+                    </Button>
+                  </div>
+                </form>
+              ) : null}
+            </section>
+          </div>,
+          document.body,
+        )}
       {refundTarget && (
         <div
           role="dialog"
@@ -1958,14 +2952,41 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
           onMouseDown={(event) => {
             if (event.target === event.currentTarget && refundingId === null) setRefundTarget(null);
           }}
-          style={{ position: "fixed", inset: 0, zIndex: 1000, display: "grid", placeItems: "center", padding: 16, background: "rgba(20,24,31,.78)" }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "grid",
+            placeItems: "center",
+            padding: 16,
+            background: "rgba(20,24,31,.78)",
+          }}
         >
-          <section style={{ width: "min(100%, 480px)", maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-surface)", color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)" }}>
-            <h2 id="participant-refund-title" style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 22 }}>Refund peserta</h2>
+          <section
+            style={{
+              width: "min(100%, 480px)",
+              maxHeight: "calc(100vh - 32px)",
+              overflowY: "auto",
+              padding: 24,
+              borderRadius: "var(--radius-lg)",
+              background: "var(--color-surface)",
+              color: "var(--color-ink)",
+              border: "1px solid var(--color-line)",
+              boxShadow: "var(--shadow-sh-3)",
+            }}
+          >
+            <h2
+              id="participant-refund-title"
+              style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 22 }}
+            >
+              Refund peserta
+            </h2>
             <p style={{ margin: "0 0 20px", color: "var(--color-ink-2)", fontSize: 14 }}>
               {refundTarget.name} · {refundTarget.registration_number}
             </p>
-            <label className="field-label" htmlFor="refund-reason">Alasan refund</label>
+            <label className="field-label" htmlFor="refund-reason">
+              Alasan refund
+            </label>
             <textarea
               id="refund-reason"
               className="field-input"
@@ -1976,7 +2997,9 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
               placeholder="Opsional"
               style={{ width: "100%", resize: "vertical", marginBottom: 16 }}
             />
-            <label className="field-label" htmlFor="refund-bank-account">Nomor rekening tujuan</label>
+            <label className="field-label" htmlFor="refund-bank-account">
+              Nomor rekening tujuan
+            </label>
             <input
               id="refund-bank-account"
               className="field-input"
@@ -1990,8 +3013,20 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
               Refund manual memerlukan nomor rekening. Nilai refund dan metode pemrosesan ditentukan backend.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
-              <Button variant="secondary" size="sm" disabled={refundingId !== null} onClick={() => setRefundTarget(null)}>Batal</Button>
-              <Button variant="danger" size="sm" disabled={refundingId !== null} onClick={() => void refundParticipant()}>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={refundingId !== null}
+                onClick={() => setRefundTarget(null)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                disabled={refundingId !== null}
+                onClick={() => void refundParticipant()}
+              >
                 {refundingId === refundTarget.id ? "Memproses…" : "Lanjutkan refund"}
               </Button>
             </div>
@@ -2008,73 +3043,207 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-            <input
-              type="search"
-              className="field-input"
-              placeholder="Cari peserta…"
-              aria-label="Cari peserta berdasarkan nama, nomor registrasi, BIB, atau kategori"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
-                setSelectedIds([]);
-                setLoading(true);
-                setErr(null);
-              }}
-              style={{ width: "min(260px, 40vw)" }}
-            />
-            <label htmlFor="participants-page-size" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-              Baris per halaman
-            </label>
-            <select
-              id="participants-page-size"
-              className="field-input"
-              value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value));
-                setPage(1);
-                setSelectedIds([]);
-                setLoading(true);
-                setErr(null);
-              }}
-              style={{ width: 90, padding: "6px 8px" }}
-            >
-              {[8, 16, 24].map((size) => (
-                <option key={size} value={size}>{size}</option>
-              ))}
-              {statusFilter === "pending_payment" && <option value={0}>Semua</option>}
-            </select>
-            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }} aria-live="polite">
-              {loading ? "Memuat peserta…" : pageSize === 0 ? `${rows?.length ?? 0} peserta ditampilkan` : `${rows?.length ?? 0} peserta di halaman ini`}
-            </span>
+          <input
+            type="search"
+            className="field-input"
+            placeholder="Cari peserta…"
+            aria-label="Cari peserta berdasarkan nama, nomor registrasi, BIB, atau kategori"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+              setSelectedIds([]);
+              setLoading(true);
+              setErr(null);
+            }}
+            style={{ width: "min(260px, 40vw)" }}
+          />
+          <label htmlFor="participants-page-size" style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
+            Baris per halaman
+          </label>
+          <select
+            id="participants-page-size"
+            className="field-input"
+            value={pageSize}
+            onChange={(event) => {
+              setPageSize(Number(event.target.value));
+              setPage(1);
+              setSelectedIds([]);
+              setLoading(true);
+              setErr(null);
+            }}
+            style={{ width: 90, padding: "6px 8px" }}
+          >
+            {[8, 16, 24].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+            {statusFilter === "pending_payment" && <option value={0}>Semua</option>}
+          </select>
+          <span style={{ fontSize: 14, color: "var(--color-ink-3)" }} aria-live="polite">
+            {loading
+              ? "Memuat peserta…"
+              : pageSize === 0
+                ? `${rows?.length ?? 0} peserta ditampilkan`
+                : `${rows?.length ?? 0} peserta di halaman ini`}
+          </span>
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {isRunning && statusFilter !== "pending_payment" && statusFilter !== "expired" && <Button
-            variant="secondary"
-            size="sm"
-            disabled={rpcExporting}
-            onClick={exportRPCCsv}
-          >
-            {rpcExporting ? "Mengekspor…" : "Download Rekap RPC"}
-          </Button>}
-          {statusFilter !== "pending_payment" && statusFilter !== "expired" && <Button
-            variant="secondary"
-            size="sm"
-            disabled={exporting}
-            onClick={exportCsv}
-          >
-            {exporting ? "Mengekspor…" : "Export CSV"}
-          </Button>}
+          {isRunning && statusFilter !== "pending_payment" && statusFilter !== "expired" && (
+            <Button variant="secondary" size="sm" disabled={rpcExporting} onClick={exportRPCCsv}>
+              {rpcExporting ? "Mengekspor…" : "Download Rekap RPC"}
+            </Button>
+          )}
+          {statusFilter !== "pending_payment" && statusFilter !== "expired" && (
+            <Button variant="secondary" size="sm" disabled={exporting} onClick={exportCsv}>
+              {exporting ? "Mengekspor…" : "Export CSV"}
+            </Button>
+          )}
         </div>
       </div>
-      {showBulkActions && selectedRows.length>0&&<div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",padding:12,marginBottom:14,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",background:"var(--color-panel)"}}>
-        <strong style={{fontSize:13}}>{selectedRows.length} dipilih</strong>
-        {isExpiredTable ? <Button variant="secondary" size="sm" disabled={reactivating} onClick={()=>void reactivateSelected()}>{reactivating?"Mengaktifkan…":"Aktifkan kembali"}</Button> : <><select className="field-input" aria-label="Metode payment" value={paymentMethod} onChange={(event)=>setPaymentMethod(event.target.value)} disabled={loadingPaymentMethods||paymentMethods.length===0} style={{maxWidth:210}}><option value="">{loadingPaymentMethods?"Memuat metode payment…":paymentMethods.length===0?"Metode payment tidak tersedia":"Pilih metode payment"}</option>{paymentMethods.map((method)=><option key={method.id} value={method.id}>{method.label}</option>)}</select>
-        <Button variant="secondary" size="sm" disabled={bulkBusy||loadingPaymentMethods||paymentMethods.length===0} onClick={()=>void runSelected()}>{loadingPaymentMethods?"Memuat metode…":"Buat payment"}</Button></>}
-        <Button variant="ghost" size="sm" onClick={()=>setSelectedIds([])}>Batal pilih</Button>
-      </div>}
-      {showBulkActions && !isExpiredTable && paymentOutcomes.length>0&&<div style={{padding:14,marginBottom:14,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",background:"var(--color-surface)"}}><strong>Instruksi payment dibuat</strong>{paymentOutcomes.map((item)=><div key={item.payment.transaction_id} style={{fontSize:13,paddingTop:10,marginTop:10,borderTop:"1px solid var(--color-line)"}}><strong>{item.name}{item.registrationNumber?` · ${item.registrationNumber}`:""}</strong>{item.payment.qr_string&&<div style={{display:"flex",justifyContent:"center",padding:"12px 0"}}><div style={{background:"#fff",padding:12,borderRadius:"var(--radius-md)"}}>{/^https?:\/\//i.test(item.payment.qr_string)?/* eslint-disable-next-line @next/next/no-img-element */<img src={item.payment.qr_string} alt="Kode QR pembayaran" width={280} height={280} style={{display:"block",maxWidth:"100%",height:"auto"}}/>:<QRCodeSVG value={item.payment.qr_string} size={280} level="M" style={{display:"block",maxWidth:"100%",height:"auto"}}/>}</div></div>}<div style={{fontFamily:"var(--font-mono)",overflowWrap:"anywhere",marginTop:4}}>{item.payment.va_number?`VA ${item.payment.va_number}`:""}{item.payment.biller_code?` · Kode perusahaan ${item.payment.biller_code}`:""}{item.payment.bill_key?` · Kode pembayaran ${item.payment.bill_key}`:""}{item.payment.payment_url?` · ${item.payment.payment_url}`:""}{item.payment.deeplink_url?` · ${item.payment.deeplink_url}`:""}</div><div>Harga: Rp {item.payment.quote.price.toLocaleString("id-ID")} · Donasi: Rp {item.payment.quote.donation.toLocaleString("id-ID")} · Fee Platform: Rp {item.payment.quote.fee_platform.toLocaleString("id-ID")} · Fee Payment: Rp {item.payment.quote.fee_midtrans.toLocaleString("id-ID")}</div><strong>Subtotal: Rp {item.payment.quote.sub_total.toLocaleString("id-ID")}</strong></div>)}</div>}
-      {showBulkActions && bulkOutcomes.length>0&&<div style={{padding:14,marginBottom:14,border:"1px solid var(--color-line)",borderRadius:"var(--radius-sm)",background:"var(--color-surface)"}}><strong>Hasil aksi massal</strong>{bulkOutcomes.map((item,index)=><p key={`${item.name}-${index}`} style={{margin:"8px 0 0",fontSize:13,color:item.success?"var(--color-ok)":"var(--color-danger)"}}>{item.name}: {item.message}</p>)}</div>}
+      {showBulkActions && selectedRows.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            padding: 12,
+            marginBottom: 14,
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-sm)",
+            background: "var(--color-panel)",
+          }}
+        >
+          <strong style={{ fontSize: 13 }}>{selectedRows.length} dipilih</strong>
+          {isExpiredTable ? (
+            <Button variant="secondary" size="sm" disabled={reactivating} onClick={() => void reactivateSelected()}>
+              {reactivating ? "Mengaktifkan…" : "Aktifkan kembali"}
+            </Button>
+          ) : (
+            <>
+              <select
+                className="field-input"
+                aria-label="Metode payment"
+                value={paymentMethod}
+                onChange={(event) => setPaymentMethod(event.target.value)}
+                disabled={loadingPaymentMethods || paymentMethods.length === 0}
+                style={{ maxWidth: 210 }}
+              >
+                <option value="">
+                  {loadingPaymentMethods
+                    ? "Memuat metode payment…"
+                    : paymentMethods.length === 0
+                      ? "Metode payment tidak tersedia"
+                      : "Pilih metode payment"}
+                </option>
+                {paymentMethods.map((method) => (
+                  <option key={method.id} value={method.id}>
+                    {method.label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={bulkBusy || loadingPaymentMethods || paymentMethods.length === 0}
+                onClick={() => void runSelected()}
+              >
+                {loadingPaymentMethods ? "Memuat metode…" : "Buat payment"}
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
+            Batal pilih
+          </Button>
+        </div>
+      )}
+      {showBulkActions && !isExpiredTable && paymentOutcomes.length > 0 && (
+        <div
+          style={{
+            padding: 14,
+            marginBottom: 14,
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-sm)",
+            background: "var(--color-surface)",
+          }}
+        >
+          <strong>Instruksi payment dibuat</strong>
+          {paymentOutcomes.map((item) => (
+            <div
+              key={item.payment.transaction_id}
+              style={{ fontSize: 13, paddingTop: 10, marginTop: 10, borderTop: "1px solid var(--color-line)" }}
+            >
+              <strong>
+                {item.name}
+                {item.registrationNumber ? ` · ${item.registrationNumber}` : ""}
+              </strong>
+              {item.payment.qr_string && (
+                <div style={{ display: "flex", justifyContent: "center", padding: "12px 0" }}>
+                  <div style={{ background: "#fff", padding: 12, borderRadius: "var(--radius-md)" }}>
+                    {/^https?:\/\//i.test(item.payment.qr_string) ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */ <img
+                        src={item.payment.qr_string}
+                        alt="Kode QR pembayaran"
+                        width={280}
+                        height={280}
+                        style={{ display: "block", maxWidth: "100%", height: "auto" }}
+                      />
+                    ) : (
+                      <QRCodeSVG
+                        value={item.payment.qr_string}
+                        size={280}
+                        level="M"
+                        style={{ display: "block", maxWidth: "100%", height: "auto" }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+              <div style={{ fontFamily: "var(--font-mono)", overflowWrap: "anywhere", marginTop: 4 }}>
+                {item.payment.va_number ? `VA ${item.payment.va_number}` : ""}
+                {item.payment.biller_code ? ` · Kode perusahaan ${item.payment.biller_code}` : ""}
+                {item.payment.bill_key ? ` · Kode pembayaran ${item.payment.bill_key}` : ""}
+                {item.payment.payment_url ? ` · ${item.payment.payment_url}` : ""}
+                {item.payment.deeplink_url ? ` · ${item.payment.deeplink_url}` : ""}
+              </div>
+              <div>
+                Harga: Rp {item.payment.quote.price.toLocaleString("id-ID")} · Donasi: Rp{" "}
+                {item.payment.quote.donation.toLocaleString("id-ID")} · Fee Platform: Rp{" "}
+                {item.payment.quote.fee_platform.toLocaleString("id-ID")} · Fee Payment: Rp{" "}
+                {item.payment.quote.fee_midtrans.toLocaleString("id-ID")}
+              </div>
+              <strong>Subtotal: Rp {item.payment.quote.sub_total.toLocaleString("id-ID")}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+      {showBulkActions && bulkOutcomes.length > 0 && (
+        <div
+          style={{
+            padding: 14,
+            marginBottom: 14,
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-sm)",
+            background: "var(--color-surface)",
+          }}
+        >
+          <strong>Hasil aksi massal</strong>
+          {bulkOutcomes.map((item, index) => (
+            <p
+              key={`${item.name}-${index}`}
+              style={{
+                margin: "8px 0 0",
+                fontSize: 13,
+                color: item.success ? "var(--color-ok)" : "var(--color-danger)",
+              }}
+            >
+              {item.name}: {item.message}
+            </p>
+          ))}
+        </div>
+      )}
       {err && (
         <Alert variant="danger" className="mb-4">
           {err}
@@ -2082,38 +3251,52 @@ function ParticipantsCard({ eventId, isRunning, showBulkActions = true, statusFi
       )}
       {!loading && rows && rows.length === 0 && page === 1 ? (
         <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-          {statusFilter === "pending_payment" ? "Tidak ada peserta yang belum lunas." : statusFilter === "expired" ? "Tidak ada peserta kedaluwarsa." : "Belum ada peserta."}
+          {statusFilter === "pending_payment"
+            ? "Tidak ada peserta yang belum lunas."
+            : statusFilter === "expired"
+              ? "Tidak ada peserta kedaluwarsa."
+              : "Belum ada peserta."}
         </p>
       ) : (
         <>
           <DataTable
             columns={cols}
-            data={loading ? [] : rows ?? []}
+            data={loading ? [] : (rows ?? [])}
             keyField="id"
             minRows={pageSize === 0 ? 8 : pageSize}
             loading={loading}
           />
-          {pageSize !== 0 && <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={page === 1}
-              onClick={() => { setSelectedIds([]); setLoading(true); setPage((current) => Math.max(1, current - 1)); }}
+          {pageSize !== 0 && (
+            <div
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16 }}
             >
-              Sebelumnya
-            </Button>
-            <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-              Halaman {page}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!hasNextPage}
-              onClick={() => { setSelectedIds([]); setLoading(true); setPage((current) => current + 1); }}
-            >
-              Berikutnya
-            </Button>
-          </div>}
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={page === 1}
+                onClick={() => {
+                  setSelectedIds([]);
+                  setLoading(true);
+                  setPage((current) => Math.max(1, current - 1));
+                }}
+              >
+                Sebelumnya
+              </Button>
+              <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>Halaman {page}</span>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={() => {
+                  setSelectedIds([]);
+                  setLoading(true);
+                  setPage((current) => current + 1);
+                }}
+              >
+                Berikutnya
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -2129,9 +3312,7 @@ function DonationReportCard({ eventId }: { eventId: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<DonationReport>>(
-          `/api/v1/events/${eventId}/donations`,
-        );
+        const res = await api.get<ApiResponse<DonationReport>>(`/api/v1/events/${eventId}/donations`);
         if (!cancelled) setReport(res.data);
       } catch {
         if (!cancelled) setErr("Gagal memuat laporan donasi.");
@@ -2148,11 +3329,7 @@ function DonationReportCard({ eventId }: { eventId: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div
-          style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}
-        >
-          Pendapatan Tiket
-        </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Pendapatan Tiket</div>
         <div
           style={{
             fontFamily: "var(--font-mono)",
@@ -2164,11 +3341,7 @@ function DonationReportCard({ eventId }: { eventId: string }) {
         </div>
       </div>
       <div>
-        <div
-          style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}
-        >
-          Total Donasi (terpisah)
-        </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Total Donasi (terpisah)</div>
         <div
           style={{
             fontFamily: "var(--font-mono)",
@@ -2179,11 +3352,7 @@ function DonationReportCard({ eventId }: { eventId: string }) {
         >
           {formatRupiah(report.donation_total)}
         </div>
-        <div
-          style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 6 }}
-        >
-          Non-refundable, tetap disalurkan.
-        </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 6 }}>Non-refundable, tetap disalurkan.</div>
       </div>
     </div>
   );
@@ -2198,9 +3367,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<DonationLedgerEntry[]>>(
-          `/api/v1/events/${eventId}/donations/ledger`,
-        );
+        const res = await api.get<ApiResponse<DonationLedgerEntry[]>>(`/api/v1/events/${eventId}/donations/ledger`);
         if (!cancelled) setEntries(res.data ?? []);
       } catch {
         if (!cancelled) setErr("Gagal memuat ledger donasi.");
@@ -2226,15 +3393,11 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
           marginBottom: 16,
         }}
       >
-        Donasi yang sudah settled dari peserta. Pisah dari pendapatan tiket dan
-        tidak bisa di-withdraw — disalurkan ke penerima donasi.
+        Donasi yang sudah settled dari peserta. Pisah dari pendapatan tiket dan tidak bisa di-withdraw - disalurkan ke
+        penerima donasi.
       </p>
       <div style={{ marginBottom: 20 }}>
-        <div
-          style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}
-        >
-          Total Donasi Settled
-        </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Total Donasi Settled</div>
         <div
           style={{
             fontFamily: "var(--font-mono)",
@@ -2247,9 +3410,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
         </div>
       </div>
       {entries.length === 0 ? (
-        <p style={{ fontSize: 15, color: "var(--color-ink-3)" }}>
-          Belum ada donasi yang masuk.
-        </p>
+        <p style={{ fontSize: 15, color: "var(--color-ink-3)" }}>Belum ada donasi yang masuk.</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table
@@ -2274,10 +3435,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
             </thead>
             <tbody>
               {entries.map((e) => (
-                <tr
-                  key={e.id}
-                  style={{ borderBottom: "1px solid var(--color-line)" }}
-                >
+                <tr key={e.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
                   <td style={td}>
                     <code style={{ fontSize: 12 }}>{e.reference_id}</code>
                   </td>
@@ -2304,9 +3462,7 @@ function DonationLedgerCard({ eventId }: { eventId: string }) {
                     </span>
                   </td>
                   <td style={{ ...td, color: "var(--color-ink-3)" }}>
-                    {e.created_at
-                      ? new Date(e.created_at).toLocaleString("id-ID")
-                      : "—"}
+                    {e.created_at ? new Date(e.created_at).toLocaleString("id-ID") : "—"}
                   </td>
                 </tr>
               ))}
@@ -2328,9 +3484,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<ApiResponse<Refund[]>>(
-          `/api/v1/events/${eventId}/refunds`,
-        );
+        const res = await api.get<ApiResponse<Refund[]>>(`/api/v1/events/${eventId}/refunds`);
         if (!cancelled) setRefunds(res.data ?? []);
       } catch {
         if (!cancelled) setErr("Gagal memuat data refund.");
@@ -2341,10 +3495,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
     };
   }, [eventId]);
 
-  const REFUND_STATUS: Record<
-    string,
-    { label: string; variant: "ok" | "warn" | "danger" }
-  > = {
+  const REFUND_STATUS: Record<string, { label: string; variant: "ok" | "warn" | "danger" }> = {
     requested: { label: "Menunggu review", variant: "warn" },
     completed: { label: "Selesai", variant: "ok" },
     processing: { label: "Diproses", variant: "warn" },
@@ -2354,11 +3505,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
   if (err) return <Alert variant="danger">{err}</Alert>;
   if (!refunds) return <p style={{ color: "var(--color-ink-3)" }}>Memuat…</p>;
   if (refunds.length === 0)
-    return (
-      <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-        Belum ada refund untuk event ini.
-      </p>
-    );
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada refund untuk event ini.</p>;
 
   const done = refunds.filter((r) => r.status === "completed").length;
   const processing = refunds.filter((r) => r.status === "processing").length;
@@ -2430,9 +3577,7 @@ function RefundsCard({ eventId }: { eventId: string }) {
         </div>
       </div>
       <div style={{ overflowX: "auto" }}>
-        <table
-          style={{ width: "100%", minWidth: 1120, borderCollapse: "collapse", fontSize: 14 }}
-        >
+        <table style={{ width: "100%", minWidth: 1120, borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr
               style={{
@@ -2456,18 +3601,17 @@ function RefundsCard({ eventId }: { eventId: string }) {
                 variant: "warn" as const,
               };
               return (
-                <tr
-                  key={r.id}
-                  style={{ borderBottom: "1px solid var(--color-line)" }}
-                >
+                <tr key={r.id} style={{ borderBottom: "1px solid var(--color-line)" }}>
                   <td style={td}>
-                    <code style={{ fontSize: 12 }}>
-                      {r.registration_number || `${r.registration_id.slice(0, 8)}…`}
-                    </code>
+                    <code style={{ fontSize: 12 }}>{r.registration_number || `${r.registration_id.slice(0, 8)}…`}</code>
                   </td>
                   <td style={td}>{r.created_at ? new Date(r.created_at).toLocaleString("id-ID") : "—"}</td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>{r.payment_sub_total === undefined ? "—" : formatRupiah(r.payment_sub_total)}</td>
-                  <td style={{ ...td, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--color-danger)" }}>{formatRupiah(r.amount)}</td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)" }}>
+                    {r.payment_sub_total === undefined ? "—" : formatRupiah(r.payment_sub_total)}
+                  </td>
+                  <td style={{ ...td, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--color-danger)" }}>
+                    {formatRupiah(r.amount)}
+                  </td>
                   <td style={td}>
                     {r.method} · {r.mode === "auto" ? "Otomatis" : "Manual"}
                   </td>
@@ -2475,7 +3619,9 @@ function RefundsCard({ eventId }: { eventId: string }) {
                     <Badge variant={s.variant}>{s.label}</Badge>
                   </td>
                   <td style={td}>
-                    <Button variant="secondary" size="sm" onClick={() => setSelectedRefund(r)}>Lihat Detail</Button>
+                    <Button variant="secondary" size="sm" onClick={() => setSelectedRefund(r)}>
+                      Lihat Detail
+                    </Button>
                   </td>
                 </tr>
               );
@@ -2483,110 +3629,272 @@ function RefundsCard({ eventId }: { eventId: string }) {
           </tbody>
         </table>
       </div>
-      {selectedRefund && typeof document !== "undefined" && createPortal(
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="refund-detail-title"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setSelectedRefund(null);
-          }}
-          style={{
-            position: "fixed", inset: 0, zIndex: 9999, display: "grid",
-            alignContent: "start", justifyItems: "center", overflowY: "auto",
-            boxSizing: "border-box", padding: "24px 16px", background: "rgba(20,24,31,.78)",
-          }}
-        >
-          <section style={{
-            width: "min(100%, 540px)", maxHeight: "calc(100dvh - 48px)", overflowY: "auto",
-            padding: 24, borderRadius: "var(--radius-lg)", background: "var(--color-panel)",
-            color: "var(--color-ink)", border: "1px solid var(--color-line)", boxShadow: "var(--shadow-sh-3)", boxSizing: "border-box",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
-              <div>
-                <p style={{ margin: "0 0 5px", color: "var(--color-sprint)", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: ".1em" }}>RINCIAN TRANSAKSI REFUND</p>
-                <h2 id="refund-detail-title" style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 23, lineHeight: 1.2 }}>
-                  {selectedRefund.registration_number || "Detail Refund"}
-                </h2>
-                <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 14, fontWeight: 600 }}>
-                  {selectedRefund.participant_name || "Nama peserta tidak tersedia"}
-                </p>
-                <p style={{ margin: "6px 0 0", color: "var(--color-ink-3)", fontSize: 13 }}>
-                  {selectedRefund.created_at ? new Date(selectedRefund.created_at).toLocaleString("id-ID") : "Tanggal tidak tersedia"}
-                </p>
+      {selectedRefund &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="refund-detail-title"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setSelectedRefund(null);
+            }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9999,
+              display: "grid",
+              alignContent: "start",
+              justifyItems: "center",
+              overflowY: "auto",
+              boxSizing: "border-box",
+              padding: "24px 16px",
+              background: "rgba(20,24,31,.78)",
+            }}
+          >
+            <section
+              style={{
+                width: "min(100%, 540px)",
+                maxHeight: "calc(100dvh - 48px)",
+                overflowY: "auto",
+                padding: 24,
+                borderRadius: "var(--radius-lg)",
+                background: "var(--color-panel)",
+                color: "var(--color-ink)",
+                border: "1px solid var(--color-line)",
+                boxShadow: "var(--shadow-sh-3)",
+                boxSizing: "border-box",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+                <div>
+                  <p
+                    style={{
+                      margin: "0 0 5px",
+                      color: "var(--color-sprint)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: ".1em",
+                    }}
+                  >
+                    RINCIAN TRANSAKSI REFUND
+                  </p>
+                  <h2
+                    id="refund-detail-title"
+                    style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 23, lineHeight: 1.2 }}
+                  >
+                    {selectedRefund.registration_number || "Detail Refund"}
+                  </h2>
+                  <p style={{ margin: "6px 0 0", color: "var(--color-ink-2)", fontSize: 14, fontWeight: 600 }}>
+                    {selectedRefund.participant_name || "Nama peserta tidak tersedia"}
+                  </p>
+                  <p style={{ margin: "6px 0 0", color: "var(--color-ink-3)", fontSize: 13 }}>
+                    {selectedRefund.created_at
+                      ? new Date(selectedRefund.created_at).toLocaleString("id-ID")
+                      : "Tanggal tidak tersedia"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Tutup detail refund"
+                  onClick={() => setSelectedRefund(null)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    border: "1px solid var(--color-line)",
+                    borderRadius: 999,
+                    background: "var(--color-surface)",
+                    color: "var(--color-ink-2)",
+                    fontSize: 22,
+                    lineHeight: 1,
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  ×
+                </button>
               </div>
-              <button type="button" aria-label="Tutup detail refund" onClick={() => setSelectedRefund(null)} style={{ width: 36, height: 36, border: "1px solid var(--color-line)", borderRadius: 999, background: "var(--color-surface)", color: "var(--color-ink-2)", fontSize: 22, lineHeight: 1, cursor: "pointer", flexShrink: 0 }}>×</button>
-            </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 18, padding: 16, border: "1px solid var(--color-danger-tint)", borderRadius: "var(--radius-md)", background: "var(--color-surface)" }}>
-              <div>
-                <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 4 }}>Dana refund</div>
-                <div style={{ color: "var(--color-danger)", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 24, fontVariantNumeric: "tabular-nums" }}>{formatRupiah(selectedRefund.amount)}</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12,
+                  marginTop: 18,
+                  padding: 16,
+                  border: "1px solid var(--color-danger-tint)",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--color-surface)",
+                }}
+              >
+                <div>
+                  <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 4 }}>Dana refund</div>
+                  <div
+                    style={{
+                      color: "var(--color-danger)",
+                      fontFamily: "var(--font-mono)",
+                      fontWeight: 700,
+                      fontSize: 24,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {formatRupiah(selectedRefund.amount)}
+                  </div>
+                </div>
+                <Badge variant={REFUND_STATUS[selectedRefund.status]?.variant ?? "warn"}>
+                  {REFUND_STATUS[selectedRefund.status]?.label ?? selectedRefund.status}
+                </Badge>
               </div>
-              <Badge variant={REFUND_STATUS[selectedRefund.status]?.variant ?? "warn"}>
-                {REFUND_STATUS[selectedRefund.status]?.label ?? selectedRefund.status}
-              </Badge>
-            </div>
 
-            <section style={{ marginTop: 20 }}>
-              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Data peserta</h3>
-              <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
-                <RefundInfo label="Nama" value={selectedRefund.participant_name || "—"} />
-                <RefundInfo label="Email" value={selectedRefund.participant_email || "—"} />
-                <RefundInfo label="Nomor telepon" value={selectedRefund.participant_phone || "—"} />
-                <RefundInfo label="Tanggal lahir" value={selectedRefund.participant_birth_date || "—"} />
-                <RefundInfo label="Nomor BIB" value={selectedRefund.bib_number || "—"} />
-                <RefundInfo label="Gender" value={selectedRefund.gender || "—"} />
-                <RefundInfo label="Kelas usia" value={formatAgeClass(selectedRefund.age_class, selectedRefund.category_name) || "—"} />
-                <RefundInfo label="Kategori" value={selectedRefund.category_name || "—"} />
-                <RefundInfo label="Kategori tiket" value={selectedRefund.ticket_name || "—"} />
-              </dl>
+              <section style={{ marginTop: 20 }}>
+                <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Data peserta</h3>
+                <dl
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: 8,
+                    margin: 0,
+                  }}
+                >
+                  <RefundInfo label="Nama" value={selectedRefund.participant_name || "—"} />
+                  <RefundInfo label="Email" value={selectedRefund.participant_email || "—"} />
+                  <RefundInfo label="Nomor telepon" value={selectedRefund.participant_phone || "—"} />
+                  <RefundInfo label="Tanggal lahir" value={selectedRefund.participant_birth_date || "—"} />
+                  <RefundInfo label="Nomor BIB" value={selectedRefund.bib_number || "—"} />
+                  <RefundInfo label="Gender" value={selectedRefund.gender || "—"} />
+                  <RefundInfo
+                    label="Kelas usia"
+                    value={formatAgeClass(selectedRefund.age_class, selectedRefund.category_name) || "—"}
+                  />
+                  <RefundInfo label="Kategori" value={selectedRefund.category_name || "—"} />
+                  <RefundInfo label="Kategori tiket" value={selectedRefund.ticket_name || "—"} />
+                </dl>
+              </section>
+
+              <section style={{ marginTop: 22 }}>
+                <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>
+                  Rincian pembayaran
+                </h3>
+                <dl
+                  style={{
+                    margin: 0,
+                    padding: "4px 14px",
+                    border: "1px solid var(--color-line)",
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--color-surface)",
+                  }}
+                >
+                  <RefundMoneyRow
+                    label="Harga Event"
+                    value={
+                      selectedRefund.ticket_base_price === undefined
+                        ? selectedRefund.ticket_price === undefined
+                          ? "—"
+                          : formatRupiah(selectedRefund.ticket_price)
+                        : formatRupiah(selectedRefund.ticket_base_price)
+                    }
+                  />
+                  {selectedRefund.addons?.map((addon) => (
+                    <RefundMoneyRow
+                      key={addon.id}
+                      label={`Add-on: ${addon.title} - ${addon.name}`}
+                      value={formatRupiah(addon.price)}
+                    />
+                  ))}
+                  <RefundMoneyRow
+                    label="Fee Platform"
+                    value={selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)}
+                  />
+                  <RefundMoneyRow label="Biaya Transaksi" value={formatRupiah(selectedRefund.fee_midtrans)} />
+                  <RefundMoneyRow
+                    label="Donasi"
+                    value={`${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? (selectedRefund.donation_still_given ? " · tetap disalurkan" : " · dikembalikan") : ""}`}
+                  />
+                  <RefundMoneyRow
+                    label="Total dibayarkan"
+                    value={
+                      selectedRefund.payment_sub_total === undefined
+                        ? "—"
+                        : formatRupiah(selectedRefund.payment_sub_total)
+                    }
+                    strong
+                  />
+                </dl>
+              </section>
+
+              <section style={{ marginTop: 20 }}>
+                <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Informasi refund</h3>
+                <dl
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: 8,
+                    margin: 0,
+                  }}
+                >
+                  <RefundInfo label="Metode" value={selectedRefund.method || "—"} />
+                  <RefundInfo label="Mode" value={selectedRefund.mode === "auto" ? "Otomatis" : "Manual"} />
+                  <RefundInfo label="Rekening tujuan" value={selectedRefund.bank_account || "Tidak ada"} />
+                  <RefundInfo label="Alasan" value={selectedRefund.reason || "Tidak dicantumkan"} />
+                </dl>
+              </section>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
+                <Button variant="secondary" onClick={() => setSelectedRefund(null)}>
+                  Tutup
+                </Button>
+              </div>
             </section>
-
-            <section style={{ marginTop: 22 }}>
-              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Rincian pembayaran</h3>
-              <dl style={{ margin: 0, padding: "4px 14px", border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)" }}>
-                <RefundMoneyRow label="Harga tiket" value={selectedRefund.ticket_price === undefined ? "—" : formatRupiah(selectedRefund.ticket_price)} />
-                <RefundMoneyRow label="Fee Platform" value={selectedRefund.fee_platform === undefined ? "—" : formatRupiah(selectedRefund.fee_platform)} />
-                <RefundMoneyRow label="Biaya Transaksi" value={formatRupiah(selectedRefund.fee_midtrans)} />
-                <RefundMoneyRow label="Donasi" value={`${formatRupiah(selectedRefund.donation)}${selectedRefund.donation > 0 ? selectedRefund.donation_still_given ? " · tetap disalurkan" : " · dikembalikan" : ""}`} />
-                <RefundMoneyRow label="Total dibayarkan" value={selectedRefund.payment_sub_total === undefined ? "—" : formatRupiah(selectedRefund.payment_sub_total)} strong />
-              </dl>
-            </section>
-
-            <section style={{ marginTop: 20 }}>
-              <h3 style={{ margin: "0 0 8px", fontFamily: "var(--font-display)", fontSize: 16 }}>Informasi refund</h3>
-              <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, margin: 0 }}>
-                <RefundInfo label="Metode" value={selectedRefund.method || "—"} />
-                <RefundInfo label="Mode" value={selectedRefund.mode === "auto" ? "Otomatis" : "Manual"} />
-                <RefundInfo label="Rekening tujuan" value={selectedRefund.bank_account || "Tidak ada"} />
-                <RefundInfo label="Alasan" value={selectedRefund.reason || "Tidak dicantumkan"} />
-              </dl>
-            </section>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 20 }}>
-              <Button variant="secondary" onClick={() => setSelectedRefund(null)}>Tutup</Button>
-            </div>
-          </section>
-        </div>,
-        document.body,
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
 
 function RefundMoneyRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, padding: "10px 0", borderBottom: "1px solid var(--color-line)", fontWeight: strong ? 700 : 400 }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "baseline",
+        gap: 16,
+        padding: "10px 0",
+        borderBottom: "1px solid var(--color-line)",
+        fontWeight: strong ? 700 : 400,
+      }}
+    >
       <dt style={{ color: strong ? "var(--color-ink)" : "var(--color-ink-2)", fontSize: 13 }}>{label}</dt>
-      <dd style={{ margin: 0, textAlign: "right", fontFamily: "var(--font-mono)", fontSize: 13, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere" }}>{value}</dd>
+      <dd
+        style={{
+          margin: 0,
+          textAlign: "right",
+          fontFamily: "var(--font-mono)",
+          fontSize: 13,
+          fontVariantNumeric: "tabular-nums",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
 
 function RefundInfo({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ padding: 11, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-surface)", minWidth: 0 }}>
+    <div
+      style={{
+        padding: 11,
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-sm)",
+        background: "var(--color-surface)",
+        minWidth: 0,
+      }}
+    >
       <dt style={{ color: "var(--color-ink-3)", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>{label}</dt>
       <dd style={{ margin: 0, color: "var(--color-ink)", fontSize: 13, overflowWrap: "anywhere" }}>{value}</dd>
     </div>
@@ -2599,18 +3907,25 @@ function RefundSummaryCard({ eventId }: { eventId: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    void api.get<ApiResponse<RefundSummary>>(`/api/v1/events/${eventId}/refunds/summary`)
-      .then((res) => { if (!cancelled) setSummary(res.data); })
+    void api
+      .get<ApiResponse<RefundSummary>>(`/api/v1/events/${eventId}/refunds/summary`)
+      .then((res) => {
+        if (!cancelled) setSummary(res.data);
+      })
       .catch((error) => {
         if (!cancelled) setErr(error instanceof ApiError ? error.message : "Gagal memuat ringkasan refund.");
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [eventId]);
 
   return (
     <section style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--color-line)" }}>
       <h3 style={{ margin: "0 0 14px", fontFamily: "var(--font-display)", fontSize: 16 }}>Ringkasan Refund</h3>
-      {err ? <Alert variant="danger">{err}</Alert> : !summary ? (
+      {err ? (
+        <Alert variant="danger">{err}</Alert>
+      ) : !summary ? (
         <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 14 }}>Memuat ringkasan refund…</p>
       ) : (
         <>
@@ -2620,7 +3935,8 @@ function RefundSummaryCard({ eventId }: { eventId: string }) {
             <RefundMetric label={`Diproses · ${summary.processing_count} refund`} amount={summary.processing_amount} />
           </div>
           <p style={{ margin: "12px 0 0", color: "var(--color-ink-3)", fontSize: 12 }}>
-            Menunggu review: {summary.requested_count} · Ditolak: {summary.rejected_count}. Total nominal mencakup refund selesai dan sedang diproses.
+            Menunggu review: {summary.requested_count} · Ditolak: {summary.rejected_count}. Total nominal mencakup
+            refund selesai dan sedang diproses.
           </p>
         </>
       )}
@@ -2630,9 +3946,26 @@ function RefundSummaryCard({ eventId }: { eventId: string }) {
 
 function RefundMetric({ label, amount }: { label: string; amount: number }) {
   return (
-    <div style={{ padding: 14, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", background: "var(--color-paper)" }}>
+    <div
+      style={{
+        padding: 14,
+        border: "1px solid var(--color-line)",
+        borderRadius: "var(--radius-sm)",
+        background: "var(--color-paper)",
+      }}
+    >
       <div style={{ color: "var(--color-ink-3)", fontSize: 12, marginBottom: 6 }}>{label}</div>
-      <div style={{ color: "var(--color-danger)", fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{formatRupiah(amount)}</div>
+      <div
+        style={{
+          color: "var(--color-danger)",
+          fontFamily: "var(--font-mono)",
+          fontSize: 18,
+          fontWeight: 700,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {formatRupiah(amount)}
+      </div>
     </div>
   );
 }
@@ -2650,17 +3983,13 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
 
-  const sortedPersons = [...(persons ?? [])].sort(
-    (a, b) => Number(a.registered) - Number(b.registered),
-  );
+  const sortedPersons = [...(persons ?? [])].sort((a, b) => Number(a.registered) - Number(b.registered));
   const pageCount = Math.max(1, Math.ceil(sortedPersons.length / pageSize));
   const pagePersons = sortedPersons.slice((page - 1) * pageSize, page * pageSize);
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get<ApiResponse<ComplimentaryPerson[]>>(
-        `/api/v1/events/${eventId}/complimentary`,
-      );
+      const res = await api.get<ApiResponse<ComplimentaryPerson[]>>(`/api/v1/events/${eventId}/complimentary`);
       setPersons(res.data ?? []);
       setPage(1);
       setErr(null);
@@ -2816,25 +4145,59 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
       )}
 
       {persons && persons.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", margin: "-4px 0 16px", color: "var(--color-ink-3)", fontSize: 13 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+            margin: "-4px 0 16px",
+            color: "var(--color-ink-3)",
+            fontSize: 13,
+          }}
+        >
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             Tampilkan
             <select
               className="field-input"
               aria-label="Jumlah peserta gratis per halaman"
               value={pageSize}
-              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
               style={{ width: 76, padding: "6px 8px" }}
             >
-              {[5, 10, 15].map((size) => <option key={size} value={size}>{size}</option>)}
+              {[5, 10, 15].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
             </select>
             per halaman · {sortedPersons.length} peserta
           </label>
           {pageCount > 1 && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button type="button" className="btn btn-secondary btn-sm" disabled={page === 1} onClick={() => setPage(page - 1)}>Sebelumnya</button>
-              <span>Halaman {page} dari {pageCount}</span>
-              <button type="button" className="btn btn-secondary btn-sm" disabled={page === pageCount} onClick={() => setPage(page + 1)}>Berikutnya</button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Sebelumnya
+              </button>
+              <span>
+                Halaman {page} dari {pageCount}
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={page === pageCount}
+                onClick={() => setPage(page + 1)}
+              >
+                Berikutnya
+              </button>
             </div>
           )}
         </div>
@@ -2874,12 +4237,7 @@ function ComplimentaryManager({ eventId }: { eventId: string }) {
         </div>
         <div className="field" style={{ flex: 1, minWidth: 100 }}>
           <label className="field-label">No. HP (opsional)</label>
-          <input
-            className="field-input"
-            placeholder="08xx"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
+          <input className="field-input" placeholder="08xx" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
         <div className="field" style={{ flex: 2, minWidth: 120 }}>
           <label className="field-label">Catatan (opsional)</label>
@@ -2920,13 +4278,8 @@ function StatusSection({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function transition(
-    target: EventStatus,
-    confirmMsg?: string,
-    variant: "primary" | "danger" = "primary",
-  ) {
-    if (confirmMsg && !(await confirm({ message: confirmMsg, variant })))
-      return;
+  async function transition(target: EventStatus, confirmMsg?: string, variant: "primary" | "danger" = "primary") {
+    if (confirmMsg && !(await confirm({ message: confirmMsg, variant }))) return;
     setError(null);
     setBusy(true);
     try {
@@ -2936,9 +4289,7 @@ function StatusSection({
       await onChanged();
       onNotice("Status event diperbarui.");
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal mengubah status.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal mengubah status.");
     } finally {
       setBusy(false);
     }
@@ -2980,11 +4331,7 @@ function StatusSection({
           flexWrap: "wrap",
         }}
       >
-        {isDraft && (
-          <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>
-            Draft
-          </span>
-        )}
+        {isDraft && <span style={{ fontSize: 14, color: "var(--color-ink-3)" }}>Draft</span>}
         {isDraft && (
           <Button
             variant="secondary"
@@ -3001,12 +4348,7 @@ function StatusSection({
           </Button>
         )}
         {isComingSoon && (
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={busy}
-            onClick={() => transition("draft")}
-          >
+          <Button variant="secondary" size="sm" disabled={busy} onClick={() => transition("draft")}>
             Kembalikan ke Draft
           </Button>
         )}
@@ -3016,10 +4358,7 @@ function StatusSection({
             size="sm"
             disabled={busy}
             onClick={() =>
-              transition(
-                "published",
-                "Publikasikan event ini? Event akan langsung terlihat di marketplace.",
-              )
+              transition("published", "Publikasikan event ini? Event akan langsung terlihat di marketplace.")
             }
           >
             Publikasikan
@@ -3031,11 +4370,7 @@ function StatusSection({
             size="sm"
             disabled={busy}
             onClick={() =>
-              transition(
-                "cancelled",
-                "Batalkan event ini? Tindakan ini tidak dapat dibatalkan.",
-                "danger",
-              )
+              transition("cancelled", "Batalkan event ini? Tindakan ini tidak dapat dibatalkan.", "danger")
             }
           >
             Batalkan Event
@@ -3109,9 +4444,7 @@ function DistanceManager({
       setQuota("0");
       await onChanged();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal menambah kategori.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal menambah kategori.");
     } finally {
       setBusy(false);
     }
@@ -3120,8 +4453,7 @@ function DistanceManager({
   async function remove(did: string) {
     if (
       !(await confirm({
-        message:
-          "Hapus kategori ini? Kategori tiket di dalamnya juga akan ikut terhapus.",
+        message: "Hapus kategori ini? Kategori tiket di dalamnya juga akan ikut terhapus.",
         variant: "danger",
       }))
     )
@@ -3131,9 +4463,7 @@ function DistanceManager({
       await api.delete(`/api/v1/events/${eventId}/categories/${did}`);
       await onChanged();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal menghapus kategori.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal menghapus kategori.");
     }
   }
 
@@ -3180,38 +4510,68 @@ function DistanceManager({
             >
               {editingId === d.id ? (
                 <div style={{ display: "flex", gap: 8, flex: 1, flexWrap: "wrap" }}>
-                  <input className="field-input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ flex: "1 1 180px" }} />
-                  <input className="field-input" inputMode="numeric" value={formatNumberInput(editQuota)} onChange={(e) => setEditQuota(parseNumberInput(e.target.value))} style={{ width: 100 }} aria-label="Kuota kategori" />
-                  <Button variant="secondary" size="sm" disabled={busy} onClick={saveEdit}>Simpan</Button>
-                  <Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditingId(null)}>Batal</Button>
+                  <input
+                    className="field-input"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    style={{ flex: "1 1 180px" }}
+                  />
+                  <input
+                    className="field-input"
+                    inputMode="numeric"
+                    value={formatNumberInput(editQuota)}
+                    onChange={(e) => setEditQuota(parseNumberInput(e.target.value))}
+                    style={{ width: 100 }}
+                    aria-label="Kuota kategori"
+                  />
+                  <Button variant="secondary" size="sm" disabled={busy} onClick={saveEdit}>
+                    Simpan
+                  </Button>
+                  <Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditingId(null)}>
+                    Batal
+                  </Button>
                 </div>
-              ) : <span style={{ fontSize: 15 }}>{d.name}</span>}
+              ) : (
+                <span style={{ fontSize: 15 }}>{d.name}</span>
+              )}
               {editingId !== d.id && (
-              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span
-                  style={{
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 13,
-                    color: "var(--color-ink-3)",
-                  }}
-                >
-                  {formatNumber(d.quota_used)}/{formatNumber(d.quota)}
+                <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 13,
+                      color: "var(--color-ink-3)",
+                    }}
+                  >
+                    {formatNumber(d.quota_used)}/{formatNumber(d.quota)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => startEdit(d)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--color-sprint)",
+                      cursor: "pointer",
+                      fontSize: 14,
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(d.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--color-danger)",
+                      cursor: "pointer",
+                      fontSize: 14,
+                    }}
+                  >
+                    Hapus
+                  </button>
                 </span>
-                <button type="button" onClick={() => startEdit(d)} style={{ background: "none", border: "none", color: "var(--color-sprint)", cursor: "pointer", fontSize: 14 }}>Edit</button>
-                <button
-                  type="button"
-                  onClick={() => remove(d.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-danger)",
-                    cursor: "pointer",
-                    fontSize: 14,
-                  }}
-                >
-                  Hapus
-                </button>
-              </span>
               )}
             </li>
           ))}
@@ -3228,12 +4588,7 @@ function DistanceManager({
       >
         <div className="field" style={{ flex: 1, minWidth: 100 }}>
           <label className="field-label">Nama Kategori</label>
-          <input
-            className="field-input"
-            placeholder="Mis. 5K"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <input className="field-input" placeholder="Mis. 5K" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="field" style={{ width: 90 }}>
           <label className="field-label">Kuota</label>
@@ -3262,22 +4617,21 @@ function CardPreview({
   detail,
   live,
   registrationFields,
+  addonGroups,
   availableModes,
 }: {
   detail: EventDetail;
   live: EventFormValues | null;
   registrationFields: RegistrationFieldPreview[];
+  addonGroups: RegistrationAddonGroup[];
   availableModes: PreviewMode[];
 }) {
   const [mode, setMode] = useState<PreviewMode>(availableModes[0]);
   const ev = detail.event;
   const name = live?.name || ev.name || "Nama Event";
-  const location =
-    (live ? live.location : ev.location) || "Lokasi belum diatur";
+  const location = (live ? live.location : ev.location) || "Lokasi belum diatur";
   const eventDate = live ? live.event_date : ev.event_date;
-  const isRunning = live
-    ? live.event_type === "running"
-    : ev.event_type === "running";
+  const isRunning = live ? live.event_type === "running" : ev.event_type === "running";
   const donationEnabled = live ? live.donation_enabled : ev.donation_enabled;
   const description = live ? live.description : ev.description;
   const color = (live ? live.color : ev.color) || undefined;
@@ -3285,20 +4639,15 @@ function CardPreview({
   // Display-only mirrors of the marketplace projection (server stays the
   // source of truth for real listings).
   const distances = detail.categories.map((d) => d.name);
-  const prices = detail.ticket_categories
-    .map((t) => t.price)
-    .filter((p) => p > 0);
+  const prices = detail.ticket_categories.map((t) => t.price).filter((p) => p > 0);
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const quotaRemaining = detail.categories.reduce(
-    (sum, d) => sum + Math.max(0, d.quota - d.quota_used),
-    0,
-  );
+  const quotaRemaining = detail.categories.reduce((sum, d) => sum + Math.max(0, d.quota - d.quota_used), 0);
 
   // Display-only mirror of the public PublicEventDetail shape, fed with live
-  // form values — rendered by the SAME EventDetailView component as
+  // form values - rendered by the SAME EventDetailView component as
   // /events/{id}, so the preview is pixel-identical to the real page.
   const previewDetail: PublicEventDetail = {
-      event: {
+    event: {
       id: ev.id,
       name,
       description,
@@ -3320,17 +4669,20 @@ function CardPreview({
       quota: d.quota,
       quota_remaining: Math.max(0, d.quota - d.quota_used),
     })),
-    ticket_categories: detail.ticket_categories.filter((t) => t.is_visible).map((t) => ({
-      id: t.id,
-      category_id: t.category_id,
-      name: t.name,
-      price: t.price,
-      quota: t.quota,
-      quota_remaining: Math.max(0, t.quota - t.quota_used),
-      sale_start: t.sale_start,
-      sale_end: t.sale_end,
-    })),
+    ticket_categories: detail.ticket_categories
+      .filter((t) => t.is_visible)
+      .map((t) => ({
+        id: t.id,
+        category_id: t.category_id,
+        name: t.name,
+        price: t.price,
+        quota: t.quota,
+        quota_remaining: Math.max(0, t.quota - t.quota_used),
+        sale_start: t.sale_start,
+        sale_end: t.sale_end,
+      })),
     registration_fields: [],
+    addon_groups: [],
   };
 
   const modeBtn = (active: boolean): React.CSSProperties => ({
@@ -3373,38 +4725,40 @@ function CardPreview({
         >
           {mode === "register" ? "Pratinjau Form Pendaftaran" : "Pratinjau"}
         </div>
-        {availableModes.length > 1 && <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
-          {availableModes.includes("card") && (
-          <button
-            type="button"
-            style={modeBtn(mode === "card")}
-            aria-pressed={mode === "card"}
-            onClick={() => setMode("card")}
-          >
-            Kartu
-          </button>
-          )}
-          {availableModes.includes("detail") && (
-          <button
-            type="button"
-            style={modeBtn(mode === "detail")}
-            aria-pressed={mode === "detail"}
-            onClick={() => setMode("detail")}
-          >
-            Halaman Detail
-          </button>
-          )}
-          {availableModes.includes("register") && (
-          <button
-            type="button"
-            style={modeBtn(mode === "register")}
-            aria-pressed={mode === "register"}
-            onClick={() => setMode("register")}
-          >
-            Form Pendaftaran
-          </button>
-          )}
-        </div>}
+        {availableModes.length > 1 && (
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginLeft: "auto" }}>
+            {availableModes.includes("card") && (
+              <button
+                type="button"
+                style={modeBtn(mode === "card")}
+                aria-pressed={mode === "card"}
+                onClick={() => setMode("card")}
+              >
+                Kartu
+              </button>
+            )}
+            {availableModes.includes("detail") && (
+              <button
+                type="button"
+                style={modeBtn(mode === "detail")}
+                aria-pressed={mode === "detail"}
+                onClick={() => setMode("detail")}
+              >
+                Halaman Detail
+              </button>
+            )}
+            {availableModes.includes("register") && (
+              <button
+                type="button"
+                style={modeBtn(mode === "register")}
+                aria-pressed={mode === "register"}
+                onClick={() => setMode("register")}
+              >
+                Form Pendaftaran
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {mode === "card" ? (
@@ -3413,9 +4767,7 @@ function CardPreview({
             title={name}
             location={location}
             date={formatDate(eventDate)}
-            distances={
-              isRunning && distances.length === 0 ? ["Event Lari"] : distances
-            }
+            distances={isRunning && distances.length === 0 ? ["Event Lari"] : distances}
             price={minPrice > 0 ? formatRupiah(minPrice) : "Gratis"}
             bannerUrl={ev.banner_url}
             color={color}
@@ -3428,8 +4780,8 @@ function CardPreview({
               lineHeight: 1.5,
             }}
           >
-            Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah
-            banner. Harga &amp; kuota mengikuti kategori/tiket yang tersimpan.
+            Ikut berubah saat Anda mengetik, memilih warna, atau mengunggah banner. Harga &amp; kuota mengikuti
+            kategori/tiket yang tersimpan.
           </p>
         </>
       ) : mode === "detail" ? (
@@ -3496,9 +4848,7 @@ function CardPreview({
             /register/{ev.id}
           </div>
           <div className="max-w-xl mx-auto px-4 py-8">
-            <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>
-              ← {name}
-            </p>
+            <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 12 }}>← {name}</p>
             <h2
               style={{
                 fontFamily: "var(--font-display)",
@@ -3509,9 +4859,7 @@ function CardPreview({
             >
               Pendaftaran
             </h2>
-            <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>
-              Langkah 2 dari 3
-            </p>
+            <p style={{ color: "var(--color-ink-3)", marginBottom: 20, fontSize: 14 }}>Langkah 2 dari 3</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <RegistrationPreviewField label="Nama Lengkap" placeholder="Nama peserta" />
               <RegistrationPreviewField label="Email" type="email" placeholder="nama@email.com" />
@@ -3519,7 +4867,7 @@ function CardPreview({
               <RegistrationPreviewField
                 label="Tanggal Lahir"
                 type="date"
-                hint="Wajib — kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
+                hint="Wajib - kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
               />
               <div className="field">
                 <label className="field-label">Jenis Kelamin</label>
@@ -3546,10 +4894,41 @@ function CardPreview({
                     Data Tambahan
                   </p>
                   {registrationFields.map((field, index) => (
-                    <RegistrationPreviewCustomField
-                      key={field.id ?? `${field.name}-${index}`}
-                      field={field}
-                    />
+                    <RegistrationPreviewCustomField key={field.id ?? `${field.name}-${index}`} field={field} />
+                  ))}
+                </>
+              )}
+              {addonGroups.length > 0 && (
+                <>
+                  <hr style={{ border: "none", borderTop: "1px solid var(--color-line)", margin: "4px 0" }} />
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-2)", margin: 0 }}>
+                    Custom Add-ons (opsional)
+                  </p>
+                  {addonGroups.map((group) => (
+                    <fieldset key={group.id} className="field" style={{ border: 0, padding: 0, margin: 0 }}>
+                      <legend className="field-label">{group.title || "Add-ons"}</legend>
+                      {group.options.map((option) => (
+                        <label
+                          key={option.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 12,
+                            padding: "7px 0",
+                            fontSize: 14,
+                          }}
+                        >
+                          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <input type="radio" disabled />
+                            {option.name || "Name Add-ons"}
+                          </span>
+                          <span style={{ fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
+                            {option.price > 0 ? `+${formatRupiah(option.price)}` : "Gratis"}
+                          </span>
+                        </label>
+                      ))}
+                    </fieldset>
                   ))}
                 </>
               )}
@@ -3589,11 +4968,7 @@ function RegistrationPreviewField({
   );
 }
 
-function RegistrationPreviewCustomField({
-  field,
-}: {
-  field: RegistrationFieldPreview;
-}) {
+function RegistrationPreviewCustomField({ field }: { field: RegistrationFieldPreview }) {
   const label = `${field.label}${field.required ? " *" : ""}`;
   const options = field.options
     .split(",")
@@ -3643,7 +5018,9 @@ function RegistrationPreviewCustomField({
     return (
       <label className="field" style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <input type="checkbox" disabled />
-        <span className="field-label" style={{ margin: 0 }}>{label}</span>
+        <span className="field-label" style={{ margin: 0 }}>
+          {label}
+        </span>
       </label>
     );
   }
@@ -3673,13 +5050,7 @@ const dot: React.CSSProperties = {
 // BannerUploader lets the organizer upload the event banner (stored on R2).
 // Shown at the top of the Detail tab as a large click/drop zone so it can't be
 // missed. When no banner is set, the marketplace card falls back to the event color.
-function BannerUploader({
-  event,
-  onUploaded,
-}: {
-  event: Event;
-  onUploaded: (ev: Event) => void;
-}) {
+function BannerUploader({ event, onUploaded }: { event: Event; onUploaded: (ev: Event) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -3704,18 +5075,14 @@ function BannerUploader({
     }
     const compressed = await compressEventImage(f);
     if (compressed.size > EVENT_IMAGE_MAX_BYTES) {
-      setError(
-        `Ukuran file ${formatImageSize(compressed.size)} (setelah kompresi) masih melebihi batas 10 MB.`,
-      );
+      setError(`Ukuran file ${formatImageSize(compressed.size)} (setelah kompresi) masih melebihi batas 10 MB.`);
       return;
     }
     setError(null);
     setFile(compressed);
     setPreviewUrl(URL.createObjectURL(compressed));
     if (compressed !== f) {
-      setNotice(
-        `Gambar dikompresi otomatis: ${formatImageSize(f.size)} → ${formatImageSize(compressed.size)}.`,
-      );
+      setNotice(`Gambar dikompresi otomatis: ${formatImageSize(f.size)} → ${formatImageSize(compressed.size)}.`);
     }
   }
 
@@ -3733,19 +5100,12 @@ function BannerUploader({
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await api.postForm<ApiResponse<Event>>(
-        `/api/v1/events/${event.id}/banner`,
-        form,
-      );
+      const res = await api.postForm<ApiResponse<Event>>(`/api/v1/events/${event.id}/banner`, form);
       onUploaded(res.data);
       reset();
-      setNotice(
-        "Banner tersimpan. Kartu marketplace & halaman detail langsung memakainya.",
-      );
+      setNotice("Banner tersimpan. Kartu marketplace & halaman detail langsung memakainya.");
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal mengunggah banner.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal mengunggah banner.");
     } finally {
       setBusy(false);
     }
@@ -3781,8 +5141,7 @@ function BannerUploader({
           margin: "0 0 12px",
         }}
       >
-        Gambar utama di kartu marketplace &amp; halaman detail. Tanpa banner,
-        warna header kartu yang dipakai.
+        Gambar utama di kartu marketplace &amp; halaman detail. Tanpa banner, warna header kartu yang dipakai.
       </p>
 
       {error && (
@@ -3858,7 +5217,7 @@ function BannerUploader({
           }}
         >
           {previewUrl
-            ? "Pratinjau — klik “Simpan Banner” untuk menyimpan"
+            ? "Pratinjau - klik “Simpan Banner” untuk menyimpan"
             : event.banner_url
               ? "Klik atau seret gambar baru ke sini untuk mengganti banner"
               : "Klik atau seret gambar ke sini untuk mengunggah banner"}
@@ -3949,11 +5308,8 @@ function TicketManager({
   const [editSaleStart, setEditSaleStart] = useState("");
   const [editSaleEnd, setEditSaleEnd] = useState("");
 
-  const distanceName = (id: string) =>
-    distances.find((d) => d.id === id)?.name ?? "—";
-  const sortedTickets = [...tickets].sort((a, b) =>
-    a.name.localeCompare(b.name, "id", { sensitivity: "base" }),
-  );
+  const distanceName = (id: string) => distances.find((d) => d.id === id)?.name ?? "—";
+  const sortedTickets = [...tickets].sort((a, b) => a.name.localeCompare(b.name, "id", { sensitivity: "base" }));
 
   async function add() {
     if (!name.trim()) {
@@ -4018,11 +5374,7 @@ function TicketManager({
       setEditingId(null);
       await onChanged();
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal memperbarui tiket.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal memperbarui tiket.");
     } finally {
       setBusy(false);
     }
@@ -4043,11 +5395,7 @@ function TicketManager({
       });
       await onChanged();
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal mengubah visibilitas tiket.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal mengubah visibilitas tiket.");
     } finally {
       setBusy(false);
     }
@@ -4066,18 +5414,12 @@ function TicketManager({
       await api.delete(`/api/v1/events/${eventId}/tickets/${tid}`);
       await onChanged();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal menghapus tiket.",
-      );
+      setError(err instanceof ApiError ? err.message : "Gagal menghapus tiket.");
     }
   }
 
   if (distances.length === 0) {
-    return (
-      <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>
-        Tambahkan kategori terlebih dahulu.
-      </p>
-    );
+    return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Tambahkan kategori terlebih dahulu.</p>;
   }
 
   return (
@@ -4120,112 +5462,158 @@ function TicketManager({
             >
               {editingId === t.id ? (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
-                  <input className="field-input" value={editName} onChange={(e) => setEditName(e.target.value)} aria-label="Nama tiket" />
-                  <select className="field-input" value={editDistanceId} onChange={(e) => setEditDistanceId(e.target.value)} aria-label="Kategori tiket">{distances.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select>
-                  <input className="field-input" inputMode="numeric" value={formatNumberInput(editPrice)} onChange={(e) => setEditPrice(parseNumberInput(e.target.value))} aria-label="Harga tiket" />
-                  <input className="field-input" inputMode="numeric" value={formatNumberInput(editQuota)} onChange={(e) => setEditQuota(parseNumberInput(e.target.value))} aria-label="Kuota tiket" />
-                  <input className="field-input" type="datetime-local" value={editSaleStart} onChange={(e) => setEditSaleStart(e.target.value)} aria-label="Mulai penjualan" />
-                  <input className="field-input" type="datetime-local" value={editSaleEnd} onChange={(e) => setEditSaleEnd(e.target.value)} aria-label="Akhir penjualan" />
-                  <div style={{ display: "flex", gap: 8 }}><Button variant="secondary" size="sm" disabled={busy} onClick={() => saveTicket(t)}>Simpan</Button><Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditingId(null)}>Batal</Button></div>
-                </div>
-              ) : <><div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <span style={{ fontSize: 15 }}>
-                  {t.name}
-                  <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}>
-                    {" "}
-                    · {distanceName(t.category_id)}
-                  </span>
-                  {isExpired(t.sale_end) && (
-                    <Badge variant="warn" className="ml-2">
-                      Berakhir
-                    </Badge>
-                  )}
-                  {!t.is_visible && (
-                    <Badge variant="neutral" className="ml-2">
-                      Disembunyikan
-                    </Badge>
-                  )}
-                </span>
-                <span
-                  style={{ display: "flex", alignItems: "center", gap: 12 }}
-                >
-                  <span
-                    style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}
+                  <input
+                    className="field-input"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    aria-label="Nama tiket"
+                  />
+                  <select
+                    className="field-input"
+                    value={editDistanceId}
+                    onChange={(e) => setEditDistanceId(e.target.value)}
+                    aria-label="Kategori tiket"
                   >
-                    {formatRupiah(t.price)}
-                  </span>
-                  <span
+                    {distances.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    className="field-input"
+                    inputMode="numeric"
+                    value={formatNumberInput(editPrice)}
+                    onChange={(e) => setEditPrice(parseNumberInput(e.target.value))}
+                    aria-label="Harga tiket"
+                  />
+                  <input
+                    className="field-input"
+                    inputMode="numeric"
+                    value={formatNumberInput(editQuota)}
+                    onChange={(e) => setEditQuota(parseNumberInput(e.target.value))}
+                    aria-label="Kuota tiket"
+                  />
+                  <input
+                    className="field-input"
+                    type="datetime-local"
+                    value={editSaleStart}
+                    onChange={(e) => setEditSaleStart(e.target.value)}
+                    aria-label="Mulai penjualan"
+                  />
+                  <input
+                    className="field-input"
+                    type="datetime-local"
+                    value={editSaleEnd}
+                    onChange={(e) => setEditSaleEnd(e.target.value)}
+                    aria-label="Akhir penjualan"
+                  />
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <Button variant="secondary" size="sm" disabled={busy} onClick={() => saveTicket(t)}>
+                      Simpan
+                    </Button>
+                    <Button variant="ghost" size="sm" disabled={busy} onClick={() => setEditingId(null)}>
+                      Batal
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div
                     style={{
-                      fontFamily: "var(--font-mono)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <span style={{ fontSize: 15 }}>
+                      {t.name}
+                      <span style={{ color: "var(--color-ink-3)", fontSize: 13 }}>
+                        {" "}
+                        · {distanceName(t.category_id)}
+                      </span>
+                      {isExpired(t.sale_end) && (
+                        <Badge variant="warn" className="ml-2">
+                          Berakhir
+                        </Badge>
+                      )}
+                      {!t.is_visible && (
+                        <Badge variant="neutral" className="ml-2">
+                          Disembunyikan
+                        </Badge>
+                      )}
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>{formatRupiah(t.price)}</span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 13,
+                          color: "var(--color-ink-3)",
+                        }}
+                      >
+                        {formatNumber(t.quota_used)}/{formatNumber(t.quota)}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => toggleVisibility(t)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: t.is_visible ? "var(--color-ink-3)" : "var(--color-ok)",
+                          cursor: busy ? "not-allowed" : "pointer",
+                          fontSize: 14,
+                        }}
+                      >
+                        {t.is_visible ? "Sembunyikan" : "Tampilkan"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => startTicketEdit(t)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--color-sprint)",
+                          cursor: "pointer",
+                          fontSize: 14,
+                        }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => remove(t.id)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--color-danger)",
+                          cursor: "pointer",
+                          fontSize: 14,
+                        }}
+                      >
+                        Hapus
+                      </button>
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginTop: 6,
                       fontSize: 13,
                       color: "var(--color-ink-3)",
                     }}
                   >
-                    {formatNumber(t.quota_used)}/{formatNumber(t.quota)}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => toggleVisibility(t)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: t.is_visible
-                        ? "var(--color-ink-3)"
-                        : "var(--color-ok)",
-                      cursor: busy ? "not-allowed" : "pointer",
-                      fontSize: 14,
-                    }}
-                  >
-                    {t.is_visible ? "Sembunyikan" : "Tampilkan"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => startTicketEdit(t)}
-                    style={{ background: "none", border: "none", color: "var(--color-sprint)", cursor: "pointer", fontSize: 14 }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(t.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--color-danger)",
-                      cursor: "pointer",
-                      fontSize: 14,
-                    }}
-                  >
-                    Hapus
-                  </button>
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginTop: 6,
-                  fontSize: 13,
-                  color: "var(--color-ink-3)",
-                }}
-              >
-                <>
-                    <span>
-                      {t.sale_end
-                        ? `Berlaku s.d. ${formatDateTime(t.sale_end)}`
-                        : "Tanpa batas waktu penjualan"}
-                    </span>
-                  </>
-              </div>
-              </>}
+                    <>
+                      <span>
+                        {t.sale_end ? `Berlaku s.d. ${formatDateTime(t.sale_end)}` : "Tanpa batas waktu penjualan"}
+                      </span>
+                    </>
+                  </div>
+                </>
+              )}
             </li>
           ))}
         </ul>
@@ -4250,11 +5638,7 @@ function TicketManager({
         </div>
         <div className="field" style={{ width: 130 }}>
           <label className="field-label">Kategori</label>
-          <select
-            className="field-input"
-            value={distanceId}
-            onChange={(e) => setDistanceId(e.target.value)}
-          >
+          <select className="field-input" value={distanceId} onChange={(e) => setDistanceId(e.target.value)}>
             <option value="">Pilih kategori</option>
             {distances.map((d) => (
               <option key={d.id} value={d.id}>
@@ -4297,8 +5681,8 @@ function TicketManager({
         </Button>
       </div>
       <p style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 10 }}>
-        Kuota tiket tidak boleh melebihi kuota kategori yang dipilih (divalidasi
-        server). Setelah tanggal berakhir, tiket tidak bisa dipilih peserta.
+        Kuota tiket tidak boleh melebihi kuota kategori yang dipilih (divalidasi server). Setelah tanggal berakhir,
+        tiket tidak bisa dipilih peserta.
       </p>
     </div>
   );

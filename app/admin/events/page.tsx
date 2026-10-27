@@ -5,10 +5,7 @@ import { adminApi } from "@/lib/admin";
 import { formatDate } from "@/lib/format";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import type {
-  AdminEventPage,
-  EventStatus,
-} from "@/lib/types.gen";
+import type { AdminEventPage, EventStatus } from "@/lib/types.gen";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -40,9 +37,7 @@ export default function AdminEventsPage() {
           page_size: "20",
         });
         if (filter !== "all") params.set("status", filter);
-        const res = await adminApi.get<AdminEventPage>(
-          `/api/v1/admin/events?${params.toString()}`,
-        );
+        const res = await adminApi.get<AdminEventPage>(`/api/v1/admin/events?${params.toString()}`);
         if (!cancelled) {
           setResult(res);
         }
@@ -74,44 +69,36 @@ export default function AdminEventsPage() {
       >
         Event
       </h1>
-      <p
-        style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}
-      >
+      <p style={{ color: "var(--color-ink-3)", fontSize: 14, marginBottom: 24 }}>
         Semua event di platform LowkeyThings
       </p>
 
       {/* Filter tabs */}
-      <div
-        style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}
-      >
-        {(["all", "published", "draft", "cancelled", "finished"] as const).map(
-          (f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => {
-                setFilter(f);
-                setPage(1);
-              }}
-              style={{
-                padding: "6px 14px",
-                borderRadius: "var(--radius-pill)",
-                border: "1px solid",
-                borderColor:
-                  filter === f ? "var(--color-gold)" : "var(--color-line-2)",
-                background:
-                  filter === f ? "var(--color-gold)" : "var(--color-surface)",
-                color: filter === f ? "var(--color-navy-deep)" : "var(--color-ink-2)",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "0.15s",
-              }}
-            >
-              {f === "all" ? "Semua" : STATUS_LABEL[f]}
-            </button>
-          ),
-        )}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {(["all", "published", "draft", "cancelled", "finished"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => {
+              setFilter(f);
+              setPage(1);
+            }}
+            style={{
+              padding: "6px 14px",
+              borderRadius: "var(--radius-pill)",
+              border: "1px solid",
+              borderColor: filter === f ? "var(--color-gold)" : "var(--color-line-2)",
+              background: filter === f ? "var(--color-gold)" : "var(--color-surface)",
+              color: filter === f ? "var(--color-navy-deep)" : "var(--color-ink-2)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "0.15s",
+            }}
+          >
+            {f === "all" ? "Semua" : STATUS_LABEL[f]}
+          </button>
+        ))}
       </div>
 
       {/* Stats row */}
@@ -123,7 +110,7 @@ export default function AdminEventsPage() {
             marginBottom: 12,
           }}
         >
-          {total} event — halaman {page} dari {totalPages}
+          {total} event - halaman {page} dari {totalPages}
         </div>
       )}
 
@@ -186,9 +173,7 @@ export default function AdminEventsPage() {
                           {ev.organizer_id.slice(0, 8)}…
                         </div>
                       </td>
-                      <td
-                        style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}
-                      >
+                      <td style={{ fontFamily: "var(--font-mono)", fontSize: 13 }}>
                         <Badge variant={STATUS_BADGE[ev.status] ?? "neutral"}>
                           {STATUS_LABEL[ev.status] ?? ev.status}
                         </Badge>
@@ -230,12 +215,7 @@ export default function AdminEventsPage() {
                 marginTop: 20,
               }}
             >
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
+              <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
                 ← Sebelumnya
               </Button>
               <span

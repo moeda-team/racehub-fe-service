@@ -9,7 +9,7 @@ interface StatusDisplay {
 
 /**
  * Maps an event status to its Indonesian label and Badge variant.
- * Display-only — the backend is authoritative for status transitions.
+ * Display-only - the backend is authoritative for status transitions.
  */
 export function eventStatusDisplay(status: EventStatus): StatusDisplay {
   switch (status) {

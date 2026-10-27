@@ -28,38 +28,38 @@ const services = [
   {
     icon: Search,
     title: "Temukan Event",
-    description: "Cari event berdasarkan kategori, tanggal, atau kota — lengkap dengan status pendaftaran real-time.",
-    code: "FITUR / 01 — DISCOVERY",
+    description: "Cari event berdasarkan kategori, tanggal, atau kota - lengkap dengan status pendaftaran real-time.",
+    code: "FITUR / 01 - DISCOVERY",
   },
   {
     icon: Ticket,
     title: "Pendaftaran Cepat",
     description: "Daftar tanpa akun dan terima tiket serta konfirmasi otomatis langsung melalui email.",
-    code: "FITUR / 02 — REGISTRATION",
+    code: "FITUR / 02 - REGISTRATION",
   },
   {
     icon: Users,
     title: "Kelola Peserta",
     description: "Dasbor penyelenggara untuk memantau, memverifikasi, dan mengelola peserta dari satu tempat.",
-    code: "FITUR / 03 — MANAGEMENT",
+    code: "FITUR / 03 - MANAGEMENT",
   },
   {
     icon: CreditCard,
     title: "Pembayaran Aman",
     description: "Transaksi tercatat dan terverifikasi, dengan pilihan metode pembayaran yang umum digunakan.",
-    code: "FITUR / 04 — PAYMENT",
+    code: "FITUR / 04 - PAYMENT",
   },
   {
     icon: Bell,
     title: "Notifikasi Otomatis",
     description: "Konfirmasi pendaftaran dan informasi penting dikirim langsung agar peserta selalu terhubung.",
-    code: "FITUR / 05 — NOTIFICATION",
+    code: "FITUR / 05 - NOTIFICATION",
   },
   {
     icon: BarChart3,
     title: "Laporan & Insight",
     description: "Ringkasan performa event membantu penyelenggara mengambil keputusan dengan lebih percaya diri.",
-    code: "FITUR / 06 — INSIGHT",
+    code: "FITUR / 06 - INSIGHT",
   },
 ];
 
@@ -98,9 +98,7 @@ export default async function HomePage() {
             ) : (
               <div className="market-hero-empty">
                 <Eyebrow>Event / Preview</Eyebrow>
-                <strong>
-                  Event pilihan berikutnya akan hadir di sini.
-                </strong>
+                <strong>Event pilihan berikutnya akan hadir di sini.</strong>
               </div>
             )}
           </div>
@@ -124,7 +122,7 @@ export default async function HomePage() {
               yang terlihat effortless, ada detail kecil yang dirancang dengan cermat. That’s where we come in. “Lowkey”
               menggambarkan cara kami bekerja: tenang, thoughtful, dan berada di balik layar, memastikan setiap proses
               berjalan dengan rapi sehingga penyelenggara dapat fokus menciptakan pengalaman, sementara peserta dapat
-              menikmati momennya. LowkeyThings — we handle the details, you live the moment.
+              menikmati momennya. LowkeyThings - we handle the details, you live the moment.
             </p>
           </div>
         </div>

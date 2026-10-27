@@ -23,7 +23,7 @@ const variantIcon: Record<AlertVariant, typeof Info> = {
   info: Info,
 };
 
-/* Bright semantic color for the icon circle background — distinct from the
+/* Bright semantic color for the icon circle background - distinct from the
    darker text color used by each alert variant. */
 const variantIconBg: Record<AlertVariant, string> = {
   success: "var(--color-ok)",
@@ -32,11 +32,7 @@ const variantIconBg: Record<AlertVariant, string> = {
   info: "var(--color-info)",
 };
 
-export default function Alert({
-  variant = "info",
-  children,
-  className = "",
-}: AlertProps) {
+export default function Alert({ variant = "info", children, className = "" }: AlertProps) {
   const Icon = variantIcon[variant];
   return (
     <div className={`alert ${variantClass[variant]} ${className}`} role="alert">

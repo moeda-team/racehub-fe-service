@@ -4,6054 +4,6226 @@
  */
 
 export interface paths {
-    "/contact": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Send a contact message */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name: string;
-                        /** Format: email */
-                        email: string;
-                        message: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Message queued for delivery to the support team. */
-                202: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Invalid request. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Message could not be queued. */
-                503: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/contact": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /** Send a contact message */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            name: string;
+            /** Format: email */
+            email: string;
+            message: string;
+          };
         };
-        /**
-         * Health check
-         * @description Returns service health status.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Service is healthy. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        /**
-                         * @example {
-                         *       "status": "ok"
-                         *     }
-                         */
-                        "application/json": components["schemas"]["HealthResponse"];
-                    };
-                };
-                /** @description Service is unhealthy. */
-                503: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+      };
+      responses: {
+        /** @description Message queued for delivery to the support team. */
+        202: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid request. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Message could not be queued. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
     };
-    "/ready": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Readiness check
-         * @description Verifies that the API can reach required runtime dependencies.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Service is ready. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description A required dependency is unavailable. */
-                503: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Health check
+     * @description Returns service health status.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Service is healthy. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            /**
+             * @example {
+             *       "status": "ok"
+             *     }
+             */
+            "application/json": components["schemas"]["HealthResponse"];
+          };
         };
-        get?: never;
-        put?: never;
-        /**
-         * Register a new organizer
-         * @description Creates a new organizer account with bcrypt-hashed password.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["RegisterRequest"];
-                };
-            };
-            responses: {
-                /** @description Organizer created successfully. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["OrganizerProfile"];
-                        };
-                    };
-                };
-                /** @description Invalid input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Email already registered. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        /** @description Service is unhealthy. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/organizers/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Login organizer
-         * @description Verifies email/password and creates an opaque HttpOnly browser session.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["LoginRequest"];
-                };
-            };
-            responses: {
-                /** @description Login successful. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["LoginResponse"];
-                        };
-                    };
-                };
-                /** @description Invalid credentials. */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ready": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Readiness check
+     * @description Verifies that the API can reach required runtime dependencies.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Service is ready. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
-        get?: never;
-        put?: never;
-        /**
-         * Logout organizer or admin
-         * @description Revokes the current opaque session and clears its cookies.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Session revoked. */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+        /** @description A required dependency is unavailable. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/organizers/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get organizer profile
-         * @description Returns the authenticated organizer's profile.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Organizer profile. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["OrganizerProfile"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        /**
-         * Update organizer profile
-         * @description Updates the authenticated organizer's name and phone. Email and password cannot be changed.
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateProfileRequest"];
-                };
-            };
-            responses: {
-                /** @description Profile updated. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["OrganizerProfile"];
-                        };
-                    };
-                };
-                /** @description Invalid input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/register": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/me/wallet": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Register a new organizer
+     * @description Creates a new organizer account with bcrypt-hashed password.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["RegisterRequest"];
         };
-        /**
-         * Get wallet balance
-         * @description Returns the authenticated organizer's wallet balance calculated from the wallet ledger.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+      };
+      responses: {
+        /** @description Organizer created successfully. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["OrganizerProfile"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Wallet balance. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: {
-                                /**
-                                 * Format: int64
-                                 * @description Balance in whole Rupiah.
-                                 */
-                                balance?: number;
-                            };
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Email already registered. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List events
-         * @description If authenticated as organizer, returns the organizer's own events (all statuses).
-         *     If not authenticated, returns published events only (public marketplace, FR-303/1001)
-         *     with optional filters (FR-1002).
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Marketplace filter — events on/after this date (RFC3339). */
-                    date_from?: string;
-                    /** @description Marketplace filter — events on/before this date (RFC3339). */
-                    date_to?: string;
-                    /** @description Marketplace filter — case-insensitive substring match on location. */
-                    location?: string;
-                    /** @description Marketplace search — case-insensitive substring match on event name or location. (For authenticated organizers, matches their own events' names.) */
-                    q?: string;
-                    /** @description Marketplace filter — running events only when true. */
-                    is_running_event?: boolean;
-                    limit?: number;
-                    offset?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of events. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"][];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Create event
-         * @description Creates a new event in draft status. Requires authentication.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateEventRequest"];
-                };
-            };
-            responses: {
-                /** @description Event created. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                /** @description Invalid input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Login organizer
+     * @description Verifies email/password and creates an opaque HttpOnly browser session.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["LoginRequest"];
         };
-        /**
-         * Get event detail
-         * @description The owning organizer receives the full EventDetail (all statuses, incl.
-         *     review fields). Everyone else receives the PublicEventDetail and only for
-         *     published events; non-published events return 404 (FR-303/1003).
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+      };
+      responses: {
+        /** @description Login successful. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["LoginResponse"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Event detail (owner) or public detail with remaining quota. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["EventDetail"] | components["schemas"]["PublicEventDetail"];
-                        };
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        /**
-         * Update event
-         * @description Updates an event. Only the owner can update. Cannot update finished events.
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateEventRequest"];
-                };
-            };
-            responses: {
-                /** @description Event updated. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                /** @description Invalid input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Event is finished. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        /** @description Invalid credentials. */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/events/{id}/paid-registrations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List paid participants for a published event
-         * @description Public, anonymous participant directory. Returns only registrations whose
-         *     current status is `paid`; refunded and unpaid registrations are excluded.
-         *     Results are ordered by most recently created registration first.
-         *     Participant name, category suffixed with the compact age class when set
-         *     (for example `5K(Master+)`), and the submitted answer for the custom
-         *     registration field whose slug is `asal_kabupaten` are exposed. Other custom
-         *     answers, contact information, registration numbers, payment data, and
-         *     check-in state are never returned.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Case-insensitive substring search across participant name and category. */
-                    q?: string;
-                    /** @description Exact category name filter; omit or leave empty to include all categories. */
-                    category?: string;
-                    /** @description Exact stored age class filter; omit or leave empty to include all classes. */
-                    age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-                    page?: number;
-                    /** @description Number of results per page. Use 12, 24, or 36; use `all` to return all matches. Defaults to 24. */
-                    page_size?: (12 | 24 | 36) | "all";
-                };
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Paginated paid participant list. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PublicPaidParticipant"][];
-                            total?: number;
-                            page?: number;
-                            page_size?: number;
-                            total_pages?: number;
-                        };
-                    };
-                };
-                /** @description Invalid event UUID. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Event does not exist or is not published. */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Logout organizer or admin
+     * @description Revokes the current opaque session and clears its cookies.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Session revoked. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
         };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Transition event status
-         * @description Changes the event status following the state machine.
-         *     Valid transitions: draft->coming_soon/published/cancelled,
-         *     coming_soon->draft/published/cancelled, and
-         *     published->cancelled/finished.
-         */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        status: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
-                    };
-                };
-            };
-            responses: {
-                /** @description Status transitioned. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                /** @description Invalid status. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                /** @description Forbidden or publish requires admin approval. */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                404: components["responses"]["NotFound"];
-                /** @description Invalid status transition. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        trace?: never;
+      };
     };
-    "/events/{id}/categories": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List category categories
-         * @description Returns all category categories for an event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of category categories. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Category"][];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Create category category
-         * @description Creates a category category for an event. Requires authentication.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateCategoryRequest"];
-                };
-            };
-            responses: {
-                /** @description Category category created. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Category"];
-                        };
-                    };
-                };
-                /** @description Invalid input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/categories/{did}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Get organizer profile
+     * @description Returns the authenticated organizer's profile.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Organizer profile. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["OrganizerProfile"];
+            };
+          };
         };
-        get?: never;
-        /** Update category category */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    did: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateCategoryRequest"];
-                };
-            };
-            responses: {
-                /** @description Category category updated. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Category"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        post?: never;
-        /**
-         * Delete category category
-         * @description Deletes a category category. Fails if ticket categories reference it.
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    did: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Deleted. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            message?: string;
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Category category in use. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+      };
     };
-    "/events/{id}/tickets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Update organizer profile
+     * @description Updates the authenticated organizer's name and phone. Email and password cannot be changed.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpdateProfileRequest"];
         };
-        /**
-         * List ticket categories
-         * @description Returns all ticket categories for an event with quota remaining.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+      };
+      responses: {
+        /** @description Profile updated. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["OrganizerProfile"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description List of ticket categories. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["TicketCategory"][];
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        /**
-         * Create ticket category
-         * @description Creates a ticket category for an event. Quota must not exceed category category quota.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateTicketRequest"];
-                };
-            };
-            responses: {
-                /** @description Ticket category created. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["TicketCategory"];
-                        };
-                    };
-                };
-                /** @description Invalid input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                /** @description Quota exceeds category quota. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        /** @description Invalid input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+      };
     };
-    "/events/{id}/tickets/{tid}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update ticket category */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    tid: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateTicketRequest"];
-                };
-            };
-            responses: {
-                /** @description Ticket category updated. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["TicketCategory"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        post?: never;
-        /** Delete ticket category */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    tid: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Deleted. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            message?: string;
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/submit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Submit event for admin review
-         * @description Organizer submits a draft event for admin approval (FR-301). The event
-         *     stays in draft until an admin approves or rejects it.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Event submitted for review. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Only draft events can be submitted. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/events/{id}/banner": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Upload event banner image
-         * @description Uploads the event banner to private MinIO storage and saves its backend
-         *     media-proxy URL on the event (banner_url). Owner only; finished/cancelled
-         *     events are locked. Accepted types: image/jpeg, image/png, image/webp.
-         *     Maximum size is 10 MiB by default and is controlled by UPLOAD_MAX_BYTES.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "multipart/form-data": {
-                        /** Format: binary */
-                        file: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Banner uploaded; event returned with the new banner_url. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                /** @description Missing, empty, malformed, or unsupported image file. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Event is locked (finished/cancelled). */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description File exceeds the configured upload limit. */
-                413: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/events/{id}/description-images": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Upload an event description image
-         * @description Uploads an image to private MinIO storage and returns an immutable,
-         *     same-origin media-proxy URL suitable for an img element in the event's
-         *     HTML description. The caller must save that HTML separately through the
-         *     event update endpoint. Owner only; finished/cancelled events are locked.
-         *     Accepted types: image/jpeg, image/png, image/webp. Maximum size is 10 MiB
-         *     by default and is controlled by UPLOAD_MAX_BYTES.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "multipart/form-data": {
-                        /** Format: binary */
-                        file: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Description image uploaded. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["EventDescriptionImage"];
-                        };
-                    };
-                };
-                /** @description Missing, empty, malformed, or unsupported image file. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Event is locked (finished/cancelled). */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description File exceeds the configured upload limit. */
-                413: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/media/events/{filename}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read an event image
-         * @description Streams an immutable event banner or description image from private MinIO storage. Public; no authentication required.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    filename: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Event image bytes. */
-                200: {
-                    headers: {
-                        "Cache-Control"?: string;
-                        ETag?: string;
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "image/jpeg": string;
-                        "image/png": string;
-                        "image/webp": string;
-                    };
-                };
-                404: components["responses"]["NotFound"];
-                /** @description Object storage is temporarily unavailable. */
-                502: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        /**
-         * Read event image metadata
-         * @description Returns the same headers as GET without streaming the image body.
-         */
-        head: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    filename: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Banner metadata. */
-                200: {
-                    headers: {
-                        "Content-Type"?: string;
-                        "Content-Length"?: number;
-                        "Cache-Control"?: string;
-                        ETag?: string;
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                404: components["responses"]["NotFound"];
-                /** @description Object storage is temporarily unavailable. */
-                502: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        patch?: never;
-        trace?: never;
-    };
-    "/events/{id}/registration-fields": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List an event's custom registration fields */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Event-owned custom fields in display order. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["RegistrationField"][];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        /**
-         * Create or update a custom registration field
-         * @description Forms are immutable after the event receives its first registration.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpsertRegistrationFieldRequest"];
-                };
-            };
-            responses: {
-                /** @description Field saved. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["RegistrationField"];
-                        };
-                    };
-                };
-                /** @description Invalid field definition. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Duplicate field name or form locked after first registration. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/events/{id}/registration-fields/{fieldId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a custom registration field
-         * @description Forms are immutable after the event receives its first registration.
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    fieldId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Field deleted. */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Form locked after first registration. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Admin login
-         * @description Authenticates an admin and returns a JWT with role=admin.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["OrganizerLoginRequest"];
-                };
-            };
-            responses: {
-                /** @description Login successful. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["LoginResponse"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List all events (any status, admin monitoring)
-         * @description Returns all events with optional status filter and pagination. Admin only.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Filter by status (omit for all statuses). */
-                    status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
-                    page?: number;
-                    page_size?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Paginated list of events. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"][];
-                            total?: number;
-                            page?: number;
-                            page_size?: number;
-                            total_pages?: number;
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/events/{id}/registrations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List registrations for an event (admin, no PII)
-         * @description Returns all registrations for an event with pagination. PII fields (email/phone/birth_date) are not decrypted. Admin only.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    page_size?: number;
-                };
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Paginated list of registrations. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["RegistrationSummary"][];
-                            total?: number;
-                            page?: number;
-                            page_size?: number;
-                            total_pages?: number;
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/events/{id}/refunds": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List refunds for an event (admin)
-         * @description Returns all refunds for an event, including VA refunds pending completion (FR-905). Admin only.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of refunds. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Refund"][];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/refunds/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a single refund by ID (admin) */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Refund detail. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Refund"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/events/pending": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List events awaiting approval
-         * @description Approval queue — events submitted for review (FR-301). Admin only.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    limit?: number;
-                    offset?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Pending events. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"][];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/events/{id}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Approve an event
-         * @description Publishes a submitted event and records an audit entry (FR-302, NFR-209).
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Event approved and published. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Event is not awaiting review. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/events/{id}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Reject an event
-         * @description Keeps the event non-published (draft) with a rejection reason and records
-         *     an audit entry (FR-302, NFR-209).
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["RejectEventRequest"];
-                };
-            };
-            responses: {
-                /** @description Event rejected. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Event"];
-                        };
-                    };
-                };
-                /** @description Reason is required. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/registrations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Register a participant
-         * @description Public participant registration — NO authentication required (FR-401).
-         *     Reserves quota atomically across ticket → category → event (FR-408).
-         *     birth_date is required. For running events, a standalone case-insensitive 5K
-         *     token in the selected category sets age_class to Fun Run; other categories
-         *     use the Open/Master/Master+ age classes (FR-404). PII is encrypted at rest
-         *     (NFR-206). Donation is optional
-         *     with no minimum (FR-406). No money is computed here — fees are Phase 4.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: {
-                    /**
-                     * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
-                     *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
-                     *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
-                     */
-                    "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateRegistrationRequest"];
-                };
-            };
-            responses: {
-                /** @description Registration created (status pending_payment). */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Registration"];
-                        };
-                    };
-                };
-                /** @description Invalid input (e.g. missing birth_date, category mismatch). */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                404: components["responses"]["NotFound"];
-                /** @description Quota exhausted, event not open, sale period closed, or a complimentary invitation already claimed. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/registrations/{number}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a registration by its public number */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    number: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Registration detail (PII decrypted). */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Registration"];
-                        };
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/registrations/{number}/ticket": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get the e-ticket + invoice for a paid registration
-         * @description Returns the server-owned e-ticket (QR token, participant + event data)
-         *     and the invoice breakdown for display (FR-705). All money fields come
-         *     straight from the stored payment — the frontend never recomputes. 404
-         *     until the registration is paid and the e-ticket is issued.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    number: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description E-ticket + invoice. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["ETicket"];
-                        };
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/registrations/{number}/ticket.pdf": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Download a paid registration e-ticket as PDF
-         * @description Returns a server-rendered PDF with the e-ticket QR and stored invoice. Requires the same private ticket token as the JSON e-ticket endpoint.
-         */
-        get: {
-            parameters: {
-                query: {
-                    token: string;
-                };
-                header?: never;
-                path: {
-                    number: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description E-ticket PDF attachment. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/pdf": string;
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/registrations/{number}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get the refund status for a participant's registration
-         * @description Returns the refund record for a registration identified by its public
-         *     number (participant self-service — no authentication required, the
-         *     registration number acts as the access key). Returns 404 when no refund
-         *     has been created yet for this registration.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    number: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Refund record. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Refund"];
-                        };
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/payments/quote": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Compute the fee breakdown for a method
-         * @description Returns the server-computed payment breakdown for a registration and a
-         *     chosen method (FR-502/508). The participant picks the method FIRST so
-         *     the Midtrans fee is exact. The donation is EXCLUDED from the Midtrans
-         *     fee basis (FR-505). Read-only — no state change. The frontend displays
-         *     these numbers as-is and NEVER computes money (NFR-402).
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["PaymentQuoteRequest"];
-                };
-            };
-            responses: {
-                /** @description Estimated fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). The charge response contains the provider-confirmed final amount. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PaymentQuoteResponse"];
-                        };
-                    };
-                };
-                /** @description Invalid payment method or input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                404: components["responses"]["NotFound"];
+    /**
+     * Get wallet balance
+     * @description Returns the authenticated organizer's wallet balance calculated from the wallet ledger.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Wallet balance. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: {
                 /**
-                 * @description Registration already paid, status does not allow payment
-                 *     (expired/cancelled/refunded), or a pending payment already exists.
+                 * Format: int64
+                 * @description Balance in whole Rupiah.
                  */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
+                balance?: number;
+              };
             };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+      };
     };
-    "/payments/charge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List events
+     * @description If authenticated as organizer, returns the organizer's own events (all statuses).
+     *     If not authenticated, returns published events only (public marketplace, FR-303/1001)
+     *     with optional filters (FR-1002).
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Marketplace filter - events on/after this date (RFC3339). */
+          date_from?: string;
+          /** @description Marketplace filter - events on/before this date (RFC3339). */
+          date_to?: string;
+          /** @description Marketplace filter - case-insensitive substring match on location. */
+          location?: string;
+          /** @description Marketplace search - case-insensitive substring match on event name or location. (For authenticated organizers, matches their own events' names.) */
+          q?: string;
+          /** @description Marketplace filter - running events only when true. */
+          is_running_event?: boolean;
+          limit?: number;
+          offset?: number;
         };
-        get?: never;
-        put?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description List of events. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"][];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Create event
+     * @description Creates a new event in draft status. Requires authentication.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CreateEventRequest"];
+        };
+      };
+      responses: {
+        /** @description Event created. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        /** @description Invalid input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get event detail
+     * @description The owning organizer receives the full EventDetail (all statuses, incl.
+     *     review fields). Everyone else receives the PublicEventDetail and only for
+     *     published events; non-published events return 404 (FR-303/1003).
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Event detail (owner) or public detail with remaining quota. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["EventDetail"] | components["schemas"]["PublicEventDetail"];
+            };
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
+    };
+    /**
+     * Update event
+     * @description Updates an event. Only the owner can update. Cannot update finished events.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpdateEventRequest"];
+        };
+      };
+      responses: {
+        /** @description Event updated. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        /** @description Invalid input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Event is finished. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/paid-registrations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List paid participants for a published event
+     * @description Public, anonymous participant directory. Returns only registrations whose
+     *     current status is `paid`; refunded and unpaid registrations are excluded.
+     *     Results are ordered by most recently created registration first.
+     *     Participant name, category suffixed with the compact age class when set
+     *     (for example `5K(Master+)`), and the submitted answer for the custom
+     *     registration field whose slug is `asal_kabupaten` are exposed. Other custom
+     *     answers, contact information, registration numbers, payment data, and
+     *     check-in state are never returned.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Case-insensitive substring search across participant name and category. */
+          q?: string;
+          /** @description Exact category name filter; omit or leave empty to include all categories. */
+          category?: string;
+          /** @description Exact stored age class filter; omit or leave empty to include all classes. */
+          age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+          page?: number;
+          /** @description Number of results per page. Use 12, 24, or 36; use `all` to return all matches. Defaults to 24. */
+          page_size?: (12 | 24 | 36) | "all";
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated paid participant list. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PublicPaidParticipant"][];
+              total?: number;
+              page?: number;
+              page_size?: number;
+              total_pages?: number;
+            };
+          };
+        };
+        /** @description Invalid event UUID. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Event does not exist or is not published. */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Transition event status
+     * @description Changes the event status following the state machine.
+     *     Valid transitions: draft->coming_soon/published/cancelled,
+     *     coming_soon->draft/published/cancelled, and
+     *     published->cancelled/finished.
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            /** @enum {string} */
+            status: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
+          };
+        };
+      };
+      responses: {
+        /** @description Status transitioned. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        /** @description Invalid status. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        /** @description Forbidden or publish requires admin approval. */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        /** @description Invalid status transition. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    trace?: never;
+  };
+  "/events/{id}/categories": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List category categories
+     * @description Returns all category categories for an event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description List of category categories. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Category"][];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Create category category
+     * @description Creates a category category for an event. Requires authentication.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CreateCategoryRequest"];
+        };
+      };
+      responses: {
+        /** @description Category category created. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Category"];
+            };
+          };
+        };
+        /** @description Invalid input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/categories/{did}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update category category */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          did: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpdateCategoryRequest"];
+        };
+      };
+      responses: {
+        /** @description Category category updated. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Category"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    post?: never;
+    /**
+     * Delete category category
+     * @description Deletes a category category. Fails if ticket categories reference it.
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          did: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Deleted. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              message?: string;
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Category category in use. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/tickets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List ticket categories
+     * @description Returns all ticket categories for an event with quota remaining.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description List of ticket categories. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["TicketCategory"][];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /**
+     * Create ticket category
+     * @description Creates a ticket category for an event. Quota must not exceed category category quota.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CreateTicketRequest"];
+        };
+      };
+      responses: {
+        /** @description Ticket category created. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["TicketCategory"];
+            };
+          };
+        };
+        /** @description Invalid input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        /** @description Quota exceeds category quota. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/tickets/{tid}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update ticket category */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          tid: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpdateTicketRequest"];
+        };
+      };
+      responses: {
+        /** @description Ticket category updated. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["TicketCategory"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    post?: never;
+    /** Delete ticket category */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          tid: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Deleted. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              message?: string;
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/submit": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Submit event for admin review
+     * @description Organizer submits a draft event for admin approval (FR-301). The event
+     *     stays in draft until an admin approves or rejects it.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Event submitted for review. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Only draft events can be submitted. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/banner": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Upload event banner image
+     * @description Uploads the event banner to private MinIO storage and saves its backend
+     *     media-proxy URL on the event (banner_url). Owner only; finished/cancelled
+     *     events are locked. Accepted types: image/jpeg, image/png, image/webp.
+     *     Maximum size is 10 MiB by default and is controlled by UPLOAD_MAX_BYTES.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "multipart/form-data": {
+            /** Format: binary */
+            file: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Banner uploaded; event returned with the new banner_url. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        /** @description Missing, empty, malformed, or unsupported image file. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Event is locked (finished/cancelled). */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description File exceeds the configured upload limit. */
+        413: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/description-images": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Upload an event description image
+     * @description Uploads an image to private MinIO storage and returns an immutable,
+     *     same-origin media-proxy URL suitable for an img element in the event's
+     *     HTML description. The caller must save that HTML separately through the
+     *     event update endpoint. Owner only; finished/cancelled events are locked.
+     *     Accepted types: image/jpeg, image/png, image/webp. Maximum size is 10 MiB
+     *     by default and is controlled by UPLOAD_MAX_BYTES.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "multipart/form-data": {
+            /** Format: binary */
+            file: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Description image uploaded. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data: components["schemas"]["EventDescriptionImage"];
+            };
+          };
+        };
+        /** @description Missing, empty, malformed, or unsupported image file. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Event is locked (finished/cancelled). */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description File exceeds the configured upload limit. */
+        413: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/media/events/{filename}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read an event image
+     * @description Streams an immutable event banner or description image from private MinIO storage. Public; no authentication required.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          filename: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Event image bytes. */
+        200: {
+          headers: {
+            "Cache-Control"?: string;
+            ETag?: string;
+            [name: string]: unknown;
+          };
+          content: {
+            "image/jpeg": string;
+            "image/png": string;
+            "image/webp": string;
+          };
+        };
+        404: components["responses"]["NotFound"];
+        /** @description Object storage is temporarily unavailable. */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    /**
+     * Read event image metadata
+     * @description Returns the same headers as GET without streaming the image body.
+     */
+    head: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          filename: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Banner metadata. */
+        200: {
+          headers: {
+            "Content-Type"?: string;
+            "Content-Length"?: number;
+            "Cache-Control"?: string;
+            ETag?: string;
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        404: components["responses"]["NotFound"];
+        /** @description Object storage is temporarily unavailable. */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/registration-fields": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List an event's custom registration fields */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Event-owned custom fields in display order. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["RegistrationField"][];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    /**
+     * Create or update a custom registration field
+     * @description Forms are immutable after the event receives its first registration.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["UpsertRegistrationFieldRequest"];
+        };
+      };
+      responses: {
+        /** @description Field saved. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["RegistrationField"];
+            };
+          };
+        };
+        /** @description Invalid field definition. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Duplicate field name or form locked after first registration. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/registration-fields/{fieldId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /**
+     * Delete a custom registration field
+     * @description Forms are immutable after the event receives its first registration.
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          fieldId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Field deleted. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Form locked after first registration. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/addons": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List event custom add-ons
+     * @description Organizer-only configuration endpoint. Public add-ons are included in PublicEventDetail.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Add-on groups and options in display order. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["EventAddonsResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    /**
+     * Replace event custom add-ons
+     * @description Replaces all groups atomically. Configuration is locked after the event receives its first registration.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["ReplaceEventAddonsRequest"];
+        };
+      };
+      responses: {
+        /** @description Updated add-on configuration. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["EventAddonsResponse"];
+          };
+        };
+        /** @description Invalid add-on groups */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Add-on configuration locked after first registration. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Admin login
+     * @description Authenticates an admin and returns a JWT with role=admin.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["OrganizerLoginRequest"];
+        };
+      };
+      responses: {
+        /** @description Login successful. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["LoginResponse"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List all events (any status, admin monitoring)
+     * @description Returns all events with optional status filter and pagination. Admin only.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Filter by status (omit for all statuses). */
+          status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
+          page?: number;
+          page_size?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated list of events. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"][];
+              total?: number;
+              page?: number;
+              page_size?: number;
+              total_pages?: number;
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events/{id}/registrations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List registrations for an event (admin, no PII)
+     * @description Returns all registrations for an event with pagination. PII fields (email/phone/birth_date) are not decrypted. Admin only.
+     */
+    get: {
+      parameters: {
+        query?: {
+          page?: number;
+          page_size?: number;
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated list of registrations. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["RegistrationSummary"][];
+              total?: number;
+              page?: number;
+              page_size?: number;
+              total_pages?: number;
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events/{id}/refunds": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List refunds for an event (admin)
+     * @description Returns all refunds for an event, including VA refunds pending completion (FR-905). Admin only.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description List of refunds. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Refund"][];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/refunds/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get a single refund by ID (admin) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Refund detail. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Refund"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events/pending": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List events awaiting approval
+     * @description Approval queue - events submitted for review (FR-301). Admin only.
+     */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Pending events. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"][];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events/{id}/approve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Approve an event
+     * @description Publishes a submitted event and records an audit entry (FR-302, NFR-209).
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Event approved and published. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Event is not awaiting review. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events/{id}/reject": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Reject an event
+     * @description Keeps the event non-published (draft) with a rejection reason and records
+     *     an audit entry (FR-302, NFR-209).
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["RejectEventRequest"];
+        };
+      };
+      responses: {
+        /** @description Event rejected. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Event"];
+            };
+          };
+        };
+        /** @description Reason is required. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/registrations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Register a participant
+     * @description Public participant registration - NO authentication required (FR-401).
+     *     Reserves quota atomically across ticket → category → event (FR-408).
+     *     birth_date is required. For running events, a standalone case-insensitive 5K
+     *     token in the selected category sets age_class to Fun Run; other categories
+     *     use the Open/Master/Master+ age classes (FR-404). PII is encrypted at rest
+     *     (NFR-206). Donation is optional with no minimum (FR-406). Add-on selections
+     *     are validated and their configured prices snapshotted here; payment fees
+     *     and totals are computed by the quote/charge endpoints.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /**
+           * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
+           *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
+           *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
+           */
+          "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+        };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CreateRegistrationRequest"];
+        };
+      };
+      responses: {
+        /** @description Registration created (status pending_payment). */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Registration"];
+            };
+          };
+        };
+        /** @description Invalid input (e.g. missing birth_date, category mismatch). */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        /** @description Quota exhausted, event not open, sale period closed, or a complimentary invitation already claimed. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/registrations/{number}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get a registration by its public number */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          number: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Registration detail (PII decrypted). */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Registration"];
+            };
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/registrations/{number}/ticket": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the e-ticket + invoice for a paid registration
+     * @description Returns the server-owned e-ticket (QR token, participant + event data)
+     *     and the invoice breakdown for display (FR-705). All money fields come
+     *     straight from the stored payment - the frontend never recomputes. 404
+     *     until the registration is paid and the e-ticket is issued.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          number: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description E-ticket + invoice. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["ETicket"];
+            };
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/registrations/{number}/ticket.pdf": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Download a paid registration e-ticket as PDF
+     * @description Returns a server-rendered PDF with the e-ticket QR and stored invoice. Requires the same private ticket token as the JSON e-ticket endpoint.
+     */
+    get: {
+      parameters: {
+        query: {
+          token: string;
+        };
+        header?: never;
+        path: {
+          number: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description E-ticket PDF attachment. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/pdf": string;
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/registrations/{number}/refund": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the refund status for a participant's registration
+     * @description Returns the refund record for a registration identified by its public
+     *     number (participant self-service - no authentication required, the
+     *     registration number acts as the access key). Returns 404 when no refund
+     *     has been created yet for this registration.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          number: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Refund record. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Refund"];
+            };
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/payments/quote": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Compute the fee breakdown for a method
+     * @description Returns the server-computed payment breakdown for a registration and a
+     *     chosen method (FR-502/508). The participant picks the method FIRST so
+     *     the Midtrans fee is exact. The donation is EXCLUDED from the Midtrans
+     *     fee basis (FR-505). Read-only - no state change. The frontend displays
+     *     these numbers as-is and NEVER computes money (NFR-402).
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["PaymentQuoteRequest"];
+        };
+      };
+      responses: {
+        /** @description Estimated fee breakdown (ordered Harga → Donasi → Fee Platform → Biaya Payment Gateway → Sub Total). The charge response contains the provider-confirmed final amount. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PaymentQuoteResponse"];
+            };
+          };
+        };
+        /** @description Invalid payment method or input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        404: components["responses"]["NotFound"];
         /**
-         * Create a payment with the locked method
-         * @description Charges the registration via iPaymu Direct Payment with the chosen channel
-         *     (FR-506/508). The amount is the server-computed Sub Total. Returns the
-         *     provider transaction id plus payment instructions (VA number / QR).
-         *     Blocked when a pending payment already exists for the registration
-         *     (to prevent double-credit on the organizer wallet).
+         * @description Registration already paid, status does not allow payment
+         *     (expired/cancelled/refunded), or a pending payment already exists.
          */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["PaymentChargeRequest"];
-                };
-            };
-            responses: {
-                /** @description Payment created (status pending). */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PaymentChargeResponse"];
-                        };
-                    };
-                };
-                /** @description Invalid payment method or input. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                404: components["responses"]["NotFound"];
-                /** @description Registration already paid, has a pending payment, or its status does not allow a new charge. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/payments/methods": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List configured iPaymu payment channels
-         * @description Returns LowkeyThings's configured VA and QRIS iPaymu channels.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Active checkout methods */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PaymentMethodOption"][];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/payments/charge": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/payments/notification": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Create a payment with the locked method
+     * @description Charges the registration via iPaymu Direct Payment with the chosen channel
+     *     (FR-506/508). The amount is the server-computed Sub Total. Returns the
+     *     provider transaction id plus payment instructions (VA number / QR).
+     *     Blocked when a pending payment already exists for the registration
+     *     (to prevent double-credit on the organizer wallet).
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["PaymentChargeRequest"];
         };
-        get?: never;
-        put?: never;
-        /**
-         * iPaymu payment notification webhook
-         * @description Receives iPaymu notifications (JSON or form encoded). The X-Signature is verified BEFORE any
-         *     mutation (NFR-205) and deliveries are deduped on (transaction_id,
-         *     status) (NFR-302). On settlement, issues the e-ticket and credits the
-         *     organizer wallet exactly-once, then sends the e-ticket email
-         *     asynchronously (FR-507, NFR-306). Auth is the signature, not a token.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+      };
+      responses: {
+        /** @description Payment created (status pending). */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PaymentChargeResponse"];
             };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["IPaymuNotification"];
-                };
-            };
-            responses: {
-                /** @description Notification processed (or deduped). */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["NotificationResult"];
-                        };
-                    };
-                };
-                /** @description Invalid signature (NFR-205). */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid payment method or input. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        /** @description Registration already paid, has a pending payment, or its status does not allow a new charge. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/organizers/me/wallet/withdraw": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Withdraw from the organizer wallet (FR-803)
-         * @description Records a manual withdrawal against the internal organizer wallet; it does not initiate a bank transfer. Limited by balance and audited (NFR-209). Amounts are int64 rupiah.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: {
-                    /**
-                     * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
-                     *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
-                     *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
-                     */
-                    "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["WithdrawRequest"];
-                };
-            };
-            responses: {
-                /** @description New balance after withdrawal. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["WalletBalance"];
-                        };
-                    };
-                };
-                /** @description Invalid amount. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                /** @description Insufficient balance (FR-803). */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/payments/methods": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/me/wallet/ledger": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List wallet ledger entries */
-        get: {
-            parameters: {
-                query?: {
-                    limit?: number;
-                    offset?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
+    /**
+     * List configured iPaymu payment channels
+     * @description Returns LowkeyThings's configured VA and QRIS iPaymu channels.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Active checkout methods */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PaymentMethodOption"][];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Wallet entries (most recent first). */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["LedgerEntry"][];
-                        };
-                    };
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/organizers/me/wallet/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List combined organizer, donation, and platform wallet history */
-        get: {
-            parameters: {
-                query?: {
-                    limit?: number;
-                    offset?: number;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Combined wallet entries, most recent first. Destination accounts are masked. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["WalletHistoryEntry"][];
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/payments/notification": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/me/wallet/history/{wallet}/{entryId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * iPaymu payment notification webhook
+     * @description Receives iPaymu notifications (JSON or form encoded). The X-Signature is verified BEFORE any
+     *     mutation (NFR-205) and deliveries are deduped on (transaction_id,
+     *     status) (NFR-302). On settlement, issues the e-ticket and credits the
+     *     organizer wallet exactly-once, then sends the e-ticket email
+     *     asynchronously (FR-507, NFR-306). Auth is the signature, not a token.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["IPaymuNotification"];
         };
-        /**
-         * Get a wallet history entry with transaction and customer detail
-         * @description Returns PII only to the authenticated organizer who owns the linked participant transaction. Withdrawals have no customer or payment detail.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    wallet: "organizer" | "donation" | "platform";
-                    entryId: string;
-                };
-                cookie?: never;
+      };
+      responses: {
+        /** @description Notification processed (or deduped). */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["NotificationResult"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Wallet transaction detail. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["WalletTransactionDetail"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid signature (NFR-205). */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/organizers/me/wallet/donations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Donation wallet balance for the authenticated organizer
-         * @description Total donations collected minus total withdrawn.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Donation wallet state. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["DonationWalletBalance"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/withdraw": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/me/wallet/donations/withdraw": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Withdraw from the organizer wallet (FR-803)
+     * @description Records a manual withdrawal against the internal organizer wallet; it does not initiate a bank transfer. Limited by balance and audited (NFR-209). Amounts are int64 rupiah.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /**
+           * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
+           *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
+           *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
+           */
+          "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
         };
-        get?: never;
-        put?: never;
-        /**
-         * Withdraw from the organizer's donation wallet
-         * @description Cash-out limited by donation balance. Amounts are int64 rupiah.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: {
-                    /**
-                     * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
-                     *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
-                     *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
-                     */
-                    "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["WithdrawRequest"];
-                };
-            };
-            responses: {
-                /** @description Donation wallet state after withdrawal. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["DonationWalletBalance"];
-                        };
-                    };
-                };
-                /** @description Invalid amount. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                /** @description Insufficient donation balance. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["WithdrawRequest"];
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
+      responses: {
+        /** @description New balance after withdrawal. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["WalletBalance"];
+            };
+          };
+        };
+        /** @description Invalid amount. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /** @description Insufficient balance (FR-803). */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/organizers/me/wallet/platform": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Platform wallet revenue for the authenticated organizer
-         * @description Total platform fees collected minus total withdrawn.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Platform wallet state. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PlatformRevenue"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/ledger": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/organizers/me/wallet/platform/withdraw": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** List wallet ledger entries */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
         };
-        get?: never;
-        put?: never;
-        /**
-         * Withdraw from the platform (admin) wallet (organizer-authenticated)
-         * @description Platform wallet admin does not require admin JWT — organizer JWT suffices (single-org app).
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: {
-                    /**
-                     * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
-                     *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
-                     *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
-                     */
-                    "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-                };
-                path?: never;
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Wallet entries (most recent first). */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["LedgerEntry"][];
             };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["WithdrawRequest"];
-                };
-            };
-            responses: {
-                /** @description Platform wallet state after withdrawal. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PlatformRevenue"];
-                        };
-                    };
-                };
-                /** @description Invalid amount. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                /** @description Insufficient platform balance. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/events/{id}/refunds": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List refunds for an event (organizer)
-         * @description Returns refunds for the organizer's own event. Organizer must own the event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of refunds. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Refund"][];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/history": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/refunds/summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** List combined organizer, donation, and platform wallet history */
+    get: {
+      parameters: {
+        query?: {
+          limit?: number;
+          offset?: number;
         };
-        /**
-         * Refund summary for an event (organizer)
-         * @description Returns server-calculated refund counts and amounts for the organizer's own event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Combined wallet entries, most recent first. Destination accounts are masked. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["WalletHistoryEntry"][];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Refund summary. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["RefundSummary"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
     };
-    "/events/{id}/donations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Per-event donation report (FR-804/1405)
-         * @description Donation total kept separate from ticket revenue. Organizer must own the event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Donation / ticket-revenue split. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["DonationReport"];
-                        };
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/history/{wallet}/{entryId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/donations/ledger": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Get a wallet history entry with transaction and customer detail
+     * @description Returns PII only to the authenticated organizer who owns the linked participant transaction. Withdrawals have no customer or payment detail.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          wallet: "organizer" | "donation" | "platform";
+          entryId: string;
         };
-        /**
-         * Donation ledger entries for an organizer's own event
-         * @description Append-only ledger of every donation credit for the event. Organizer must own the event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Wallet transaction detail. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["WalletTransactionDetail"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Donation ledger entries. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["DonationLedgerEntry"][];
-                        };
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/admin/registrations/{id}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Refund a registration (admin, FR-901..907)
-         * @description amount = total − fee_midtrans − donation (FR-902); donation never
-         *     returned (FR-909). Rejected past the refund cutoff (FR-903) or when the
-         *     organizer wallet can't cover it (FR-906). Card/e-wallet/QRIS settle
-         *     automatically; VA is manual and requires a bank account (FR-904/905).
-         *     Returns the quota if the event has not finished (FR-907).
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["RefundRequest"];
-                };
-            };
-            responses: {
-                /** @description Refund created. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Refund"];
-                        };
-                    };
-                };
-                /** @description Invalid input or missing bank account for manual refund. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                404: components["responses"]["NotFound"];
-                /** @description Not refundable, already refunded, cutoff passed, or insufficient balance. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/donations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/refunds/{id}/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Mark a manual (VA) refund completed (FR-905) */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+    /**
+     * Donation wallet balance for the authenticated organizer
+     * @description Total donations collected minus total withdrawn.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Donation wallet state. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["DonationWalletBalance"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Refund marked completed. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["Refund"];
-                        };
-                    };
-                };
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+      };
     };
-    "/admin/events/{id}/refund-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Mass-refund a cancelled event (admin, FR-908)
-         * @description Refunds every paid registration of a cancelled event; donation still channeled (FR-909). Each registration is its own transaction.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["RefundRequest"];
-                };
-            };
-            responses: {
-                /** @description Bulk refund summary. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["MassRefundResult"];
-                        };
-                    };
-                };
-                /** @description Event is not cancelled. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/donations/withdraw": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/admin/platform": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Withdraw from the organizer's donation wallet
+     * @description Cash-out limited by donation balance. Amounts are int64 rupiah.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /**
+           * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
+           *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
+           *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
+           */
+          "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
         };
-        /**
-         * Platform wallet revenue (admin only)
-         * @description Total platform fees collected minus total withdrawn. Requires admin JWT.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Platform wallet state. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PlatformRevenue"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-            };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["WithdrawRequest"];
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
+      responses: {
+        /** @description Donation wallet state after withdrawal. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["DonationWalletBalance"];
+            };
+          };
+        };
+        /** @description Invalid amount. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        /** @description Insufficient donation balance. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/admin/platform/withdraw": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Withdraw from the platform wallet (admin only)
-         * @description Cash-out from the platform fee wallet. Requires admin JWT.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: {
-                    /**
-                     * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
-                     *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
-                     *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
-                     */
-                    "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["WithdrawRequest"];
-                };
-            };
-            responses: {
-                /** @description Platform wallet state after withdrawal. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["PlatformRevenue"];
-                        };
-                    };
-                };
-                /** @description Invalid amount. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                /** @description Insufficient platform balance. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/platform": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/bibs/generate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Platform wallet revenue for the authenticated organizer
+     * @description Total platform fees collected minus total withdrawn.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Platform wallet state. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PlatformRevenue"];
+            };
+          };
         };
-        get?: never;
-        put?: never;
-        /**
-         * Generate BIB numbers in a batch (FR-1301..1305)
-         * @description Assigns BIB numbers in the selected layout, ordered by registration time within each group. The default `all` layout is one continuous, zero-padded series. Grouped layouts produce readable codes such as `01-M-0001`; `01` is the event category's order and M/F/O is gender. Only allowed after registration closes (FR-1301). If BIBs already exist, pass regenerate=true to overwrite; otherwise a 409 is returned so the UI can confirm. Organizer must own the event.
-         */
-        post: {
-            parameters: {
-                query?: {
-                    /** @description Overwrite existing BIB numbers. */
-                    regenerate?: boolean;
-                };
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["GenerateBibRequest"];
-                };
-            };
-            responses: {
-                /** @description BIB numbers generated. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["BibResult"];
-                        };
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Registration still open, or BIBs already generated (confirm regeneration). */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+      };
     };
-    "/events/{id}/checkin/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Manual RPC participant lookup (FR-605)
-         * @description Primary RPC method — search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query matches all paid participants. Unclaimed participants for the selected stage appear first. Omit limit for the legacy unbounded result.
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Name */
-                    q?: string;
-                    /** @description Stage used to put unclaimed participants first. */
-                    stage?: "rpc" | "raceday";
-                    /** @description Page size; omit for the legacy unbounded result. */
-                    limit?: number;
-                    /** @description Zero-based offset; requires limit. */
-                    offset?: number;
-                };
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Matching participants. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["CheckinParticipant"][];
-                            /**
-                             * Format: int64
-                             * @description Number of paid participants matching q.
-                             */
-                            total?: number;
-                            /**
-                             * Format: int64
-                             * @description All paid participants in the event.
-                             */
-                            paid_total?: number;
-                            /**
-                             * Format: int64
-                             * @description Paid participants with RPC claimed.
-                             */
-                            rpc_collected?: number;
-                            /**
-                             * Format: int64
-                             * @description Paid participants checked in on race day.
-                             */
-                            raceday_checked_in?: number;
-                        };
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizers/me/wallet/platform/withdraw": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/checkin/scan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Withdraw from the platform (admin) wallet (organizer-authenticated)
+     * @description Platform wallet admin does not require admin JWT - organizer JWT suffices (single-org app).
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /**
+           * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
+           *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
+           *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
+           */
+          "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
         };
-        get?: never;
-        put?: never;
-        /**
-         * Preview a participant from a scanned QR token (FR-604)
-         * @description Resolves the paid participant without changing RPC or race-day status. The operator must explicitly claim through the check-in endpoint after reviewing participant details.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["ScanRequest"];
-                };
-            };
-            responses: {
-                /** @description Participant details without a status mutation. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["CheckinParticipant"];
-                        };
-                    };
-                };
-                /** @description Invalid stage. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["WithdrawRequest"];
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
+      responses: {
+        /** @description Platform wallet state after withdrawal. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PlatformRevenue"];
+            };
+          };
+        };
+        /** @description Invalid amount. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        /** @description Insufficient platform balance. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/events/{id}/checkin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Mark a stage for a manually-selected participant (FR-602/603/605)
-         * @description Stages are recorded independently (FR-603) — marking race-day does not clear RPC.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CheckinRequest"];
-                };
-            };
-            responses: {
-                /** @description Participant after marking the stage. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["CheckinParticipant"];
-                        };
-                    };
-                };
-                /** @description Invalid stage. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorResponse"];
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/refunds": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/dashboard": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * List refunds for an event (organizer)
+     * @description Returns refunds for the organizer's own event. Organizer must own the event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        /** Organizer event dashboard summary, including Racepack Collection recap (FR-1101) */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description List of refunds. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Refund"][];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Event summary. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["EventDashboard"];
-                        };
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/recap": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Participant counts per category (FR-1103/1203) */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Running events return category × gender × age-class counts. Non-running events return every configured category × ticket-class pair, including zero totals, with gender and age_class empty. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["RecapRow"][];
-                        };
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/refunds/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/participants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Refund summary for an event (organizer)
+     * @description Returns server-calculated refund counts and amounts for the organizer's own event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        /** Paginated participant table (FR-1202) */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Case-insensitive substring search across participant name, registration number, BIB, category, and ticket category. */
-                    q?: string;
-                    /** @description Filter by one or more comma-separated registration statuses. Omitted = paid participants only (default). For example, `pending_payment,expired` returns unpaid and expired registrations. Unknown values return 400. */
-                    status?: string;
-                    limit?: number;
-                    offset?: number;
-                };
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Refund summary. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["RefundSummary"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Participant rows (without PII). */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["ParticipantRow"][];
-                        };
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                403: components["responses"]["Forbidden"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/participants/{participantId}/data": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                participantId: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * Get one paid or pending participant's editable data
-         * @description Returns participant PII and registration answers only to the authenticated organizer that owns the event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    participantId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Editable participant profile and configured registration fields. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["ParticipantEditableData"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Participant is no longer pending payment or paid and cannot be edited. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Correct one paid or pending participant's profile data
-         * @description Updates identity, contact, demographic, and configured registration-answer fields only. Payment, ticket, category, BIB, refund, donation, and check-in data are not editable. The update and encrypted audit diff are committed atomically.
-         */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    participantId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name: string;
-                        /** Format: email */
-                        email: string;
-                        phone: string;
-                        /** Format: date */
-                        birth_date: string;
-                        gender: string;
-                        extra_data: {
-                            [key: string]: string;
-                        };
-                    };
-                };
-            };
-            responses: {
-                /** @description Updated participant data. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["ParticipantUpdateResult"];
-                        };
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Participant is no longer paid and cannot be edited. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/donations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/participants/{participantId}/emails/resend": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Per-event donation report (FR-804/1405)
+     * @description Donation total kept separate from ticket revenue. Organizer must own the event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        get?: never;
-        put?: never;
-        /**
-         * Resend a paid participant's e-ticket
-         * @description Queues the e-ticket email to the participant's currently stored address. This does not create a payment or change registration data.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    participantId: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Donation / ticket-revenue split. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["DonationReport"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Email accepted into the delivery queue. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: {
-                                /** @enum {string} */
-                                status?: "queued";
-                                /** @enum {string} */
-                                email_type?: "ticket";
-                            };
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Participant is no longer paid and cannot receive an e-ticket. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/participants/{participantId}/emails/registration": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Send a pending-registration email
-         * @description Explicitly queues the registration confirmation for an unpaid participant. Does not create payment or change status.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    participantId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Email accepted into delivery queue. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Participant is not awaiting payment. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/donations/ledger": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/participants/{participantId}/payments/charge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Donation ledger entries for an organizer's own event
+     * @description Append-only ledger of every donation credit for the event. Organizer must own the event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        get?: never;
-        put?: never;
-        /** Create a payment for an organizer-owned participant */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    participantId: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Donation ledger entries. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["DonationLedgerEntry"][];
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        payment_method: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Provider payment instructions created. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Registration already paid */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/participants/payments/charge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create one payment for multiple organizer-owned participants
-         * @description Creates one provider transaction for the billable subset of 1–100 selected pending or expired registrations. Expired registrations are reactivated atomically only when ticket/category quota remains and ticket sales are open. Unclaimed free-list invitations are claimed at charge time; zero-donation participants settle directly and are counted in settled_count, while invitations with donations are charged for the donation with ticket price and platform fee waived. No email is sent automatically.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        registration_ids: string[];
-                        payment_method: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description One provider payment instruction for all selected registrations. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                400: components["responses"]["BadRequest"];
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description A registration is not eligible */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/registrations/{id}/refund": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/participants/reactivate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Refund a registration (admin, FR-901..907)
+     * @description amount = total − fee_midtrans − donation (FR-902); donation never
+     *     returned (FR-909). Rejected past the refund cutoff (FR-903) or when the
+     *     organizer wallet can't cover it (FR-906). Card/e-wallet/QRIS settle
+     *     automatically; VA is manual and requires a bank account (FR-904/905).
+     *     Returns the quota if the event has not finished (FR-907).
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["RefundRequest"];
         };
-        get?: never;
-        put?: never;
-        /**
-         * Reactivate expired registrations for an organizer
-         * @description Reactivates 1–100 expired registrations without creating payment or sending email. Ticket sales must be open and ticket/category quota available; successful registrations receive a renewed one-hour reservation.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+      };
+      responses: {
+        /** @description Refund created. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Refund"];
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        registration_ids: string[];
-                    };
-                };
-            };
-            responses: {
-                /** @description Registrations reactivated; no payment was created. */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                400: components["responses"]["BadRequest"];
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Registration is not expired */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid input or missing bank account for manual refund. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        404: components["responses"]["NotFound"];
+        /** @description Not refundable, already refunded, cutoff passed, or insufficient balance. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/events/{id}/participants/{participantId}/payments/manual": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Record an external payment as settled
-         * @description Atomically records the payment, marks the registration paid, issues an e-ticket, credits ledgers, and writes an audit record. Does not send email.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    participantId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        method: string;
-                        /** Format: date-time */
-                        paid_at: string;
-                        reference: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description External payment recorded. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                400: components["responses"]["BadRequest"];
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-                /** @description Registration cannot be marked paid in its current state. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/refunds/{id}/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/participants/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /** Mark a manual (VA) refund completed (FR-905) */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        /**
-         * Export participants as CSV (FR-1201/1202)
-         * @description Streams a UTF-8 CSV with all FR-1202 columns, including decrypted PII and non-sensitive refund details (refund state, amount, processing state, and processed date). Organizer must own the event.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Refund marked completed. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["Refund"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description CSV file. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/csv": string;
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/rpc/export": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Export Racepack Collection recap and participant data as CSV
-         * @description Streams a UTF-8 CSV compatible with Excel. It contains a paid-participant Racepack Collection recap per category followed by every paid participant's RPC status, collection time, PII, and configured registration-field answers. Refunded participants are excluded.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Racepack Collection recap CSV file. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/csv": string;
-                    };
-                };
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/events/{id}/refund-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/complimentary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Mass-refund a cancelled event (admin, FR-908)
+     * @description Refunds every paid registration of a cancelled event; donation still channeled (FR-909). Each registration is its own transaction.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        /** List complimentary participants */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Complimentary participants, including whether each invitation has already been registered. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data: components["schemas"]["ComplimentaryPerson"][];
-                        };
-                    };
-                };
-            };
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["RefundRequest"];
         };
-        put?: never;
-        /** Add a complimentary participant */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+      };
+      responses: {
+        /** @description Bulk refund summary. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["MassRefundResult"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Complimentary participant added. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Event is not cancelled. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/events/{id}/complimentary/{personId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove a complimentary participant */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Complimentary participant removed. */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description The complimentary participant has already registered and cannot be removed. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/platform": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/registrations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List registrations for an organizer-owned event */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
+    /**
+     * Platform wallet revenue (admin only)
+     * @description Total platform fees collected minus total withdrawn. Requires admin JWT.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Platform wallet state. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PlatformRevenue"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Paginated registrations. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+      };
     };
-    "/events/{id}/registrations/bulk": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create multiple unpaid registrations without payment or email
-         * @description Creates up to 100 registrations for an organizer-owned published event. Each row reserves quota and validates configured registration fields. Complimentary invitations do not auto-settle in this flow. Invalid rows are reported individually; successful rows remain created.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        participants: components["schemas"]["CreateRegistrationRequest"][];
-                    };
-                };
-            };
-            responses: {
-                /** @description Per-row result; invalid rows do not roll back successful rows. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                400: components["responses"]["BadRequest"];
-                401: components["responses"]["Unauthorized"];
-                403: components["responses"]["Forbidden"];
-                404: components["responses"]["NotFound"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/admin/platform/withdraw": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{eventId}/registrations/{id}/refund": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Withdraw from the platform wallet (admin only)
+     * @description Cash-out from the platform fee wallet. Requires admin JWT.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: {
+          /**
+           * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
+           *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
+           *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
+           */
+          "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
         };
-        get?: never;
-        put?: never;
-        /** Refund a registration for an organizer-owned event */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Refund created. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["WithdrawRequest"];
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
+      responses: {
+        /** @description Platform wallet state after withdrawal. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PlatformRevenue"];
+            };
+          };
+        };
+        /** @description Invalid amount. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        /** @description Insufficient platform balance. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/organizer/refunds/{id}/complete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Complete an organizer-managed manual refund */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Refund completed. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/bibs/generate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/refund-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Generate BIB numbers in a batch (FR-1301..1305)
+     * @description Assigns BIB numbers in the selected layout, ordered by registration time within each group. The default `all` layout is one continuous, zero-padded series. Grouped layouts produce readable codes such as `01-M-0001`; `01` is the event category's order and M/F/O is gender. Only allowed after registration closes (FR-1301). If BIBs already exist, pass regenerate=true to overwrite; otherwise a 409 is returned so the UI can confirm. Organizer must own the event.
+     */
+    post: {
+      parameters: {
+        query?: {
+          /** @description Overwrite existing BIB numbers. */
+          regenerate?: boolean;
         };
-        get?: never;
-        put?: never;
-        /** Refund all registrations for a cancelled organizer-owned event */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Mass refund result. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+        header?: never;
+        path: {
+          id: string;
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        cookie?: never;
+      };
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["GenerateBibRequest"];
+        };
+      };
+      responses: {
+        /** @description BIB numbers generated. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["BibResult"];
+            };
+          };
+        };
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Registration still open, or BIBs already generated (confirm regeneration). */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
     };
-    "/donations/charge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Donate to an event without registering */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["StandaloneDonationChargeRequest"];
-                };
-            };
-            responses: {
-                /** @description Donation payment created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["StandaloneDonationEnvelope"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/checkin/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/donations/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /**
+     * Manual RPC participant lookup (FR-605)
+     * @description Primary RPC method - search paid participants by name, BIB, or registration number. An organizer JWT or the event-scoped `X-RPC-Access-Code` volunteer credential is required. An empty query matches all paid participants. Unclaimed participants for the selected stage appear first. Omit limit for the legacy unbounded result.
+     */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Name */
+          q?: string;
+          /** @description Stage used to put unclaimed participants first. */
+          stage?: "rpc" | "raceday";
+          /** @description Page size; omit for the legacy unbounded result. */
+          limit?: number;
+          /** @description Zero-based offset; requires limit. */
+          offset?: number;
         };
-        /**
-         * Get standalone donation payment status
-         * @description Poll this public endpoint after payment; the server/webhook is authoritative for status.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Current donation payment state */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["StandaloneDonationEnvelope"];
-                    };
-                };
-                400: components["responses"]["BadRequest"];
-                404: components["responses"]["NotFound"];
-            };
+        header?: never;
+        path: {
+          id: string;
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Matching participants. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["CheckinParticipant"][];
+              /**
+               * Format: int64
+               * @description Number of paid participants matching q.
+               */
+              total?: number;
+              /**
+               * Format: int64
+               * @description All paid participants in the event.
+               */
+              paid_total?: number;
+              /**
+               * Format: int64
+               * @description Paid participants with RPC claimed.
+               */
+              rpc_collected?: number;
+              /**
+               * Format: int64
+               * @description Paid participants checked in on race day.
+               */
+              raceday_checked_in?: number;
+            };
+          };
+        };
+        400: components["responses"]["BadRequest"];
+        403: components["responses"]["Forbidden"];
+      };
     };
-    "/rpc-access/session": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Resolve a volunteer RPC code to its event
-         * @description No organizer session is created. The code is supplied in `X-RPC-Access-Code` and the response only identifies the event that code may operate.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Volunteer event session. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            data?: components["schemas"]["RPCAccessSession"];
-                        };
-                    };
-                };
-                401: components["responses"]["Unauthorized"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/checkin/scan": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/rpc-access/rotate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Preview a participant from a scanned QR token (FR-604)
+     * @description Resolves the paid participant without changing RPC or race-day status. The operator must explicitly claim through the check-in endpoint after reviewing participant details.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        get?: never;
-        put?: never;
-        /** Create or rotate a revocable volunteer RPC access code */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Access code created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["ScanRequest"];
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+      };
+      responses: {
+        /** @description Participant details without a status mutation. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["CheckinParticipant"];
+            };
+          };
+        };
+        /** @description Invalid stage. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/rpc-access": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get the active volunteer RPC code for an event
-         * @description Organizer-only. The code is stored encrypted at rest and is returned only to the event owner.
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Current volunteer RPC access state */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        /** Revoke volunteer RPC access */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Revoked */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/checkin": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/email-campaigns": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Mark a stage for a manually-selected participant (FR-602/603/605)
+     * @description Stages are recorded independently (FR-603) - marking race-day does not clear RPC.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        /** List event email campaigns */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Campaigns */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["CheckinRequest"];
         };
-        put?: never;
-        /** Schedule a participant email campaign */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
+      };
+      responses: {
+        /** @description Participant after marking the stage. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["CheckinParticipant"];
             };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["EmailCampaignRequest"];
-                };
-            };
-            responses: {
-                /** @description Campaign scheduled */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        /** @description Invalid stage. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/email-campaigns/{campaignId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Cancel an unsent campaign */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    campaignId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Cancelled */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/dashboard": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/events/{id}/refunds/{refundId}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    /** Organizer event dashboard summary, including Racepack Collection recap (FR-1101) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
         };
-        get?: never;
-        put?: never;
-        /** Approve a personal refund request */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    refundId: string;
-                };
-                cookie?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Event summary. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["EventDashboard"];
             };
-            requestBody?: never;
-            responses: {
-                /** @description Approved */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
+          };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
     };
-    "/events/{id}/refunds/{refundId}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reject a personal refund request */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    refundId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Rejected */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/recap": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** Participant counts per category (FR-1103/1203) */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Running events return category × gender × age-class counts. Non-running events return every configured category × ticket-class pair, including zero totals, with gender and age_class empty. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["RecapRow"][];
+            };
+          };
+        };
+        403: components["responses"]["Forbidden"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Paginated participant table (FR-1202) */
+    get: {
+      parameters: {
+        query?: {
+          /** @description Case-insensitive substring search across participant name, registration number, BIB, category, and ticket category. */
+          q?: string;
+          /** @description Filter by one or more comma-separated registration statuses. Omitted = paid participants only (default). For example, `pending_payment,expired` returns unpaid and expired registrations. Unknown values return 400. */
+          status?: string;
+          limit?: number;
+          offset?: number;
+        };
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Participant rows (without PII). */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["ParticipantRow"][];
+            };
+          };
+        };
+        400: components["responses"]["BadRequest"];
+        403: components["responses"]["Forbidden"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/{participantId}/data": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+        participantId: string;
+      };
+      cookie?: never;
+    };
+    /**
+     * Get one paid or pending participant's editable data
+     * @description Returns participant PII and registration answers only to the authenticated organizer that owns the event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          participantId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Editable participant profile and configured registration fields. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["ParticipantEditableData"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Participant is no longer pending payment or paid and cannot be edited. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /**
+     * Correct one paid or pending participant's profile data
+     * @description Updates identity, contact, demographic, and configured registration-answer fields only. Payment, ticket, category, BIB, refund, donation, and check-in data are not editable. The update and encrypted audit diff are committed atomically.
+     */
+    patch: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          participantId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            name: string;
+            /** Format: email */
+            email: string;
+            phone: string;
+            /** Format: date */
+            birth_date: string;
+            gender: string;
+            extra_data: {
+              [key: string]: string;
+            };
+          };
+        };
+      };
+      responses: {
+        /** @description Updated participant data. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["ParticipantUpdateResult"];
+            };
+          };
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Participant is no longer paid and cannot be edited. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    trace?: never;
+  };
+  "/events/{id}/participants/{participantId}/emails/resend": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Resend a paid participant's e-ticket
+     * @description Queues the e-ticket email to the participant's currently stored address. This does not create a payment or change registration data.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          participantId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Email accepted into the delivery queue. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: {
+                /** @enum {string} */
+                status?: "queued";
+                /** @enum {string} */
+                email_type?: "ticket";
+              };
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Participant is no longer paid and cannot receive an e-ticket. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/{participantId}/emails/registration": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Send a pending-registration email
+     * @description Explicitly queues the registration confirmation for an unpaid participant. Does not create payment or change status.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          participantId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Email accepted into delivery queue. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Participant is not awaiting payment. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/{participantId}/payments/charge": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create a payment for an organizer-owned participant */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          participantId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            payment_method: string;
+          };
+        };
+      };
+      responses: {
+        /** @description Provider payment instructions created. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Registration already paid */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/payments/charge": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create one payment for multiple organizer-owned participants
+     * @description Creates one provider transaction for the billable subset of 1–100 selected pending or expired registrations. Expired registrations are reactivated atomically only when ticket/category quota remains and ticket sales are open. Unclaimed free-list invitations are claimed at charge time; zero-donation participants settle directly and are counted in settled_count, while invitations with donations are charged for the donation with ticket price and platform fee waived. No email is sent automatically.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            registration_ids: string[];
+            payment_method: string;
+          };
+        };
+      };
+      responses: {
+        /** @description One provider payment instruction for all selected registrations. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description A registration is not eligible */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/reactivate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Reactivate expired registrations for an organizer
+     * @description Reactivates 1–100 expired registrations without creating payment or sending email. Ticket sales must be open and ticket/category quota available; successful registrations receive a renewed one-hour reservation.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            registration_ids: string[];
+          };
+        };
+      };
+      responses: {
+        /** @description Registrations reactivated; no payment was created. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Registration is not expired */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/{participantId}/payments/manual": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Record an external payment as settled
+     * @description Atomically records the payment, marks the registration paid, issues an e-ticket, credits ledgers, and writes an audit record. Does not send email.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          participantId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            method: string;
+            /** Format: date-time */
+            paid_at: string;
+            reference: string;
+          };
+        };
+      };
+      responses: {
+        /** @description External payment recorded. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Registration cannot be marked paid in its current state. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/participants/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Export participants as CSV (FR-1201/1202)
+     * @description Streams a UTF-8 CSV with all FR-1202 columns, including decrypted PII and non-sensitive refund details (refund state, amount, processing state, and processed date). Organizer must own the event.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description CSV file. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "text/csv": string;
+          };
+        };
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/rpc/export": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Export Racepack Collection recap and participant data as CSV
+     * @description Streams a UTF-8 CSV compatible with Excel. It contains a paid-participant Racepack Collection recap per category followed by every paid participant's RPC status, collection time, PII, and configured registration-field answers. Refunded participants are excluded.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Racepack Collection recap CSV file. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "text/csv": string;
+          };
+        };
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/complimentary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List complimentary participants */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Complimentary participants, including whether each invitation has already been registered. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data: components["schemas"]["ComplimentaryPerson"][];
+            };
+          };
+        };
+      };
+    };
+    put?: never;
+    /** Add a complimentary participant */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Complimentary participant added. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/complimentary/{personId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Remove a complimentary participant */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Complimentary participant removed. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The complimentary participant has already registered and cannot be removed. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/registrations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List registrations for an organizer-owned event */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Paginated registrations. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/registrations/bulk": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Create multiple unpaid registrations without payment or email
+     * @description Creates up to 100 registrations for an organizer-owned published event. Each row reserves quota and validates configured registration fields. Complimentary invitations do not auto-settle in this flow. Invalid rows are reported individually; successful rows remain created.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": {
+            participants: components["schemas"]["CreateRegistrationRequest"][];
+          };
+        };
+      };
+      responses: {
+        /** @description Per-row result; invalid rows do not roll back successful rows. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{eventId}/registrations/{id}/refund": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Refund a registration for an organizer-owned event */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Refund created. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/organizer/refunds/{id}/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Complete an organizer-managed manual refund */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Refund completed. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/refund-all": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Refund all registrations for a cancelled organizer-owned event */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Mass refund result. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/donations/charge": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Donate to an event without registering */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["StandaloneDonationChargeRequest"];
+        };
+      };
+      responses: {
+        /** @description Donation payment created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StandaloneDonationEnvelope"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/donations/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get standalone donation payment status
+     * @description Poll this public endpoint after payment; the server/webhook is authoritative for status.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Current donation payment state */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StandaloneDonationEnvelope"];
+          };
+        };
+        400: components["responses"]["BadRequest"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/rpc-access/session": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Resolve a volunteer RPC code to its event
+     * @description No organizer session is created. The code is supplied in `X-RPC-Access-Code` and the response only identifies the event that code may operate.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Volunteer event session. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["RPCAccessSession"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/rpc-access/rotate": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create or rotate a revocable volunteer RPC access code */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Access code created */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/rpc-access": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get the active volunteer RPC code for an event
+     * @description Organizer-only. The code is stored encrypted at rest and is returned only to the event owner.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Current volunteer RPC access state */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    post?: never;
+    /** Revoke volunteer RPC access */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Revoked */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/email-campaigns": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List event email campaigns */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Campaigns */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    put?: never;
+    /** Schedule a participant email campaign */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["EmailCampaignRequest"];
+        };
+      };
+      responses: {
+        /** @description Campaign scheduled */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/email-campaigns/{campaignId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Cancel an unsent campaign */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          campaignId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Cancelled */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/refunds/{refundId}/approve": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Approve a personal refund request */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          refundId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Approved */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/refunds/{refundId}/reject": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Reject a personal refund request */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          refundId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Rejected */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        ComplimentaryPerson: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            event_id: string;
-            name: string;
-            /** Format: email */
-            email: string;
-            phone: string;
-            note: string;
-            /** Format: date-time */
-            created_at: string;
-            /** @description True after this complimentary invitation has been used for a registration. */
-            registered: boolean;
-        };
-        HealthResponse: {
-            /** @example ok */
-            status: string;
-        };
-        ErrorResponse: {
-            /** @example service unavailable */
-            error: string;
-        };
-        OrganizerProfile: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: email */
-            email?: string;
-            name?: string;
-            phone?: string;
-        };
-        RegisterRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
-            name: string;
-            phone?: string;
-        };
-        LoginRequest: {
-            /** Format: email */
-            email: string;
-            password: string;
-            /**
-             * @description When true, token expires in 30 days instead of 24 hours.
-             * @default false
-             */
-            keep_signed_in: boolean;
-        };
-        OrganizerLoginRequest: components["schemas"]["LoginRequest"];
-        LoginResponse: {
-            /**
-             * Format: date-time
-             * @description Opaque session expiration time; the credential is set only as an HttpOnly cookie.
-             */
-            expires_at?: string;
-        };
-        UpdateProfileRequest: {
-            name: string;
-            phone?: string;
-        };
-        Event: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            organizer_id?: string;
-            name?: string;
-            /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
-            description?: string;
-            location?: string;
-            /** Format: date-time */
-            event_date?: string;
-            /** @enum {string} */
-            status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
-            is_running_event?: boolean;
-            /**
-             * @deprecated
-             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
-             * @default 40
-             */
-            master_age_threshold: number;
-            /** Format: date-time */
-            refund_cutoff_date?: string;
-            /**
-             * Format: date-time
-             * @description After this time, BIB generation is allowed (FR-1301). Falls back to event_date when unset.
-             */
-            registration_close_date?: string | null;
-            donation_enabled?: boolean;
-            /**
-             * Format: int64
-             * @description Flat platform fee for this event in whole rupiah. Locked after publication.
-             * @default 5000
-             */
-            platform_fee: number;
-            /** @description Same-origin backend media URL for a private MinIO object. Legacy absolute R2 URLs remain valid until migrated. Null when no banner is uploaded. */
-            banner_url?: string | null;
-            /**
-             * @description Card header color ("#rrggbb") used when banner_url is null. Defaults to "#F5471D".
-             * @default #F5471D
-             */
-            color: string;
-            total_quota?: number;
-            total_quota_used?: number;
-            /** @description Organizer has requested admin review (FR-301). */
-            submitted_for_review?: boolean;
-            /** @description Admin's reason when the event was rejected (FR-302). */
-            rejection_reason?: string;
-            /** Format: date-time */
-            reviewed_at?: string | null;
-            /** Format: date-time */
-            created_at?: string;
-            /** Format: date-time */
-            updated_at?: string;
-        };
-        EventDescriptionImage: {
-            /** @description Immutable same-origin URL under /api/v1/media/events/ for use in sanitized event-description HTML. */
-            url: string;
-        };
-        EventDetail: {
-            event?: components["schemas"]["Event"];
-            categories?: components["schemas"]["Category"][];
-            ticket_categories?: components["schemas"]["TicketCategory"][];
-        };
-        /** @description Marketplace-facing event projection (no internal review fields). */
-        PublicEvent: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
-            description?: string;
-            location?: string;
-            /** Format: date-time */
-            event_date?: string | null;
-            /** @enum {string} */
-            status?: "coming_soon" | "published";
-            is_running_event?: boolean;
-            /**
-             * @deprecated
-             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
-             */
-            master_age_threshold?: number;
-            /** Format: date-time */
-            refund_cutoff_date?: string | null;
-            /** Format: date-time */
-            registration_close_date?: string | null;
-            donation_enabled?: boolean;
-            /** @description Banner image URL (R2); null when not uploaded. */
-            banner_url?: string | null;
-            /**
-             * @description Card header color #rrggbb when banner_url is null. Defaults to #F5471D.
-             * @default #F5471D
-             */
-            color: string;
-            total_quota?: number;
-            total_quota_used?: number;
-            quota_remaining?: number;
-        };
-        PublicCategory: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            quota?: number;
-            quota_remaining?: number;
-        };
-        PublicTicket: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            category_id?: string;
-            name?: string;
-            /**
-             * Format: int64
-             * @description Rupiah (int64), display only
-             */
-            price?: number;
-            quota?: number;
-            quota_remaining?: number;
-            /** Format: date-time */
-            sale_start?: string | null;
-            /** Format: date-time */
-            sale_end?: string | null;
-        };
-        /** @description Public detail with accurate remaining quota (FR-1003). */
-        PublicEventDetail: {
-            event?: components["schemas"]["PublicEvent"];
-            categories?: components["schemas"]["PublicCategory"][];
-            ticket_categories?: components["schemas"]["PublicTicket"][];
-            registration_fields?: components["schemas"]["RegistrationField"][];
-        };
-        RegistrationField: {
-            /**
-             * Format: uuid
-             * @description Immutable key for submitted extra_data.
-             */
-            id: string;
-            /** Format: uuid */
-            event_id: string;
-            /** @description Unique lowercase organizer slug within the event. */
-            name: string;
-            label: string;
-            /** @enum {string} */
-            field_type: "text" | "textarea" | "number" | "email" | "phone" | "select" | "radio" | "checkbox" | "date";
-            /** @description Comma-delimited choices; required only for select and radio. */
-            options: string;
-            placeholder: string;
-            required: boolean;
-            sort_order: number;
-        };
-        UpsertRegistrationFieldRequest: {
-            /**
-             * Format: uuid
-             * @description Omit to create; provide only an ID belonging to this event to update.
-             */
-            id?: string;
-            name: string;
-            label: string;
-            /** @enum {string} */
-            field_type: "text" | "textarea" | "number" | "email" | "phone" | "select" | "radio" | "checkbox" | "date";
-            /** @description Comma-delimited choices for select or radio. */
-            options?: string;
-            placeholder?: string;
-            required?: boolean;
-            sort_order?: number;
-        };
-        RejectEventRequest: {
-            /** @description Reason shown to the organizer (FR-302). */
-            reason: string;
-        };
-        CreateRegistrationRequest: {
-            /** @description Optional per-row idempotency key for safe organizer bulk retries. */
-            idempotency_key?: string;
-            /** Format: uuid */
-            event_id: string;
-            /** Format: uuid */
-            ticket_category_id: string;
-            /** Format: uuid */
-            category_id: string;
-            name: string;
-            /** Format: email */
-            email: string;
-            phone: string;
-            /**
-             * Format: date
-             * @description YYYY-MM-DD (required, FR-402)
-             */
-            birth_date: string;
-            gender: string;
-            /**
-             * Format: int64
-             * @description Optional, no minimum (FR-406). Rupiah int64.
-             */
-            donation?: number;
-            /** @description Optional custom answers keyed by immutable RegistrationField UUID. Values are encrypted at rest. */
-            extra_data?: {
-                [key: string]: string;
-            };
-        };
-        /** @description Admin-safe registration projection without PII decryption. */
-        RegistrationSummary: {
-            /** Format: uuid */
-            id?: string;
-            registration_number?: string;
-            name?: string;
-            gender?: string;
-            /** @enum {string} */
-            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            /** Format: int64 */
-            donation?: number;
-            /** @enum {string} */
-            status?: "pending_payment" | "paid" | "cancelled" | "expired" | "refunded";
-            bib_number?: string;
-            rpc_status?: string;
-            raceday_status?: string;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        /** @description Public projection of a currently paid participant. Category includes the compact age class in parentheses when set, for example `5K(Master+)`. Includes the submitted asal_kabupaten answer when configured. */
-        PublicPaidParticipant: {
-            name: string;
-            category: string;
-            custom_answers: {
-                label: string;
-                value: string;
-            }[];
-        };
-        /** @description Registration projection. PII echoed/decrypted; never the encrypted blobs. */
-        Registration: {
-            /** Format: uuid */
-            id?: string;
-            /** @description Public code, distinct from BIB (FR-407) */
-            registration_number?: string;
-            /** Format: uuid */
-            event_id?: string;
-            /** Format: uuid */
-            ticket_category_id?: string;
-            /** Format: uuid */
-            category_id?: string;
-            name?: string;
-            email?: string;
-            phone?: string;
-            birth_date?: string;
-            gender?: string;
-            /**
-             * @description Running events: a standalone 5K token in the selected distance category gives Fun Run; other categories use the participant age classes (FR-404).
-             * @enum {string}
-             */
-            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            /** Format: int64 */
-            donation?: number;
-            /** @enum {string} */
-            status?: "pending_payment" | "paid" | "cancelled" | "expired" | "refunded";
-            /** @description Custom answers keyed by immutable RegistrationField UUID. */
-            extra_data?: {
-                [key: string]: string;
-            };
-            /** @description Latest pending payment and saved provider instructions; present so a payment page can resume after refresh. */
-            pending_payment?: components["schemas"]["PaymentChargeResponse"];
-            /**
-             * Format: date-time
-             * @description Settlement time of the latest payment, present after a paid registration.
-             */
-            payment_paid_at?: string;
-            /**
-             * Format: date-time
-             * @description Provider payment deadline of the latest payment, including an expired transaction.
-             */
-            payment_expires_at?: string;
-            /**
-             * Format: date-time
-             * @description Checkout reservation deadline. Pending registrations release their quota after this time.
-             */
-            reservation_expires_at?: string;
-        };
-        PaymentQuoteRequest: {
-            /** Format: uuid */
-            registration_id: string;
-            /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
-            payment_method: string;
-        };
-        /** @description Fee breakdown (display only). All rupiah int64. The standalone quote is an estimate; the same structure inside a charge response contains provider-confirmed final amounts. iPaymu buyer-paid gateway fees are included in sub_total. */
-        PaymentQuoteResponse: {
-            /** Format: uuid */
-            registration_id?: string;
-            /**
-             * Format: int64
-             * @description Harga tiket
-             */
-            price?: number;
-            /**
-             * Format: int64
-             * @description Donation is excluded from the gateway fee basis.
-             */
-            donation?: number;
-            /**
-             * Format: int64
-             * @description Fee Platform (FR-503/508)
-             */
-            fee_platform?: number;
-            /**
-             * Format: int64
-             * @description Gateway fee (legacy field name retained for API compatibility).
-             */
-            fee_midtrans?: number;
-            /** @description Always true for iPaymu buyer-fee checkout. */
-            fee_midtrans_charged_to_buyer?: boolean;
-            /**
-             * Format: int64
-             * @description Final amount charged to the buyer, including gateway fee.
-             */
-            sub_total?: number;
-            payment_method?: string;
-            payment_method_label?: string;
-        };
-        PaymentChargeRequest: {
-            /** Format: uuid */
-            registration_id: string;
-            /** @description Live iPaymu channel id. */
-            payment_method: string;
-        };
-        /** @description Payment instructions with the provider-confirmed final fee and total in quote. An organizer charge can instead settle a free-list participant directly; settled_count reports such participants, without creating a payment. */
-        PaymentChargeResponse: {
-            /** Format: uuid */
-            registration_id?: string;
-            /** @description LowkeyThings iPaymu reference id */
-            transaction_id?: string;
-            /** @enum {string} */
-            status?: "pending" | "settlement" | "expired" | "cancelled" | "denied";
-            /** @description Organizer charge count of free-list participants settled without a provider payment. */
-            settled_count?: number;
-            /**
-             * Format: date-time
-             * @description Provider payment deadline in RFC3339; omitted when the method has no deadline.
-             */
-            expires_at?: string;
-            /** @description Present for bank_transfer VA methods (BCA/BNI/BRI/Permata) */
-            va_number?: string;
-            /** @description Mandiri echannel: kode biller */
-            biller_code?: string;
-            /** @description Mandiri echannel: nomor tagihan */
-            bill_key?: string;
-            /** @description Present for QRIS/GoPay: generate-qr-code PNG image URL */
-            qr_string?: string;
-            /** @description GoPay only: gojek:// deeplink to open GoPay app on mobile */
-            deeplink_url?: string;
-            /** @description iPaymu hosted payment or instruction URL. */
-            payment_url?: string;
-            quote?: components["schemas"]["PaymentQuoteResponse"];
-        };
-        PaymentMethodOption: {
-            id?: string;
-            label?: string;
-        };
-        /** @description Raw iPaymu callback. The X-Signature header is verified before mutation (NFR-205). */
-        IPaymuNotification: {
-            reference_id?: string;
-            status_code?: string;
-            status?: string;
-        };
-        NotificationResult: {
-            transaction_id?: string;
-            status?: string;
-            /** @description true when the delivery was a deduped duplicate (NFR-302) */
-            already_processed?: boolean;
-        };
-        /** @description Invoice section of an e-ticket (FR-502 order). All rupiah int64, from stored payment. */
-        InvoiceBreakdown: {
-            method?: string;
-            payment_method_label?: string;
-            /** Format: int64 */
-            price?: number;
-            /** Format: int64 */
-            donation?: number;
-            /** Format: int64 */
-            fee_platform?: number;
-            /** Format: int64 */
-            fee_midtrans?: number;
-            /** Format: int64 */
-            sub_total?: number;
-            status?: string;
-        };
-        /** @description Server-owned e-ticket + invoice for display (FR-705). */
-        ETicket: {
-            registration_number?: string;
-            participant_name?: string;
-            /** Format: uuid */
-            event_id?: string;
-            event_name?: string;
-            category_name?: string;
-            gender?: string;
-            /**
-             * Format: date
-             * @description Participant date of birth (YYYY-MM-DD).
-             */
-            birth_date?: string;
-            /** @enum {string} */
-            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            /** @description Opaque token encoded into the QR for check-in (FR-604) */
-            qr_token?: string;
-            /** Format: date-time */
-            issued_at?: string;
-            registration_status?: string;
-            invoice?: components["schemas"]["InvoiceBreakdown"];
-        };
-        WithdrawRequest: {
-            /**
-             * Format: int64
-             * @description Rupiah int64; must be > 0 and <= balance
-             */
-            amount: number;
-            /** @description Optional destination bank account for manual record-keeping; no bank transfer is initiated. */
-            bank_account?: string;
-        };
-        WalletBalance: {
-            /** Format: int64 */
-            balance?: number;
-            /** Format: int64 */
-            total_collected?: number;
-            /** Format: int64 */
-            total_withdrawn?: number;
-        };
-        LedgerEntry: {
-            /** Format: uuid */
-            id?: string;
-            /**
-             * Format: int64
-             * @description Positive = credit, negative = refund/withdraw
-             */
-            amount?: number;
-            /** @enum {string} */
-            type?: "credit" | "refund" | "withdraw";
-            reference_id?: string;
-            description?: string;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        WalletHistoryEntry: {
-            /** Format: uuid */
-            id?: string;
-            /** @enum {string} */
-            wallet?: "organizer" | "donation" | "platform";
-            /**
-             * Format: int64
-             * @description Positive = credit, negative = refund or manual withdrawal
-             */
-            amount?: number;
-            /** @enum {string} */
-            type?: "credit" | "refund" | "withdraw";
-            reference_id?: string;
-            description?: string;
-            /** @description Masked destination account, if recorded. */
-            bank_account?: string;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        /** @description Operational participant data, returned only by the authorized detail endpoint. */
-        WalletTransactionCustomer: {
-            name?: string;
-            /** Format: email */
-            email?: string;
-            phone?: string;
-            registration_number?: string;
-            event_name?: string;
-            category_name?: string;
-            ticket_name?: string;
-            registration_status?: string;
-        };
-        /** @description Persisted server-owned payment breakdown. All money values are int64 rupiah. */
-        WalletTransactionPayment: {
-            transaction_id?: string;
-            method?: string;
-            /** Format: int64 */
-            price?: number;
-            /** Format: int64 */
-            donation?: number;
-            /** Format: int64 */
-            fee_platform?: number;
-            /** Format: int64 */
-            fee_midtrans?: number;
-            /** Format: int64 */
-            sub_total?: number;
-            /** Format: date-time */
-            paid_at?: string;
-        };
-        WalletTransactionDetail: components["schemas"]["WalletHistoryEntry"] & {
-            customer?: components["schemas"]["WalletTransactionCustomer"];
-            /** @description All participants included in a grouped payment transaction. */
-            customers?: components["schemas"]["WalletTransactionCustomer"][];
-            payment?: components["schemas"]["WalletTransactionPayment"];
-        };
-        /** @description Per-event split; donation reported separately from ticket revenue (FR-804/1405). */
-        DonationReport: {
-            /** Format: uuid */
-            event_id?: string;
-            /** Format: int64 */
-            ticket_revenue?: number;
-            /** Format: int64 */
-            donation_total?: number;
-        };
-        /** @description Organizer's donation wallet state (credits minus withdrawals). */
-        DonationWalletBalance: {
-            /** Format: int64 */
-            balance?: number;
-            /** Format: int64 */
-            total_collected?: number;
-            /** Format: int64 */
-            total_withdrawn?: number;
-        };
-        /** @description Platform wallet state (fee collected vs balance remaining). */
-        PlatformRevenue: {
-            /** Format: int64 */
-            balance?: number;
-            /** Format: int64 */
-            total_collected?: number;
-            /** Format: int64 */
-            total_withdrawn?: number;
-        };
-        /** @description Single donation credit in the append-only donation ledger. */
-        DonationLedgerEntry: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            event_id?: string;
-            /** Format: int64 */
-            amount?: number;
-            reference_id?: string;
-            description?: string;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        RefundRequest: {
-            reason?: string;
-            /** @description Required for manual (VA) refunds (FR-905) */
-            bank_account?: string;
-        };
-        Refund: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            registration_id?: string;
-            /** @description Human-readable registration number; included in event refund lists */
-            registration_number?: string;
-            /** @description Participant name for event refund lists */
-            participant_name?: string;
-            /** @description Decrypted participant email for the event organizer */
-            participant_email?: string;
-            /** @description Decrypted participant phone for the event organizer */
-            participant_phone?: string;
-            /** @description Decrypted participant birth date for the event organizer */
-            participant_birth_date?: string;
-            bib_number?: string;
-            gender?: string;
-            /** @enum {string} */
-            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            category_name?: string;
-            ticket_name?: string;
-            /**
-             * Format: date-time
-             * @description Refund record creation time
-             */
-            created_at?: string;
-            /**
-             * Format: int64
-             * @description Ticket price from the original payment
-             */
-            ticket_price?: number;
-            /**
-             * Format: int64
-             * @description Platform fee from the original payment
-             */
-            fee_platform?: number;
-            /**
-             * Format: int64
-             * @description Total paid in the original payment
-             */
-            payment_sub_total?: number;
-            /**
-             * Format: int64
-             * @description total − fee_midtrans − donation (FR-902)
-             */
-            amount?: number;
-            /** Format: int64 */
-            fee_midtrans?: number;
-            /**
-             * Format: int64
-             * @description Recorded but never returned (FR-909)
-             */
-            donation?: number;
-            method?: string;
-            /** @enum {string} */
-            mode?: "auto" | "manual";
-            bank_account?: string;
-            /** @enum {string} */
-            status?: "processing" | "completed" | "rejected";
-            reason?: string;
-            /** @description Always true — donation is still channeled (FR-909/1406) */
-            donation_still_given?: boolean;
-        };
-        RefundSummary: {
-            /** Format: int64 */
-            total_count?: number;
-            /** Format: int64 */
-            completed_count?: number;
-            /** Format: int64 */
-            processing_count?: number;
-            /** Format: int64 */
-            requested_count?: number;
-            /** Format: int64 */
-            rejected_count?: number;
-            /**
-             * Format: int64
-             * @description Sum of completed and processing refund amounts
-             */
-            total_amount?: number;
-            /** Format: int64 */
-            completed_amount?: number;
-            /** Format: int64 */
-            processing_amount?: number;
-        };
-        MassRefundResult: {
-            /** Format: uuid */
-            event_id?: string;
-            refunded?: number;
-            failed?: number;
-            results?: components["schemas"]["Refund"][];
-            errors?: string[];
-        };
-        CreateEventRequest: {
-            name: string;
-            /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
-            description?: string;
-            location?: string;
-            /** Format: date-time */
-            event_date?: string;
-            is_running_event?: boolean;
-            /**
-             * @deprecated
-             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
-             * @default 40
-             */
-            master_age_threshold: number;
-            /** Format: date-time */
-            refund_cutoff_date?: string;
-            /**
-             * Format: date-time
-             * @description After this time, BIB generation is allowed (FR-1301). Falls back to event_date when unset.
-             */
-            registration_close_date?: string | null;
-            donation_enabled?: boolean;
-            /**
-             * Format: int64
-             * @description Flat platform fee for this event in whole rupiah. Locked after publication.
-             * @default 5000
-             */
-            platform_fee: number;
-            /**
-             * @description Card header color ("#rrggbb") shown when no banner is uploaded. Omitted/empty = "#F5471D".
-             * @default #F5471D
-             */
-            color: string;
-            total_quota?: number;
-        };
-        UpdateEventRequest: {
-            name: string;
-            /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
-            description?: string;
-            location?: string;
-            /** Format: date-time */
-            event_date?: string;
-            is_running_event?: boolean;
-            /**
-             * @deprecated
-             * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
-             * @default 40
-             */
-            master_age_threshold: number;
-            /** Format: date-time */
-            refund_cutoff_date?: string;
-            /**
-             * Format: date-time
-             * @description After this time, BIB generation is allowed (FR-1301). Falls back to event_date when unset.
-             */
-            registration_close_date?: string | null;
-            donation_enabled?: boolean;
-            /**
-             * Format: int64
-             * @description Flat platform fee for this event in whole rupiah. Locked after publication.
-             * @default 5000
-             */
-            platform_fee: number;
-            /**
-             * @description Card header color ("#rrggbb") shown when no banner is uploaded. Omitted/empty = "#F5471D".
-             * @default #F5471D
-             */
-            color: string;
-            total_quota?: number;
-        };
-        Category: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            event_id?: string;
-            name?: string;
-            quota?: number;
-            quota_used?: number;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        CreateCategoryRequest: {
-            name: string;
-            quota: number;
-        };
-        UpdateCategoryRequest: {
-            name: string;
-            quota: number;
-        };
-        TicketCategory: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            event_id?: string;
-            /** Format: uuid */
-            category_id?: string;
-            name?: string;
-            /**
-             * Format: int64
-             * @description Price in whole Rupiah. Never use float.
-             */
-            price?: number;
-            quota?: number;
-            quota_used?: number;
-            /** Format: date-time */
-            sale_start?: string;
-            /** Format: date-time */
-            sale_end?: string;
-            /**
-             * @description Whether this ticket category is visible and selectable on public pages.
-             * @default true
-             */
-            is_visible: boolean;
-            /** Format: date-time */
-            created_at?: string;
-        };
-        CreateTicketRequest: {
-            name: string;
-            /**
-             * Format: int64
-             * @description Price in whole Rupiah.
-             */
-            price: number;
-            quota: number;
-            /** Format: uuid */
-            category_id: string;
-            /** Format: date-time */
-            sale_start?: string;
-            /** Format: date-time */
-            sale_end?: string;
-            /** @description Whether this ticket category starts publicly visible. Omit to default to true. */
-            is_visible?: boolean;
-        };
-        UpdateTicketRequest: {
-            name: string;
-            /**
-             * Format: int64
-             * @description Price in whole Rupiah.
-             */
-            price: number;
-            quota: number;
-            /** Format: uuid */
-            category_id: string;
-            /** Format: date-time */
-            sale_start?: string;
-            /** Format: date-time */
-            sale_end?: string;
-            /** @description Hide or show this ticket category on public pages. Omit to preserve the current value. */
-            is_visible?: boolean;
-        };
-        BibResult: {
-            /**
-             * Format: int64
-             * @description Number of BIB numbers assigned.
-             */
-            generated: number;
-            /**
-             * @description Layout used for this BIB generation batch.
-             * @enum {string}
-             */
-            strategy: "all" | "category" | "gender" | "category_gender";
-        };
-        GenerateBibRequest: {
-            /**
-             * @description `all` = 0001; `category` = 01-0001; `gender` = M-0001; `category_gender` = 01-M-0001. O represents any gender value other than male/female.
-             * @default all
-             * @enum {string}
-             */
-            strategy: "all" | "category" | "gender" | "category_gender";
-        };
-        /** @description Field-facing participant projection including the purchased ticket category, event category, and labeled custom registration answers needed to verify the racepack. */
-        CheckinParticipant: {
-            /** Format: uuid */
-            id?: string;
-            registration_number?: string;
-            bib_number?: string;
-            name?: string;
-            gender?: string;
-            /** @enum {string} */
-            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            /** Format: uuid */
-            category_id?: string;
-            /** @description Event category name selected at registration. */
-            category_name?: string;
-            /** @description Purchased ticket category name. */
-            ticket_name?: string;
-            /** @description Empty or 'collected' (FR-603). */
-            rpc_status?: string;
-            /** @description Empty or 'checked_in' (FR-603). */
-            raceday_status?: string;
-            custom_answers?: {
-                label: string;
-                value: string;
-            }[];
-        };
-        RPCAccessSession: {
-            /** Format: uuid */
-            event_id: string;
-            event_name: string;
-        };
-        ScanRequest: {
-            qr_token: string;
-            /** @enum {string} */
-            stage: "rpc" | "raceday";
-        };
-        CheckinRequest: {
-            /** Format: uuid */
-            registration_id: string;
-            /** @enum {string} */
-            stage: "rpc" | "raceday";
-        };
-        StandaloneDonationChargeRequest: {
-            /** Format: uuid */
-            event_id: string;
-            /** Format: int64 */
-            amount: number;
-            donor_name?: string;
-            /** Format: email */
-            donor_email?: string;
-            /** @enum {string} */
-            payment_method: "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
-        };
-        StandaloneDonation: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            event_id?: string;
-            donor_name?: string;
-            donor_email?: string;
-            /** Format: int64 */
-            amount?: number;
-            method?: string;
-            transaction_id?: string;
-            /** @enum {string} */
-            status?: "pending" | "paid" | "expired" | "cancelled";
-            /** Format: date-time */
-            expires_at?: string;
-            va_number?: string;
-            biller_code?: string;
-            bill_key?: string;
-            qr_string?: string;
-            deeplink_url?: string;
-        };
-        StandaloneDonationEnvelope: {
-            data?: components["schemas"]["StandaloneDonation"];
-        };
-        EmailCampaignRequest: {
-            subject: string;
-            content: string;
-            /** @enum {string} */
-            audience: "paid" | "pending_payment";
-            /** Format: date-time */
-            send_at: string;
-        };
-        /** @description Organizer dashboard summary (FR-1101). All amounts in Rupiah. */
-        EventDashboard: {
-            /** Format: uuid */
-            event_id?: string;
-            event_name?: string;
-            status?: string;
-            /** Format: int64 */
-            paid_count?: number;
-            ticket_revenue?: components["schemas"]["Rupiah"];
-            donation_total?: components["schemas"]["Rupiah"];
-            wallet_balance?: components["schemas"]["Rupiah"];
-            /**
-             * Format: int64
-             * @description Paid participants whose racepack has been collected.
-             */
-            rpc_collected?: number;
-            /**
-             * Format: int64
-             * @description Paid participants whose racepack has not been collected.
-             */
-            rpc_pending?: number;
-        };
-        /** @description One running-event category × gender × age-class count, or one non-running category × ticket-class count. */
-        RecapRow: {
-            /** Format: uuid */
-            category_id?: string;
-            category_name?: string;
-            gender?: string;
-            /** @enum {string} */
-            age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            /** @description Ticket class name for non-running events; empty for running events. */
-            ticket_name?: string;
-            /** Format: int64 */
-            total?: number;
-        };
-        /** @description Participant table row (FR-1202), without PII. */
-        ParticipantRow: {
-            /** Format: uuid */
-            id?: string;
-            registration_number?: string;
-            bib_number?: string;
-            name?: string;
-            gender?: string;
-            /** @enum {string} */
-            age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
-            status?: string;
-            rpc_status?: string;
-            raceday_status?: string;
-            category_name?: string;
-            ticket_name?: string;
-            /** @description Private ticket access token. Returned only to the authenticated organizer who owns the event. */
-            qr_token?: string;
-        };
-        ParticipantEditableField: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            label?: string;
-            field_type?: string;
-            /** @description Comma-separated select/radio options. */
-            options?: string;
-            placeholder?: string;
-            required?: boolean;
-            value?: string;
-        };
-        ParticipantEditableData: {
-            /** Format: uuid */
-            id?: string;
-            registration_number?: string;
-            name?: string;
-            email?: string;
-            phone?: string;
-            /** Format: date */
-            birth_date?: string;
-            gender?: string;
-            age_class?: string;
-            extra_data?: {
-                [key: string]: string;
-            };
-            fields?: components["schemas"]["ParticipantEditableField"][];
-        };
-        ParticipantUpdateResult: components["schemas"]["ParticipantEditableData"] & {
-            changed?: boolean;
-        };
-        /**
-         * Format: int64
-         * @description Monetary amount in whole Indonesian Rupiah. Never use float.
-         */
-        Rupiah: number;
+  schemas: {
+    ComplimentaryPerson: {
+      /** Format: uuid */
+      id: string;
+      /** Format: uuid */
+      event_id: string;
+      name: string;
+      /** Format: email */
+      email: string;
+      phone: string;
+      note: string;
+      /** Format: date-time */
+      created_at: string;
+      /** @description True after this complimentary invitation has been used for a registration. */
+      registered: boolean;
     };
-    responses: {
-        /** @description Invalid request. */
-        BadRequest: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Missing or invalid authentication. */
-        Unauthorized: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Resource not found. */
-        NotFound: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
-        /** @description Insufficient permissions. */
-        Forbidden: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["ErrorResponse"];
-            };
-        };
+    HealthResponse: {
+      /** @example ok */
+      status: string;
     };
-    parameters: {
-        /**
-         * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
-         *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
-         *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
-         */
-        IdempotencyKey: string;
+    ErrorResponse: {
+      /** @example service unavailable */
+      error: string;
     };
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    OrganizerProfile: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: email */
+      email?: string;
+      name?: string;
+      phone?: string;
+    };
+    RegisterRequest: {
+      /** Format: email */
+      email: string;
+      password: string;
+      name: string;
+      phone?: string;
+    };
+    LoginRequest: {
+      /** Format: email */
+      email: string;
+      password: string;
+      /**
+       * @description When true, token expires in 30 days instead of 24 hours.
+       * @default false
+       */
+      keep_signed_in: boolean;
+    };
+    OrganizerLoginRequest: components["schemas"]["LoginRequest"];
+    LoginResponse: {
+      /**
+       * Format: date-time
+       * @description Opaque session expiration time; the credential is set only as an HttpOnly cookie.
+       */
+      expires_at?: string;
+    };
+    UpdateProfileRequest: {
+      name: string;
+      phone?: string;
+    };
+    Event: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      organizer_id?: string;
+      name?: string;
+      /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
+      description?: string;
+      location?: string;
+      /** Format: date-time */
+      event_date?: string;
+      /** @enum {string} */
+      status?: "draft" | "coming_soon" | "published" | "cancelled" | "finished";
+      is_running_event?: boolean;
+      /**
+       * @deprecated
+       * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+       * @default 40
+       */
+      master_age_threshold: number;
+      /** Format: date-time */
+      refund_cutoff_date?: string;
+      /**
+       * Format: date-time
+       * @description After this time, BIB generation is allowed (FR-1301). Falls back to event_date when unset.
+       */
+      registration_close_date?: string | null;
+      donation_enabled?: boolean;
+      /**
+       * Format: int64
+       * @description Flat platform fee for this event in whole rupiah. Locked after publication.
+       * @default 5000
+       */
+      platform_fee: number;
+      /** @description Same-origin backend media URL for a private MinIO object. Legacy absolute R2 URLs remain valid until migrated. Null when no banner is uploaded. */
+      banner_url?: string | null;
+      /**
+       * @description Card header color ("#rrggbb") used when banner_url is null. Defaults to "#F5471D".
+       * @default #F5471D
+       */
+      color: string;
+      total_quota?: number;
+      total_quota_used?: number;
+      /** @description Organizer has requested admin review (FR-301). */
+      submitted_for_review?: boolean;
+      /** @description Admin's reason when the event was rejected (FR-302). */
+      rejection_reason?: string;
+      /** Format: date-time */
+      reviewed_at?: string | null;
+      /** Format: date-time */
+      created_at?: string;
+      /** Format: date-time */
+      updated_at?: string;
+    };
+    EventDescriptionImage: {
+      /** @description Immutable same-origin URL under /api/v1/media/events/ for use in sanitized event-description HTML. */
+      url: string;
+    };
+    EventDetail: {
+      event?: components["schemas"]["Event"];
+      categories?: components["schemas"]["Category"][];
+      ticket_categories?: components["schemas"]["TicketCategory"][];
+    };
+    /** @description Marketplace-facing event projection (no internal review fields). */
+    PublicEvent: {
+      /** Format: uuid */
+      id?: string;
+      name?: string;
+      /** @description Organizer-authored HTML; consumers must sanitize before rendering. LowkeyThings-hosted img URLs use /api/v1/media/events/. */
+      description?: string;
+      location?: string;
+      /** Format: date-time */
+      event_date?: string | null;
+      /** @enum {string} */
+      status?: "coming_soon" | "published";
+      is_running_event?: boolean;
+      /**
+       * @deprecated
+       * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+       */
+      master_age_threshold?: number;
+      /** Format: date-time */
+      refund_cutoff_date?: string | null;
+      /** Format: date-time */
+      registration_close_date?: string | null;
+      donation_enabled?: boolean;
+      /** @description Banner image URL (R2); null when not uploaded. */
+      banner_url?: string | null;
+      /**
+       * @description Card header color #rrggbb when banner_url is null. Defaults to #F5471D.
+       * @default #F5471D
+       */
+      color: string;
+      total_quota?: number;
+      total_quota_used?: number;
+      quota_remaining?: number;
+    };
+    PublicCategory: {
+      /** Format: uuid */
+      id?: string;
+      name?: string;
+      quota?: number;
+      quota_remaining?: number;
+    };
+    PublicTicket: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      category_id?: string;
+      name?: string;
+      /**
+       * Format: int64
+       * @description Rupiah (int64), display only
+       */
+      price?: number;
+      quota?: number;
+      quota_remaining?: number;
+      /** Format: date-time */
+      sale_start?: string | null;
+      /** Format: date-time */
+      sale_end?: string | null;
+    };
+    /** @description Public detail with accurate remaining quota (FR-1003). */
+    PublicEventDetail: {
+      event?: components["schemas"]["PublicEvent"];
+      categories?: components["schemas"]["PublicCategory"][];
+      ticket_categories?: components["schemas"]["PublicTicket"][];
+      registration_fields?: components["schemas"]["RegistrationField"][];
+      addon_groups?: components["schemas"]["RegistrationAddonGroup"][];
+    };
+    RegistrationAddonOption: {
+      /** Format: uuid */
+      id: string;
+      name: string;
+      /**
+       * Format: int64
+       * @description Rupiah.
+       */
+      price: number;
+    };
+    RegistrationAddonGroup: {
+      /** Format: uuid */
+      id: string;
+      title: string;
+      options: components["schemas"]["RegistrationAddonOption"][];
+    };
+    EventAddonsResponse: {
+      data?: {
+        groups?: components["schemas"]["RegistrationAddonGroup"][];
+      };
+    };
+    ReplaceEventAddonsRequest: {
+      groups: {
+        title: string;
+        options: {
+          name: string;
+          /** Format: int64 */
+          price: number;
+        }[];
+      }[];
+    };
+    RegistrationField: {
+      /**
+       * Format: uuid
+       * @description Immutable key for submitted extra_data.
+       */
+      id: string;
+      /** Format: uuid */
+      event_id: string;
+      /** @description Unique lowercase organizer slug within the event. */
+      name: string;
+      label: string;
+      /** @enum {string} */
+      field_type: "text" | "textarea" | "number" | "email" | "phone" | "select" | "radio" | "checkbox" | "date";
+      /** @description Comma-delimited choices; required only for select and radio. */
+      options: string;
+      placeholder: string;
+      required: boolean;
+      sort_order: number;
+    };
+    UpsertRegistrationFieldRequest: {
+      /**
+       * Format: uuid
+       * @description Omit to create; provide only an ID belonging to this event to update.
+       */
+      id?: string;
+      name: string;
+      label: string;
+      /** @enum {string} */
+      field_type: "text" | "textarea" | "number" | "email" | "phone" | "select" | "radio" | "checkbox" | "date";
+      /** @description Comma-delimited choices for select or radio. */
+      options?: string;
+      placeholder?: string;
+      required?: boolean;
+      sort_order?: number;
+    };
+    RejectEventRequest: {
+      /** @description Reason shown to the organizer (FR-302). */
+      reason: string;
+    };
+    CreateRegistrationRequest: {
+      /** @description Optional per-row idempotency key for safe organizer bulk retries. */
+      idempotency_key?: string;
+      /** Format: uuid */
+      event_id: string;
+      /** Format: uuid */
+      ticket_category_id: string;
+      /** Format: uuid */
+      category_id: string;
+      name: string;
+      /** Format: email */
+      email: string;
+      phone: string;
+      /**
+       * Format: date
+       * @description YYYY-MM-DD (required, FR-402)
+       */
+      birth_date: string;
+      gender: string;
+      /**
+       * Format: int64
+       * @description Optional, no minimum (FR-406). Rupiah int64.
+       */
+      donation?: number;
+      /** @description Optional custom answers keyed by immutable RegistrationField UUID. Values are encrypted at rest. */
+      extra_data?: {
+        [key: string]: string;
+      };
+      /** @description Optional selection of at most one option from each event add-on group. */
+      addon_option_ids?: string[];
+    };
+    /** @description Admin-safe registration projection without PII decryption. */
+    RegistrationSummary: {
+      /** Format: uuid */
+      id?: string;
+      registration_number?: string;
+      name?: string;
+      gender?: string;
+      /** @enum {string} */
+      age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      /** Format: int64 */
+      donation?: number;
+      /** @enum {string} */
+      status?: "pending_payment" | "paid" | "cancelled" | "expired" | "refunded";
+      bib_number?: string;
+      rpc_status?: string;
+      raceday_status?: string;
+      /** Format: date-time */
+      created_at?: string;
+    };
+    /** @description Public projection of a currently paid participant. Category includes the compact age class in parentheses when set, for example `5K(Master+)`. Includes the submitted asal_kabupaten answer when configured. */
+    PublicPaidParticipant: {
+      name: string;
+      category: string;
+      custom_answers: {
+        label: string;
+        value: string;
+      }[];
+    };
+    /** @description Registration projection. PII echoed/decrypted; never the encrypted blobs. */
+    Registration: {
+      /** Format: uuid */
+      id?: string;
+      /** @description Public code, distinct from BIB (FR-407) */
+      registration_number?: string;
+      /** Format: uuid */
+      event_id?: string;
+      /** Format: uuid */
+      ticket_category_id?: string;
+      /** Format: uuid */
+      category_id?: string;
+      name?: string;
+      email?: string;
+      phone?: string;
+      birth_date?: string;
+      gender?: string;
+      /**
+       * @description Running events: a standalone 5K token in the selected distance category gives Fun Run; other categories use the participant age classes (FR-404).
+       * @enum {string}
+       */
+      age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      /** Format: int64 */
+      donation?: number;
+      /** @enum {string} */
+      status?: "pending_payment" | "paid" | "cancelled" | "expired" | "refunded";
+      /** @description Custom answers keyed by immutable RegistrationField UUID. */
+      extra_data?: {
+        [key: string]: string;
+      };
+      /** @description Latest pending payment and saved provider instructions; present so a payment page can resume after refresh. */
+      pending_payment?: components["schemas"]["PaymentChargeResponse"];
+      /**
+       * Format: date-time
+       * @description Settlement time of the latest payment, present after a paid registration.
+       */
+      payment_paid_at?: string;
+      /**
+       * Format: date-time
+       * @description Provider payment deadline of the latest payment, including an expired transaction.
+       */
+      payment_expires_at?: string;
+      /**
+       * Format: date-time
+       * @description Checkout reservation deadline. Pending registrations release their quota after this time.
+       */
+      reservation_expires_at?: string;
+      /** @description Selected add-on names and prices snapshotted at registration. */
+      addons?: (components["schemas"]["RegistrationAddonOption"] & {
+        title?: string;
+      })[];
+      /**
+       * Format: int64
+       * @description Total selected add-on price in rupiah.
+       */
+      addon_total?: number;
+      /**
+       * Format: int64
+       * @description Ticket price snapshotted at registration.
+       */
+      ticket_price?: number;
+    };
+    PaymentQuoteRequest: {
+      /** Format: uuid */
+      registration_id: string;
+      /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
+      payment_method: string;
+    };
+    /** @description Fee breakdown (display only). All rupiah int64. The standalone quote is an estimate; the same structure inside a charge response contains provider-confirmed final amounts. iPaymu buyer-paid gateway fees are included in sub_total. */
+    PaymentQuoteResponse: {
+      /** Format: uuid */
+      registration_id?: string;
+      /**
+       * Format: int64
+       * @description Harga tiket plus selected add-ons
+       */
+      price?: number;
+      /**
+       * Format: int64
+       * @description Ticket base price excluding selected add-ons; waived for complimentary registrations.
+       */
+      ticket_price?: number;
+      /**
+       * Format: int64
+       * @description Total selected add-on price.
+       */
+      addon_total?: number;
+      /** @description Selected add-ons from the registration snapshot. */
+      addons?: (components["schemas"]["RegistrationAddonOption"] & {
+        title?: string;
+      })[];
+      /**
+       * Format: int64
+       * @description Donation is excluded from the gateway fee basis.
+       */
+      donation?: number;
+      /**
+       * Format: int64
+       * @description Fee Platform (FR-503/508)
+       */
+      fee_platform?: number;
+      /**
+       * Format: int64
+       * @description Gateway fee (legacy field name retained for API compatibility).
+       */
+      fee_midtrans?: number;
+      /** @description Always true for iPaymu buyer-fee checkout. */
+      fee_midtrans_charged_to_buyer?: boolean;
+      /**
+       * Format: int64
+       * @description Final amount charged to the buyer, including gateway fee.
+       */
+      sub_total?: number;
+      payment_method?: string;
+      payment_method_label?: string;
+    };
+    PaymentChargeRequest: {
+      /** Format: uuid */
+      registration_id: string;
+      /** @description Live iPaymu channel id. */
+      payment_method: string;
+    };
+    /** @description Payment instructions with the provider-confirmed final fee and total in quote. An organizer charge can instead settle a free-list participant directly; settled_count reports such participants, without creating a payment. */
+    PaymentChargeResponse: {
+      /** Format: uuid */
+      registration_id?: string;
+      /** @description LowkeyThings iPaymu reference id */
+      transaction_id?: string;
+      /** @enum {string} */
+      status?: "pending" | "settlement" | "expired" | "cancelled" | "denied";
+      /** @description Organizer charge count of free-list participants settled without a provider payment. */
+      settled_count?: number;
+      /**
+       * Format: date-time
+       * @description Provider payment deadline in RFC3339; omitted when the method has no deadline.
+       */
+      expires_at?: string;
+      /** @description Present for bank_transfer VA methods (BCA/BNI/BRI/Permata) */
+      va_number?: string;
+      /** @description Mandiri echannel: kode biller */
+      biller_code?: string;
+      /** @description Mandiri echannel: nomor tagihan */
+      bill_key?: string;
+      /** @description Present for QRIS/GoPay: generate-qr-code PNG image URL */
+      qr_string?: string;
+      /** @description GoPay only: gojek:// deeplink to open GoPay app on mobile */
+      deeplink_url?: string;
+      /** @description iPaymu hosted payment or instruction URL. */
+      payment_url?: string;
+      quote?: components["schemas"]["PaymentQuoteResponse"];
+    };
+    PaymentMethodOption: {
+      id?: string;
+      label?: string;
+    };
+    /** @description Raw iPaymu callback. The X-Signature header is verified before mutation (NFR-205). */
+    IPaymuNotification: {
+      reference_id?: string;
+      status_code?: string;
+      status?: string;
+    };
+    NotificationResult: {
+      transaction_id?: string;
+      status?: string;
+      /** @description true when the delivery was a deduped duplicate (NFR-302) */
+      already_processed?: boolean;
+    };
+    /** @description Invoice section of an e-ticket (FR-502 order). All rupiah int64, from stored payment. */
+    InvoiceBreakdown: {
+      method?: string;
+      payment_method_label?: string;
+      /**
+       * Format: int64
+       * @description Ticket price plus selected add-ons as stored on the payment.
+       */
+      price?: number;
+      /**
+       * Format: int64
+       * @description Ticket base price excluding separately listed add-ons; zero for complimentary tickets.
+       */
+      ticket_price?: number;
+      addons?: (components["schemas"]["RegistrationAddonOption"] & {
+        title?: string;
+      })[];
+      /** Format: int64 */
+      donation?: number;
+      /** Format: int64 */
+      fee_platform?: number;
+      /** Format: int64 */
+      fee_midtrans?: number;
+      /** Format: int64 */
+      sub_total?: number;
+      status?: string;
+    };
+    /** @description Server-owned e-ticket + invoice for display (FR-705). */
+    ETicket: {
+      registration_number?: string;
+      participant_name?: string;
+      /** Format: uuid */
+      event_id?: string;
+      event_name?: string;
+      category_name?: string;
+      gender?: string;
+      /**
+       * Format: date
+       * @description Participant date of birth (YYYY-MM-DD).
+       */
+      birth_date?: string;
+      /** @enum {string} */
+      age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      /** @description Opaque token encoded into the QR for check-in (FR-604) */
+      qr_token?: string;
+      /** Format: date-time */
+      issued_at?: string;
+      registration_status?: string;
+      invoice?: components["schemas"]["InvoiceBreakdown"];
+    };
+    WithdrawRequest: {
+      /**
+       * Format: int64
+       * @description Rupiah int64; must be > 0 and <= balance
+       */
+      amount: number;
+      /** @description Optional destination bank account for manual record-keeping; no bank transfer is initiated. */
+      bank_account?: string;
+    };
+    WalletBalance: {
+      /** Format: int64 */
+      balance?: number;
+      /** Format: int64 */
+      total_collected?: number;
+      /** Format: int64 */
+      total_withdrawn?: number;
+    };
+    LedgerEntry: {
+      /** Format: uuid */
+      id?: string;
+      /**
+       * Format: int64
+       * @description Positive = credit, negative = refund/withdraw
+       */
+      amount?: number;
+      /** @enum {string} */
+      type?: "credit" | "refund" | "withdraw";
+      reference_id?: string;
+      description?: string;
+      /** Format: date-time */
+      created_at?: string;
+    };
+    WalletHistoryEntry: {
+      /** Format: uuid */
+      id?: string;
+      /** @enum {string} */
+      wallet?: "organizer" | "donation" | "platform";
+      /**
+       * Format: int64
+       * @description Positive = credit, negative = refund or manual withdrawal
+       */
+      amount?: number;
+      /** @enum {string} */
+      type?: "credit" | "refund" | "withdraw";
+      reference_id?: string;
+      description?: string;
+      /** @description Masked destination account, if recorded. */
+      bank_account?: string;
+      /** Format: date-time */
+      created_at?: string;
+    };
+    /** @description Operational participant data, returned only by the authorized detail endpoint. */
+    WalletTransactionCustomer: {
+      name?: string;
+      /** Format: email */
+      email?: string;
+      phone?: string;
+      registration_number?: string;
+      event_name?: string;
+      category_name?: string;
+      ticket_name?: string;
+      registration_status?: string;
+    };
+    /** @description Persisted server-owned payment breakdown. All money values are int64 rupiah. */
+    WalletTransactionPayment: {
+      transaction_id?: string;
+      method?: string;
+      /** Format: int64 */
+      price?: number;
+      /** Format: int64 */
+      donation?: number;
+      /** Format: int64 */
+      fee_platform?: number;
+      /** Format: int64 */
+      fee_midtrans?: number;
+      /** Format: int64 */
+      sub_total?: number;
+      /** Format: date-time */
+      paid_at?: string;
+    };
+    WalletTransactionDetail: components["schemas"]["WalletHistoryEntry"] & {
+      customer?: components["schemas"]["WalletTransactionCustomer"];
+      /** @description All participants included in a grouped payment transaction. */
+      customers?: components["schemas"]["WalletTransactionCustomer"][];
+      payment?: components["schemas"]["WalletTransactionPayment"];
+    };
+    /** @description Per-event split; donation reported separately from ticket revenue (FR-804/1405). */
+    DonationReport: {
+      /** Format: uuid */
+      event_id?: string;
+      /** Format: int64 */
+      ticket_revenue?: number;
+      /** Format: int64 */
+      donation_total?: number;
+    };
+    /** @description Organizer's donation wallet state (credits minus withdrawals). */
+    DonationWalletBalance: {
+      /** Format: int64 */
+      balance?: number;
+      /** Format: int64 */
+      total_collected?: number;
+      /** Format: int64 */
+      total_withdrawn?: number;
+    };
+    /** @description Platform wallet state (fee collected vs balance remaining). */
+    PlatformRevenue: {
+      /** Format: int64 */
+      balance?: number;
+      /** Format: int64 */
+      total_collected?: number;
+      /** Format: int64 */
+      total_withdrawn?: number;
+    };
+    /** @description Single donation credit in the append-only donation ledger. */
+    DonationLedgerEntry: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      event_id?: string;
+      /** Format: int64 */
+      amount?: number;
+      reference_id?: string;
+      description?: string;
+      /** Format: date-time */
+      created_at?: string;
+    };
+    RefundRequest: {
+      reason?: string;
+      /** @description Required for manual (VA) refunds (FR-905) */
+      bank_account?: string;
+    };
+    Refund: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      registration_id?: string;
+      /** @description Human-readable registration number; included in event refund lists */
+      registration_number?: string;
+      /** @description Participant name for event refund lists */
+      participant_name?: string;
+      /** @description Decrypted participant email for the event organizer */
+      participant_email?: string;
+      /** @description Decrypted participant phone for the event organizer */
+      participant_phone?: string;
+      /** @description Decrypted participant birth date for the event organizer */
+      participant_birth_date?: string;
+      bib_number?: string;
+      gender?: string;
+      /** @enum {string} */
+      age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      category_name?: string;
+      ticket_name?: string;
+      /**
+       * Format: date-time
+       * @description Refund record creation time
+       */
+      created_at?: string;
+      /**
+       * Format: int64
+       * @description Ticket price from the original payment
+       */
+      ticket_price?: number;
+      /**
+       * Format: int64
+       * @description Ticket base price excluding separately listed add-ons
+       */
+      ticket_base_price?: number;
+      addons?: (components["schemas"]["RegistrationAddonOption"] & {
+        title?: string;
+      })[];
+      /**
+       * Format: int64
+       * @description Platform fee from the original payment
+       */
+      fee_platform?: number;
+      /**
+       * Format: int64
+       * @description Total paid in the original payment
+       */
+      payment_sub_total?: number;
+      /**
+       * Format: int64
+       * @description total − fee_midtrans − donation (FR-902)
+       */
+      amount?: number;
+      /** Format: int64 */
+      fee_midtrans?: number;
+      /**
+       * Format: int64
+       * @description Recorded but never returned (FR-909)
+       */
+      donation?: number;
+      method?: string;
+      /** @enum {string} */
+      mode?: "auto" | "manual";
+      bank_account?: string;
+      /** @enum {string} */
+      status?: "processing" | "completed" | "rejected";
+      reason?: string;
+      /** @description Always true - donation is still channeled (FR-909/1406) */
+      donation_still_given?: boolean;
+    };
+    RefundSummary: {
+      /** Format: int64 */
+      total_count?: number;
+      /** Format: int64 */
+      completed_count?: number;
+      /** Format: int64 */
+      processing_count?: number;
+      /** Format: int64 */
+      requested_count?: number;
+      /** Format: int64 */
+      rejected_count?: number;
+      /**
+       * Format: int64
+       * @description Sum of completed and processing refund amounts
+       */
+      total_amount?: number;
+      /** Format: int64 */
+      completed_amount?: number;
+      /** Format: int64 */
+      processing_amount?: number;
+    };
+    MassRefundResult: {
+      /** Format: uuid */
+      event_id?: string;
+      refunded?: number;
+      failed?: number;
+      results?: components["schemas"]["Refund"][];
+      errors?: string[];
+    };
+    CreateEventRequest: {
+      name: string;
+      /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
+      description?: string;
+      location?: string;
+      /** Format: date-time */
+      event_date?: string;
+      is_running_event?: boolean;
+      /**
+       * @deprecated
+       * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+       * @default 40
+       */
+      master_age_threshold: number;
+      /** Format: date-time */
+      refund_cutoff_date?: string;
+      /**
+       * Format: date-time
+       * @description After this time, BIB generation is allowed (FR-1301). Falls back to event_date when unset.
+       */
+      registration_close_date?: string | null;
+      donation_enabled?: boolean;
+      /**
+       * Format: int64
+       * @description Flat platform fee for this event in whole rupiah. Locked after publication.
+       * @default 5000
+       */
+      platform_fee: number;
+      /**
+       * @description Card header color ("#rrggbb") shown when no banner is uploaded. Omitted/empty = "#F5471D".
+       * @default #F5471D
+       */
+      color: string;
+      total_quota?: number;
+    };
+    UpdateEventRequest: {
+      name: string;
+      /** @description Organizer-authored HTML; may contain img elements whose src is a LowkeyThings event-media proxy URL. */
+      description?: string;
+      location?: string;
+      /** Format: date-time */
+      event_date?: string;
+      is_running_event?: boolean;
+      /**
+       * @deprecated
+       * @description Retained for compatibility; running-event age classes use fixed boundaries at 40 and 50.
+       * @default 40
+       */
+      master_age_threshold: number;
+      /** Format: date-time */
+      refund_cutoff_date?: string;
+      /**
+       * Format: date-time
+       * @description After this time, BIB generation is allowed (FR-1301). Falls back to event_date when unset.
+       */
+      registration_close_date?: string | null;
+      donation_enabled?: boolean;
+      /**
+       * Format: int64
+       * @description Flat platform fee for this event in whole rupiah. Locked after publication.
+       * @default 5000
+       */
+      platform_fee: number;
+      /**
+       * @description Card header color ("#rrggbb") shown when no banner is uploaded. Omitted/empty = "#F5471D".
+       * @default #F5471D
+       */
+      color: string;
+      total_quota?: number;
+    };
+    Category: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      event_id?: string;
+      name?: string;
+      quota?: number;
+      quota_used?: number;
+      /** Format: date-time */
+      created_at?: string;
+    };
+    CreateCategoryRequest: {
+      name: string;
+      quota: number;
+    };
+    UpdateCategoryRequest: {
+      name: string;
+      quota: number;
+    };
+    TicketCategory: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      event_id?: string;
+      /** Format: uuid */
+      category_id?: string;
+      name?: string;
+      /**
+       * Format: int64
+       * @description Price in whole Rupiah. Never use float.
+       */
+      price?: number;
+      quota?: number;
+      quota_used?: number;
+      /** Format: date-time */
+      sale_start?: string;
+      /** Format: date-time */
+      sale_end?: string;
+      /**
+       * @description Whether this ticket category is visible and selectable on public pages.
+       * @default true
+       */
+      is_visible: boolean;
+      /** Format: date-time */
+      created_at?: string;
+    };
+    CreateTicketRequest: {
+      name: string;
+      /**
+       * Format: int64
+       * @description Price in whole Rupiah.
+       */
+      price: number;
+      quota: number;
+      /** Format: uuid */
+      category_id: string;
+      /** Format: date-time */
+      sale_start?: string;
+      /** Format: date-time */
+      sale_end?: string;
+      /** @description Whether this ticket category starts publicly visible. Omit to default to true. */
+      is_visible?: boolean;
+    };
+    UpdateTicketRequest: {
+      name: string;
+      /**
+       * Format: int64
+       * @description Price in whole Rupiah.
+       */
+      price: number;
+      quota: number;
+      /** Format: uuid */
+      category_id: string;
+      /** Format: date-time */
+      sale_start?: string;
+      /** Format: date-time */
+      sale_end?: string;
+      /** @description Hide or show this ticket category on public pages. Omit to preserve the current value. */
+      is_visible?: boolean;
+    };
+    BibResult: {
+      /**
+       * Format: int64
+       * @description Number of BIB numbers assigned.
+       */
+      generated: number;
+      /**
+       * @description Layout used for this BIB generation batch.
+       * @enum {string}
+       */
+      strategy: "all" | "category" | "gender" | "category_gender";
+    };
+    GenerateBibRequest: {
+      /**
+       * @description `all` = 0001; `category` = 01-0001; `gender` = M-0001; `category_gender` = 01-M-0001. O represents any gender value other than male/female.
+       * @default all
+       * @enum {string}
+       */
+      strategy: "all" | "category" | "gender" | "category_gender";
+    };
+    /** @description Field-facing participant projection including the purchased ticket category, event category, and labeled custom registration answers needed to verify the racepack. */
+    CheckinParticipant: {
+      /** Format: uuid */
+      id?: string;
+      registration_number?: string;
+      bib_number?: string;
+      name?: string;
+      gender?: string;
+      /** @enum {string} */
+      age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      /** Format: uuid */
+      category_id?: string;
+      /** @description Event category name selected at registration. */
+      category_name?: string;
+      /** @description Purchased ticket category name. */
+      ticket_name?: string;
+      /** @description Empty or 'collected' (FR-603). */
+      rpc_status?: string;
+      /** @description Empty or 'checked_in' (FR-603). */
+      raceday_status?: string;
+      custom_answers?: {
+        label: string;
+        value: string;
+      }[];
+    };
+    RPCAccessSession: {
+      /** Format: uuid */
+      event_id: string;
+      event_name: string;
+    };
+    ScanRequest: {
+      qr_token: string;
+      /** @enum {string} */
+      stage: "rpc" | "raceday";
+    };
+    CheckinRequest: {
+      /** Format: uuid */
+      registration_id: string;
+      /** @enum {string} */
+      stage: "rpc" | "raceday";
+    };
+    StandaloneDonationChargeRequest: {
+      /** Format: uuid */
+      event_id: string;
+      /** Format: int64 */
+      amount: number;
+      donor_name?: string;
+      /** Format: email */
+      donor_email?: string;
+      /** @enum {string} */
+      payment_method: "va_bca" | "va_bni" | "va_bri" | "va_mandiri" | "va_permata" | "gopay" | "card" | "qris";
+    };
+    StandaloneDonation: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      event_id?: string;
+      donor_name?: string;
+      donor_email?: string;
+      /** Format: int64 */
+      amount?: number;
+      method?: string;
+      transaction_id?: string;
+      /** @enum {string} */
+      status?: "pending" | "paid" | "expired" | "cancelled";
+      /** Format: date-time */
+      expires_at?: string;
+      va_number?: string;
+      biller_code?: string;
+      bill_key?: string;
+      qr_string?: string;
+      deeplink_url?: string;
+    };
+    StandaloneDonationEnvelope: {
+      data?: components["schemas"]["StandaloneDonation"];
+    };
+    EmailCampaignRequest: {
+      subject: string;
+      content: string;
+      /** @enum {string} */
+      audience: "paid" | "pending_payment";
+      /** Format: date-time */
+      send_at: string;
+    };
+    /** @description Organizer dashboard summary (FR-1101). All amounts in Rupiah. */
+    EventDashboard: {
+      /** Format: uuid */
+      event_id?: string;
+      event_name?: string;
+      status?: string;
+      /** Format: int64 */
+      paid_count?: number;
+      ticket_revenue?: components["schemas"]["Rupiah"];
+      donation_total?: components["schemas"]["Rupiah"];
+      wallet_balance?: components["schemas"]["Rupiah"];
+      /**
+       * Format: int64
+       * @description Paid participants whose racepack has been collected.
+       */
+      rpc_collected?: number;
+      /**
+       * Format: int64
+       * @description Paid participants whose racepack has not been collected.
+       */
+      rpc_pending?: number;
+    };
+    /** @description One running-event category × gender × age-class count, or one non-running category × ticket-class count. */
+    RecapRow: {
+      /** Format: uuid */
+      category_id?: string;
+      category_name?: string;
+      gender?: string;
+      /** @enum {string} */
+      age_class?: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      /** @description Ticket class name for non-running events; empty for running events. */
+      ticket_name?: string;
+      /** Format: int64 */
+      total?: number;
+    };
+    /** @description Participant table row (FR-1202), without PII. */
+    ParticipantRow: {
+      /** Format: uuid */
+      id?: string;
+      registration_number?: string;
+      bib_number?: string;
+      name?: string;
+      gender?: string;
+      /** @enum {string} */
+      age_class?: "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
+      status?: string;
+      rpc_status?: string;
+      raceday_status?: string;
+      category_name?: string;
+      ticket_name?: string;
+      /** @description Private ticket access token. Returned only to the authenticated organizer who owns the event. */
+      qr_token?: string;
+    };
+    ParticipantEditableField: {
+      /** Format: uuid */
+      id?: string;
+      name?: string;
+      label?: string;
+      field_type?: string;
+      /** @description Comma-separated select/radio options. */
+      options?: string;
+      placeholder?: string;
+      required?: boolean;
+      value?: string;
+    };
+    ParticipantEditableData: {
+      /** Format: uuid */
+      id?: string;
+      registration_number?: string;
+      name?: string;
+      email?: string;
+      phone?: string;
+      /** Format: date */
+      birth_date?: string;
+      gender?: string;
+      age_class?: string;
+      extra_data?: {
+        [key: string]: string;
+      };
+      fields?: components["schemas"]["ParticipantEditableField"][];
+    };
+    ParticipantUpdateResult: components["schemas"]["ParticipantEditableData"] & {
+      changed?: boolean;
+    };
+    /**
+     * Format: int64
+     * @description Monetary amount in whole Indonesian Rupiah. Never use float.
+     */
+    Rupiah: number;
+  };
+  responses: {
+    /** @description Invalid request. */
+    BadRequest: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Missing or invalid authentication. */
+    Unauthorized: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Resource not found. */
+    NotFound: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+    /** @description Insufficient permissions. */
+    Forbidden: {
+      headers: {
+        [name: string]: unknown;
+      };
+      content: {
+        "application/json": components["schemas"]["ErrorResponse"];
+      };
+    };
+  };
+  parameters: {
+    /**
+     * @description Kunci idempotensi opsional (mis. UUID yang dibuat klien). Retry dengan
+     *     kunci yang sama tidak membuat efek kedua: withdraw tidak mendebit lagi,
+     *     registrasi mengembalikan registrasi asli (nomor registrasi sama).
+     */
+    IdempotencyKey: string;
+  };
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

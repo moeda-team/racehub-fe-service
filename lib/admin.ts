@@ -1,5 +1,5 @@
 /**
- * Admin API client — separate token storage from organizer auth so the two
+ * Admin API client - separate token storage from organizer auth so the two
  * roles never clash. Mirrors lib/api but with the admin Bearer token.
  */
 import { ApiError } from "./api";
@@ -9,14 +9,13 @@ const BASE_URL = "";
 
 function csrfToken(): string | undefined {
   if (typeof document === "undefined") return undefined;
-  return document.cookie.split("; ").find((v) => v.startsWith("racehub_csrf="))?.split("=")[1];
+  return document.cookie
+    .split("; ")
+    .find((v) => v.startsWith("racehub_csrf="))
+    ?.split("=")[1];
 }
 
-async function adminRequest<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
+async function adminRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -48,8 +47,7 @@ async function adminRequest<T>(
 
 export const adminApi = {
   get: <T>(path: string) => adminRequest<T>("GET", path),
-  post: <T>(path: string, body?: unknown) =>
-    adminRequest<T>("POST", path, body),
+  post: <T>(path: string, body?: unknown) => adminRequest<T>("POST", path, body),
 };
 
 export { ApiError } from "./api";

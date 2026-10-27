@@ -1,10 +1,10 @@
-# Changelog — racehub-fe-service
+# Changelog - racehub-fe-service
 
 Semua perubahan signifikan dicatat di sini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/).
 
-## [v1.0.0] — 2026-07-05
+## [v1.0.0] - 2026-07-05
 
-Release awal. Platform event Indonesia — frontend web.
+Release awal. Platform event Indonesia - frontend web.
 
 ### Marketplace Publik
 
@@ -27,7 +27,7 @@ Release awal. Platform event Indonesia — frontend web.
 - Pilih metode bayar (VA / GoPay / QRIS / Card) → quote → rincian FR-502 apa adanya
 - Charge: tampil VA number / QR string + badge "Menunggu Pembayaran"
 - Polling status tiap 4 detik sampai `paid` → tombol ke e-tiket
-- **Tidak menghitung uang** — semua angka dari `POST /payments/quote`
+- **Tidak menghitung uang** - semua angka dari `POST /payments/quote`
 
 ### E-Tiket + QR
 
@@ -54,7 +54,7 @@ Release awal. Platform event Indonesia — frontend web.
 - Transisi status (draft → submit → published → cancelled)
 - Tab detail: Dashboard, Kategori, Tiket, Keuangan, Refund
 
-### Dashboard — Dashboard & Reporting
+### Dashboard - Dashboard & Reporting
 
 - Kartu ringkasan: paid count, ticket revenue, donation total
 - Tabel rekap kategori (DataTable)
@@ -62,7 +62,7 @@ Release awal. Platform event Indonesia — frontend web.
 - Tabel peserta + Export CSV (fetch blob + `<a download>`)
 - Laporan donasi per event (Pendapatan Tiket vs Total Donasi)
 
-### Dashboard — 3 Wallet
+### Dashboard - 3 Wallet
 
 - **Wallet Organizer**: saldo + form tarik + riwayat ledger (kredit hijau / refund·withdraw merah)
 - **Wallet Donasi**: balance / terkumpul / ditarik + form tarik
@@ -70,7 +70,7 @@ Release awal. Platform event Indonesia — frontend web.
 - Field "No. Rekening Tujuan" opsional di form tarik
 - Idempotency-Key otomatis di setiap request withdraw
 
-### Dashboard — Profil
+### Dashboard - Profil
 
 - Edit profil organizer
 
@@ -84,7 +84,7 @@ Release awal. Platform event Indonesia — frontend web.
 ### Admin (lib/admin.ts siap, halaman BELUM dibangun)
 
 - Client API admin (`adminApi`, token `racehub_admin_token`)
-- Halaman approval queue, refund management, platform wallet — **belum ada di disk**
+- Halaman approval queue, refund management, platform wallet - **belum ada di disk**
 
 ### Modul RPC / Check-in (Lapangan)
 
@@ -96,7 +96,7 @@ Release awal. Platform event Indonesia — frontend web.
 
 ### Platform Generalisasi
 
-- Bukan hanya event lari — label kondisional:
+- Bukan hanya event lari - label kondisional:
   - `is_running_event` = true → "Kategori Jarak"
   - `is_running_event` = false → "Kategori"
 - Branding: "Platform Event Indonesia", hero "Temukan Event"
