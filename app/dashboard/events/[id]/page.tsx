@@ -4867,7 +4867,6 @@ function CardPreview({
               <RegistrationPreviewField
                 label="Tanggal Lahir"
                 type="date"
-                hint="Wajib - kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
               />
               <div className="field">
                 <label className="field-label">Jenis Kelamin</label>

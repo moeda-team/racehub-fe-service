@@ -389,7 +389,6 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                 value={birthDate}
                 onChange={setBirthDate}
                 required
-                hint="Wajib - kategori jarak 5K masuk kelas Fun Run; kategori lain menentukan kelas Open, Master, atau Master+ otomatis"
               />
               <div className="field">
                 <label className="field-label">Jenis Kelamin</label>
