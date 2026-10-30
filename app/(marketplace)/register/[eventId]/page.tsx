@@ -441,15 +441,6 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                   {detail.addon_groups.map((group) => (
                     <fieldset key={group.id} className="field" style={{ border: 0, padding: 0, margin: 0 }}>
                       <legend className="field-label">{group.title}</legend>
-                      <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", fontSize: 14 }}>
-                        <input
-                          type="radio"
-                          name={`addon-${group.id}`}
-                          checked={!addonSelections[group.id]}
-                          onChange={() => setAddonSelections((current) => ({ ...current, [group.id]: "" }))}
-                        />
-                        Tidak memilih
-                      </label>
                       {group.options.map((option) => (
                         <label
                           key={option.id}
