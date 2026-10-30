@@ -48,7 +48,6 @@ interface EventFormProps {
   initial?: Partial<EventFormValues>;
   submitLabel: string;
   onSubmit: (values: EventFormValues) => Promise<void>;
-  platformFeeLocked?: boolean;
   // Emits current values on every change - used for the live card preview.
   onChange?: (values: EventFormValues) => void;
 }
@@ -902,7 +901,6 @@ export default function EventForm({
   initial,
   submitLabel,
   onSubmit,
-  platformFeeLocked = false,
   onChange,
 }: EventFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
@@ -1054,12 +1052,7 @@ export default function EventForm({
         value={platformFee}
         onChange={(e) => setPlatformFee(e.target.value)}
         error={errors.platform_fee}
-        disabled={platformFeeLocked}
-        hint={
-          platformFeeLocked
-            ? "Platform Fee terkunci setelah event dipublikasikan."
-            : "Default Rp5.000 per transaksi. Isi 0 untuk membebaskan Platform Fee."
-        }
+        hint="Default Rp5.000 per transaksi. Isi 0 untuk membebaskan Platform Fee. Perubahan berlaku untuk pembayaran baru."
       />
 
       <div className="field">
