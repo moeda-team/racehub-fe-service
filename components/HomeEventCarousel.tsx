@@ -13,8 +13,6 @@ export default function HomeEventCarousel({ events }: { events: PublicEvent[] })
   const cardRef = useRef<HTMLDivElement>(null);
   const hasChanged = useRef(false);
 
-  if (events.length === 0) return null;
-
   const move = (direction: -1 | 1) => {
     setSlideDirection(direction);
     setActiveIndex((current) => (current + direction + events.length) % events.length);
@@ -41,6 +39,8 @@ export default function HomeEventCarousel({ events }: { events: PublicEvent[] })
       { duration: 480, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" },
     );
   }, [activeIndex, slideDirection]);
+
+  if (!event) return null;
 
   return (
     <div className="home-event-carousel" aria-label="Event pilihan">

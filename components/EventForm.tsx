@@ -832,7 +832,7 @@ export function RegistrationAddonsForm({
                 type="text"
                 placeholder="Harga (Rp)"
                 value={formatNumberInput(option.price)}
-                onFocus={(e) => {
+                onFocus={() => {
                   if (option.price === "0") updateOption(groupIndex, optionIndex, { price: "" });
                 }}
                 onBlur={(e) => {

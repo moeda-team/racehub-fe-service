@@ -63,8 +63,10 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
 
   useEffect(() => {
     if (queryToken) {
-      setToken(queryToken);
-      setTokenResolved(true);
+      window.requestAnimationFrame(() => {
+        setToken(queryToken);
+        setTokenResolved(true);
+      });
       return;
     }
     let cancelled = false;

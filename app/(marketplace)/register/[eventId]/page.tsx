@@ -92,8 +92,10 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
       (candidate) => candidate.id === requestedTicketId && candidate.category_id === requestedCategoryId,
     );
     if (ticket && detail.categories.some((category) => category.id === requestedCategoryId)) {
-      setDistanceId(requestedCategoryId);
-      setTicketId(requestedTicketId);
+      window.requestAnimationFrame(() => {
+        setDistanceId(requestedCategoryId);
+        setTicketId(requestedTicketId);
+      });
     }
   }, [detail]);
 

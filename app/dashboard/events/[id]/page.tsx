@@ -30,7 +30,6 @@ import { confirm } from "@/components/ui/ConfirmDialog";
 import { compressEventImage, EVENT_IMAGE_MAX_BYTES, EVENT_IMAGE_TYPES, formatImageSize } from "@/lib/image-upload";
 import DataTable, { Column } from "@/components/ui/DataTable";
 import { CircleCheck, Image as ImageIcon, TriangleAlert } from "lucide-react";
-import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 import type {
   ApiResponse,
@@ -1062,6 +1061,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
 
   useEffect(() => {
     const storageKey = `event-recap-columns:${eventId}`;
+    let savedColumns: RecapColumn[] | null = null;
     try {
       const saved = window.localStorage.getItem(storageKey);
       if (saved) {
@@ -1070,13 +1070,17 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
           const valid = parsed.filter((column): column is RecapColumn =>
             RECAP_COLUMNS.includes(column as RecapColumn),
           );
-          if (valid.length > 0) setVisibleColumns(valid);
+          if (valid.length > 0) savedColumns = valid;
         }
       }
     } catch {
       // Ignore unavailable or malformed browser storage and use defaults.
     }
-    setPreferencesLoadedFor(eventId);
+    const frame = window.requestAnimationFrame(() => {
+      if (savedColumns) setVisibleColumns(savedColumns);
+      setPreferencesLoadedFor(eventId);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [eventId]);
 
   useEffect(() => {
@@ -1508,9 +1512,10 @@ function excelCellText(value: unknown): string {
 }
 function excelBirthDate(value: unknown): string {
   if (typeof value === "number") {
-    const date = XLSX.SSF.parse_date_code(value);
-    if (date)
-      return `${String(date.y).padStart(4, "0")}-${String(date.m).padStart(2, "0")}-${String(date.d).padStart(2, "0")}`;
+    // Excel's 1900 date system counts from 1899-12-30 (including its leap-year bug).
+    const date = new Date(Date.UTC(1899, 11, 30) + Math.floor(value) * 86_400_000);
+    if (!Number.isNaN(date.getTime()))
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
   }
   const raw = excelCellText(value);
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
@@ -1690,10 +1695,21 @@ function CollectiveRegistrationCard({
     setRowErrors({});
     try {
       if (file.size > 5 * 1024 * 1024) throw new Error("Ukuran file maksimal 5 MiB.");
-      const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: false });
-      const sheet = workbook.Sheets.Pendaftaran ?? workbook.Sheets[workbook.SheetNames[0]];
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(await file.arrayBuffer());
+      const sheet = workbook.getWorksheet("Pendaftaran") ?? workbook.worksheets[0];
       if (!sheet) throw new Error("Sheet Pendaftaran tidak ditemukan.");
-      const records = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", raw: true }).slice(1);
+      const records: unknown[][] = [];
+      sheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+          records.push(Array.from({ length: Math.max(8 + fields.length, row.cellCount) }, (_, index) => {
+            const value = row.getCell(index + 1).value;
+            if (value && typeof value === "object" && "result" in value) return value.result ?? "";
+            if (value && typeof value === "object" && "text" in value) return value.text ?? "";
+            return value ?? "";
+          }));
+        }
+      });
       if (records.length < 1 || records.length > 100) throw new Error("File harus berisi 1–100 baris peserta.");
       const parsed = records.map((record) => {
         const extra_data: Record<string, string> = {};
@@ -3352,7 +3368,8 @@ function ParticipantsCard({
                 <div style={{ display: "flex", justifyContent: "center", padding: "12px 0" }}>
                   <div style={{ background: "#fff", padding: 12, borderRadius: "var(--radius-md)" }}>
                     {/^https?:\/\//i.test(item.payment.qr_string) ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */ <img
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={item.payment.qr_string}
                         alt="Kode QR pembayaran"
                         width={280}
