@@ -632,9 +632,6 @@ export function RegistrationFieldsForm({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <FieldBuilder eventId={eventId} fields={fields} onChange={setFields} />
-      <span className="field-hint">
-        Konfigurasi form dikunci setelah pendaftaran pertama agar data dan ekspor peserta tetap konsisten.
-      </span>
     </div>
   );
 }
@@ -888,9 +885,6 @@ export function RegistrationAddonsForm({
           {isSaving ? "Menyimpan…" : "Simpan add-ons"}
         </Button>
       </div>
-      <span className="field-hint">
-        Konfigurasi terkunci setelah pendaftaran pertama agar harga add-on peserta tetap konsisten.
-      </span>
     </section>
   );
 }
