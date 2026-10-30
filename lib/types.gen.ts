@@ -714,6 +714,13 @@ export interface RecapRow {
   total: number;
 }
 
+export interface AddonRecapRow {
+  id: string;
+  title: string;
+  name: string;
+  total: number;
+}
+
 export interface ParticipantRow {
   id: string;
   registration_number: string;

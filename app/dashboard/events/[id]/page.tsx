@@ -55,10 +55,13 @@ import type {
   Refund,
   RefundSummary,
   TicketCategory,
+  AddonRecapRow,
 } from "@/lib/types.gen";
 
 type Tab = "detail" | "pendaftaran" | "kolektif" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
 type PreviewMode = "card" | "detail" | "register";
+const RECAP_COLUMNS = ["category", "gender", "class", "total", "addons"] as const;
+type RecapColumn = (typeof RECAP_COLUMNS)[number];
 
 const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "detail", label: "Detail Event" },
@@ -1053,6 +1056,48 @@ function DashboardCard({ eventId }: { eventId: string }) {
 // non-running sales by category × ticket class.
 function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<RecapRow[] | null>(null);
+  const [addonRows, setAddonRows] = useState<AddonRecapRow[] | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<RecapColumn[]>([...RECAP_COLUMNS]);
+  const [preferencesLoadedFor, setPreferencesLoadedFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storageKey = `event-recap-columns:${eventId}`;
+    try {
+      const saved = window.localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter((column): column is RecapColumn =>
+            RECAP_COLUMNS.includes(column as RecapColumn),
+          );
+          if (valid.length > 0) setVisibleColumns(valid);
+        }
+      }
+    } catch {
+      // Ignore unavailable or malformed browser storage and use defaults.
+    }
+    setPreferencesLoadedFor(eventId);
+  }, [eventId]);
+
+  useEffect(() => {
+    if (preferencesLoadedFor !== eventId) return;
+    try {
+      window.localStorage.setItem(`event-recap-columns:${eventId}`, JSON.stringify(visibleColumns));
+    } catch {
+      // The table remains usable when browser storage is unavailable.
+    }
+  }, [eventId, preferencesLoadedFor, visibleColumns]);
+
+  function toggleColumn(column: RecapColumn) {
+    setVisibleColumns((current) => {
+      if (current.includes(column)) {
+        const remaining = current.filter((item) => item !== column);
+        const remainingBaseColumns = remaining.filter((item) => item !== "addons");
+        return column !== "addons" && remainingBaseColumns.length === 0 ? current : remaining;
+      }
+      return [...current, column];
+    });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -1069,13 +1114,28 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     };
   }, [eventId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await api.get<ApiResponse<AddonRecapRow[]>>(`/api/v1/events/${eventId}/recap/addons`);
+        if (!cancelled) setAddonRows(res.data ?? []);
+      } catch {
+        if (!cancelled) setAddonRows([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
   if (!rows) return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
   if (rows.length === 0)
     return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada kategori tiket untuk direkap.</p>;
 
   const cols: Column<RecapRow>[] = [
     {
-      key: "distance",
+      key: "category",
       header: "Kategori",
       render: (r) => (r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name),
     },
@@ -1094,7 +1154,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       render: (r) => (r.category_id === "total" ? <strong>{r.total}</strong> : r.total),
       mono: true,
     },
-  ];
+  ].filter((column) => visibleColumns.includes(column.key as RecapColumn));
   const totalRow: RecapRow = {
     category_id: "total",
     category_name: "Total",
@@ -1104,11 +1164,64 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     total: rows.reduce((sum, row) => sum + row.total, 0),
   };
   return (
-    <DataTable
-      columns={cols}
-      data={[...rows, totalRow]}
-      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
-    />
+    <>
+      <fieldset
+        style={{ border: 0, margin: "0 0 16px", padding: 0 }}
+        aria-label="Pilih kolom rekap"
+      >
+        <legend style={{ color: "var(--color-ink-3)", fontSize: 13, marginBottom: 8 }}>
+          Kolom yang ditampilkan
+        </legend>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px" }}>
+          {([
+            ["category", "Kategori"],
+            ["gender", "Gender"],
+            ["class", "Kelas"],
+            ["total", isRunning ? "Jumlah" : "Jumlah Terjual"],
+            ["addons", "Add-ons"],
+          ] as [RecapColumn, string][]).map(([column, label]) => (
+            <label key={column} style={{ alignItems: "center", display: "inline-flex", gap: 6, fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={visibleColumns.includes(column)}
+                disabled={
+                  column !== "addons" &&
+                  visibleColumns.includes(column) &&
+                  visibleColumns.filter((item) => item !== "addons").length === 1
+                }
+                onChange={() => toggleColumn(column)}
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <DataTable
+        columns={cols}
+        data={[...rows, totalRow]}
+        keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
+      />
+      {visibleColumns.includes("addons") && (
+        <div style={{ marginTop: 24 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 12px" }}>Rekap Add-ons Terjual</h3>
+          {addonRows === null ? (
+            <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap add-ons…</p>
+          ) : addonRows.length === 0 ? (
+            <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada add-ons terjual.</p>
+          ) : (
+            <DataTable
+              columns={[
+                { key: "title", header: "Grup Add-on", render: (row) => row.title },
+                { key: "name", header: "Pilihan", render: (row) => row.name },
+                { key: "total", header: "Jumlah Terjual", render: (row) => row.total, mono: true },
+              ]}
+              data={addonRows}
+              keyFn={(row) => row.id || `${row.title}-${row.name}`}
+            />
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
