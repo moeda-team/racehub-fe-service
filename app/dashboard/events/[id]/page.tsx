@@ -1133,7 +1133,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
   if (rows.length === 0)
     return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada kategori tiket untuk direkap.</p>;
 
-  const cols: Column<RecapRow>[] = [
+  const allCols: Column<RecapRow>[] = [
     {
       key: "category",
       header: "Kategori",
@@ -1154,7 +1154,8 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       render: (r) => (r.category_id === "total" ? <strong>{r.total}</strong> : r.total),
       mono: true,
     },
-  ].filter((column) => visibleColumns.includes(column.key as RecapColumn));
+  ];
+  const cols = allCols.filter((column) => visibleColumns.includes(column.key as RecapColumn));
   const totalRow: RecapRow = {
     category_id: "total",
     category_name: "Total",
