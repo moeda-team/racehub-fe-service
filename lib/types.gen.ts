@@ -758,10 +758,13 @@ export interface ParticipantEditableData {
   age_class: ParticipantRow["age_class"];
   extra_data: Record<string, string>;
   fields: ParticipantEditableField[];
+  addons: SelectedRegistrationAddon[];
+  addon_total: number;
 }
 
 export interface ParticipantUpdateResult extends ParticipantEditableData {
   changed: boolean;
+  addon_price_delta: number;
 }
 
 // === API Response Wrappers ===

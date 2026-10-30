@@ -2108,6 +2108,8 @@ function ParticipantsCard({
   const [completingRefundId, setCompletingRefundId] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<ParticipantRow | null>(null);
   const [editDraft, setEditDraft] = useState<ParticipantEditableData | null>(null);
+  const [editAddonGroups, setEditAddonGroups] = useState<RegistrationAddonGroup[]>([]);
+  const [editAddonOptionIds, setEditAddonOptionIds] = useState<string[]>([]);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -2324,14 +2326,23 @@ function ParticipantsCard({
   async function openParticipantEditor(row: ParticipantRow) {
     setEditTarget(row);
     setEditDraft(null);
+    setEditAddonGroups([]);
+    setEditAddonOptionIds([]);
     setEditError(null);
     setEditNotice(null);
     setLoadingEditId(row.id);
     try {
-      const res = await api.get<ApiResponse<ParticipantEditableData>>(
-        `/api/v1/events/${eventId}/participants/${row.id}/data`,
+      const [participantRes, addonRes] = await Promise.all([
+        api.get<ApiResponse<ParticipantEditableData>>(`/api/v1/events/${eventId}/participants/${row.id}/data`),
+        api.get<ApiResponse<{ groups: RegistrationAddonGroup[] }>>(`/api/v1/events/${eventId}/addons`),
+      ]);
+      const addonGroups = addonRes.data.groups ?? [];
+      setEditDraft(participantRes.data);
+      setEditAddonGroups(addonGroups);
+      const availableAddonIds = new Set(addonGroups.flatMap((group) => group.options.map((option) => option.id)));
+      setEditAddonOptionIds(
+        participantRes.data.addons?.map((addon) => addon.id).filter((id) => availableAddonIds.has(id)) ?? [],
       );
-      setEditDraft(res.data);
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "Gagal memuat data peserta.";
       setEditError(message);
@@ -2356,9 +2367,11 @@ function ParticipantsCard({
           birth_date: editDraft.birth_date,
           gender: editDraft.gender,
           extra_data: editDraft.extra_data,
+          ...(editAddonGroups.length > 0 ? { addon_option_ids: editAddonOptionIds } : {}),
         },
       );
       const updated = res.data;
+      setEditAddonOptionIds(updated.addons.map((addon) => addon.id));
       setRows(
         (current) =>
           current?.map((row) =>
@@ -2371,7 +2384,12 @@ function ParticipantsCard({
       setReloadTick((value) => value + 1);
       setEditNotice({
         type: "success",
-        message: updated.changed ? "Koreksi data peserta berhasil disimpan." : "Tidak ada perubahan pada data peserta.",
+        message:
+          editTarget?.status === "paid" && updated.addon_price_delta !== 0
+            ? `Koreksi berhasil. Selisih add-on ${formatRupiah(Math.abs(updated.addon_price_delta))} perlu ${updated.addon_price_delta > 0 ? "ditagih" : "dikembalikan"} secara terpisah.`
+            : updated.changed
+              ? "Koreksi data peserta berhasil disimpan."
+              : "Tidak ada perubahan pada data peserta.",
       });
       setEditTarget(null);
       setEditDraft(null);
@@ -2948,6 +2966,46 @@ function ParticipantsCard({
                         )}
                       </select>
                     </div>
+                    {editAddonGroups.length > 0 && (
+                      <fieldset
+                        style={{ border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)", gridColumn: "1 / -1", margin: 0, padding: 14 }}
+                      >
+                        <legend style={{ fontSize: 14, fontWeight: 600, padding: "0 6px" }}>Add-ons peserta</legend>
+                        {editAddonGroups.map((group) => (
+                          <div key={group.id} style={{ marginBottom: 14 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{group.title}</div>
+                            <div style={{ display: "grid", gap: 6 }}>
+                              {group.options.map((option) => (
+                                <label key={option.id} style={{ alignItems: "center", display: "flex", gap: 8, fontSize: 14 }}>
+                                  <input
+                                    type="radio"
+                                    name={`participant-addon-${group.id}`}
+                                    required
+                                    checked={editAddonOptionIds.includes(option.id)}
+                                    onChange={() =>
+                                      setEditAddonOptionIds((current) => [
+                                        ...current.filter((id) => !group.options.some((item) => item.id === id)),
+                                        option.id,
+                                      ])
+                                    }
+                                  />
+                                  <span>{option.name}</span>
+                                  <span style={{ color: "var(--color-ink-3)", fontFamily: "var(--font-mono)", marginLeft: "auto" }}>
+                                    {formatRupiah(option.price)}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                        {editTarget.status === "paid" && (
+                          <p style={{ color: "var(--color-ink-3)", fontSize: 12, margin: "4px 0 0" }}>
+                            Perubahan add-on tidak mengubah pembayaran yang sudah tercatat. Selisih harga, jika ada,
+                            ditagih atau dikembalikan secara terpisah sesuai hasil koreksi.
+                          </p>
+                        )}
+                      </fieldset>
+                    )}
                     {editDraft.fields.map((field) => {
                       const value = editDraft.extra_data[field.id] ?? "";
                       const setValue = (next: string) =>
@@ -3029,8 +3087,8 @@ function ParticipantsCard({
                     })}
                   </div>
                   <p style={{ margin: "16px 0", color: "var(--color-ink-3)", fontSize: 12 }}>
-                    Koreksi data tidak mengubah tiket, pembayaran, BIB, refund, atau status check-in. Perubahan dicatat
-                    di audit log.
+                    Koreksi tidak mengubah pembayaran yang sudah tercatat, tiket, BIB, refund, atau status check-in.
+                    Perubahan add-on dan data peserta dicatat di audit log.
                   </p>
                   <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
                     <Button
