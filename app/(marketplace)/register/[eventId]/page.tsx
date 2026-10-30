@@ -41,6 +41,16 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
   const [extraData, setExtraData] = useState<Record<string, string>>({});
   const [extraErrors, setExtraErrors] = useState<Record<string, string>>({});
   const [addonSelections, setAddonSelections] = useState<Record<string, string>>({});
+  const [addonErrors, setAddonErrors] = useState<Record<string, string>>({});
+
+  function validateAddonSelections(): boolean {
+    const errors: Record<string, string> = {};
+    for (const group of detail?.addon_groups ?? []) {
+      if (!addonSelections[group.id]) errors[group.id] = "Pilih salah satu add-on.";
+    }
+    setAddonErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
 
   function isParticipantDataValid(): boolean {
     if (!isValidEmail(email.trim())) {
@@ -436,7 +446,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                 <>
                   <hr style={{ border: "none", borderTop: "1px solid var(--color-line)", margin: "4px 0" }} />
                   <p style={{ fontSize: 13, fontWeight: 600, color: "var(--color-ink-2)", margin: 0 }}>
-                    Custom Add-ons (opsional)
+                    Custom Add-ons (wajib pilih satu per grup)
                   </p>
                   {detail.addon_groups.map((group) => (
                     <fieldset key={group.id} className="field" style={{ border: 0, padding: 0, margin: 0 }}>
@@ -458,7 +468,11 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                               type="radio"
                               name={`addon-${group.id}`}
                               checked={addonSelections[group.id] === option.id}
-                              onChange={() => setAddonSelections((current) => ({ ...current, [group.id]: option.id }))}
+                              required
+                              onChange={() => {
+                                setAddonSelections((current) => ({ ...current, [group.id]: option.id }));
+                                setAddonErrors((current) => ({ ...current, [group.id]: "" }));
+                              }}
                             />
                             {option.name}
                           </span>
@@ -467,6 +481,9 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                           </span>
                         </label>
                       ))}
+                      {addonErrors[group.id] && (
+                        <span className="field-error" role="alert">{addonErrors[group.id]}</span>
+                      )}
                     </fieldset>
                   ))}
                 </>
@@ -489,7 +506,7 @@ export default function RegisterPage({ params }: { params: Promise<{ eventId: st
                   style={{ flex: 1 }}
                   disabled={!name || !email || !phone || !birthDate || !gender}
                   onClick={() => {
-                    if (isParticipantDataValid() && validateExtraFields()) setStep(3);
+                    if (isParticipantDataValid() && validateExtraFields() && validateAddonSelections()) setStep(3);
                   }}
                 >
                   Lanjut
