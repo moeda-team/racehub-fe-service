@@ -2136,6 +2136,9 @@ function ParticipantsCard({
   const [paymentMethods, setPaymentMethods] = useState<Array<{ id: string; label: string }>>([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
+  const [manualPaymentTarget, setManualPaymentTarget] = useState<ParticipantRow | null>(null);
+  const [manualPaymentDrafts, setManualPaymentDrafts] = useState<Record<string, { method: string; paid_at: string; reference: string }>>({});
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reactivating, setReactivating] = useState(false);
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
@@ -2525,6 +2528,25 @@ function ParticipantsCard({
       setBulkBusy(false);
     }
   };
+
+  const markSelectedPaid = async () => {
+    const targets = manualPaymentTarget ? [manualPaymentTarget] : [];
+    if (!targets.length || targets.some((row) => !manualPaymentDrafts[row.id]?.method.trim() || !manualPaymentDrafts[row.id]?.paid_at || !manualPaymentDrafts[row.id]?.reference.trim())) {
+      setErr("Lengkapi metode, waktu, dan referensi untuk setiap peserta."); return;
+    }
+    setBulkBusy(true); setErr(null); setBulkOutcomes([]);
+    const outcomes = await Promise.all(targets.map(async (row) => {
+      const draft = manualPaymentDrafts[row.id];
+      try {
+        await api.post(`/api/v1/events/${eventId}/participants/${row.id}/payments/manual`, { ...draft, paid_at: new Date(draft.paid_at).toISOString() });
+        return { name: row.name, success: true, message: "Berhasil ditandai lunas." };
+      } catch (error) {
+        return { name: row.name, success: false, message: error instanceof ApiError ? error.message : "Gagal menandai lunas." };
+      }
+    }));
+    setBulkOutcomes(outcomes); setSelectedIds([]); setManualPaymentOpen(false); setBulkBusy(false);
+    setLoading(true); setReloadTick((value) => value + 1); onChanged?.();
+  };
   const reactivateSelected = async () => {
     const targets = selectedRows.filter((row) => row.status === "expired");
     if (!targets.length) return;
@@ -2685,6 +2707,11 @@ function ParticipantsCard({
           r.status === "refunded" ? refundEntries.find((item) => item.registration_id === r.id) : undefined;
         return (
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", minWidth: 210 }}>
+            {r.status === "pending_payment" && showBulkActions && (
+              <Button variant="secondary" size="sm" disabled={bulkBusy} onClick={() => { setManualPaymentTarget(r); setManualPaymentOpen(true); }}>
+                Tandai lunas
+              </Button>
+            )}
             {(r.status === "paid" || r.status === "pending_payment") && (
               <Button
                 variant="secondary"
@@ -3287,7 +3314,7 @@ function ParticipantsCard({
           )}
         </div>
       </div>
-      {showBulkActions && selectedRows.length > 0 && (
+      {showBulkActions && selectedRows.length > 0 && !manualPaymentOpen && (
         <div
           style={{
             display: "flex",
@@ -3343,6 +3370,30 @@ function ParticipantsCard({
             Batal pilih
           </Button>
         </div>
+      )}
+      {manualPaymentOpen && manualPaymentTarget?.status === "pending_payment" && (
+        createPortal(<div role="presentation" onClick={() => !bulkBusy && setManualPaymentOpen(false)} style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", zIndex: 2147483000, background: "rgba(0,0,0,.55)", display: "grid", placeItems: "center", padding: 16, boxSizing: "border-box" }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="manual-payment-title" onClick={(event) => event.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(560px, calc(100vw - 32px))", maxHeight: "calc(100dvh - 32px)", overflowY: "auto", padding: 22, border: "1px solid var(--color-line)", borderRadius: "var(--radius-md)", background: "var(--color-surface)", boxShadow: "0 16px 48px rgba(0,0,0,.2)", boxSizing: "border-box" }}>
+          <strong id="manual-payment-title">Detail pembayaran per peserta</strong>
+          <button type="button" aria-label="Tutup dialog" disabled={bulkBusy} onClick={() => setManualPaymentOpen(false)} style={{ float: "right", border: 0, background: "transparent", fontSize: 20, cursor: "pointer", color: "var(--color-ink-3)" }}>×</button>
+          {[manualPaymentTarget].map((row) => {
+            const draft = manualPaymentDrafts[row.id] ?? { method: "", paid_at: "", reference: "" };
+            const update = (patch: Partial<typeof draft>) => setManualPaymentDrafts((all) => ({ ...all, [row.id]: { ...draft, ...patch } }));
+            return <div key={row.id} style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--color-line)" }}>
+              <strong>{row.name} · {row.registration_number}</strong>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,220px),1fr))", gap: 12, marginTop: 12 }}>
+                <label style={{ display: "grid", gap: 5, fontSize: 12 }}>Metode pembayaran<input className="field-input" aria-label={`Metode pembayaran ${row.name}`} value={draft.method} onChange={(e) => update({ method: e.target.value })} /></label>
+                <label style={{ display: "grid", gap: 5, fontSize: 12 }}>Waktu pembayaran<input className="field-input" aria-label={`Waktu pembayaran ${row.name}`} type="datetime-local" value={draft.paid_at} onChange={(e) => update({ paid_at: e.target.value })} /></label>
+                <label style={{ display: "grid", gap: 5, fontSize: 12 }}>Referensi<input className="field-input" aria-label={`Referensi pembayaran ${row.name}`} value={draft.reference} onChange={(e) => update({ reference: e.target.value })} /></label>
+              </div>
+            </div>;
+          })}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 20 }}>
+            <Button variant="ghost" size="sm" disabled={bulkBusy} onClick={() => setManualPaymentOpen(false)}>Batal</Button>
+            <Button variant="primary" size="sm" disabled={bulkBusy} onClick={() => void markSelectedPaid()}>{bulkBusy ? "Memproses…" : "Simpan dan tandai lunas"}</Button>
+          </div>
+          <p style={{ fontSize: 12, lineHeight: 1.5, color: "var(--color-ink-3)", margin: "14px 0 0" }}>Harga, donasi, fee, dan pencatatan saldo dihitung serta diproses oleh backend mengikuti aturan pembayaran biasa.</p>
+        </section></div>, document.body)
       )}
       {showBulkActions && !isExpiredTable && paymentOutcomes.length > 0 && (
         <div
