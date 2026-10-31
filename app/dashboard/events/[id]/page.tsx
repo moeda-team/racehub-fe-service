@@ -1237,17 +1237,22 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       {rows.some((row) => row.graduation_year !== undefined) && (
         <div style={{ marginTop: 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 12px" }}>Rekap Tahun Lulus</h3>
+          {(() => {
+            const byYear = new Map<string, number>();
+            rows.filter((row) => row.graduation_year !== undefined).forEach((row) => {
+              const year = row.graduation_year || "—";
+              byYear.set(year, (byYear.get(year) ?? 0) + row.total);
+            });
+            const yearRows = [...byYear].sort(([a], [b]) => a.localeCompare(b, "id", { numeric: true })).map(([year, total]) => ({ year, total }));
           <DataTable
             columns={[
-              { key: "category", header: "Kategori", render: (row) => row.category_name },
-              { key: "gender", header: "Gender", render: (row) => row.gender || "—" },
-              { key: "class", header: "Kelas", render: (row) => (isRunning ? formatAgeClass(row.age_class, row.category_name) : row.ticket_name) || "—" },
-              { key: "graduation_year", header: "Tahun Lulus", render: (row) => row.graduation_year || "—" },
+              { key: "year", header: "Tahun Lulus", render: (row) => row.year },
               { key: "total", header: "Jumlah", render: (row) => row.total, mono: true },
             ]}
-            data={rows.filter((row) => row.graduation_year !== undefined)}
-            keyFn={(row) => `${row.category_id}-${row.gender}-${row.age_class}-${row.ticket_name}-${row.graduation_year}`}
+            data={yearRows}
+            keyFn={(row) => row.year}
           />
+          })()}
         </div>
       )}
     </>
