@@ -59,7 +59,7 @@ import type {
 
 type Tab = "detail" | "pendaftaran" | "kolektif" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
 type PreviewMode = "card" | "detail" | "register";
-const RECAP_COLUMNS = ["category", "gender", "class", "total", "graduation_year", "addons"] as const;
+const RECAP_COLUMNS = ["category", "gender", "class", "total", "addons"] as const;
 type RecapColumn = (typeof RECAP_COLUMNS)[number];
 
 const BASE_TABS: { id: Tab; label: string }[] = [
@@ -1144,7 +1144,6 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       render: (r) => (r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name),
     },
     { key: "gender", header: "Gender", render: (r) => (r.category_id === "total" ? "" : r.gender || "—") },
-    { key: "graduation_year", header: "Tahun Lulus", render: (r) => (r.category_id === "total" ? "" : r.graduation_year || "—") },
     {
       key: "class",
       header: "Kelas",
@@ -1161,13 +1160,21 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     },
   ];
   const cols = allCols.filter((column) => visibleColumns.includes(column.key as RecapColumn));
+  const categoryRowsByKey = new Map<string, RecapRow>();
+  rows.forEach((row) => {
+    const key = `${row.category_id}\0${row.gender}\0${row.age_class}\0${row.ticket_name}`;
+    const existing = categoryRowsByKey.get(key);
+    if (existing) existing.total += row.total;
+    else categoryRowsByKey.set(key, { ...row });
+  });
+  const categoryRows = [...categoryRowsByKey.values()];
   const totalRow: RecapRow = {
     category_id: "total",
     category_name: "Total",
     gender: "",
     age_class: "",
     ticket_name: "",
-    total: rows.reduce((sum, row) => sum + row.total, 0),
+    total: categoryRows.reduce((sum, row) => sum + row.total, 0),
   };
   return (
     <>
@@ -1184,7 +1191,6 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
             ["gender", "Gender"],
             ["class", "Kelas"],
             ["total", isRunning ? "Jumlah" : "Jumlah Terjual"],
-            ...(rows.some((row) => row.graduation_year !== undefined) ? [["graduation_year", "Tahun Lulus"] as [RecapColumn, string]] : []),
             ["addons", "Add-ons"],
           ] as [RecapColumn, string][]).map(([column, label]) => (
             <label key={column} style={{ alignItems: "center", display: "inline-flex", gap: 6, fontSize: 14 }}>
@@ -1205,8 +1211,8 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       </fieldset>
       <DataTable
         columns={cols}
-        data={[...rows, totalRow]}
-      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}-${r.graduation_year ?? ""}`}
+        data={[...categoryRows, totalRow]}
+        keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
       />
       {visibleColumns.includes("addons") && (
         <div style={{ marginTop: 24 }}>
@@ -1226,6 +1232,22 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
               keyFn={(row) => row.id || `${row.title}-${row.name}`}
             />
           )}
+        </div>
+      )}
+      {rows.some((row) => row.graduation_year !== undefined) && (
+        <div style={{ marginTop: 24 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 12px" }}>Rekap Tahun Lulus</h3>
+          <DataTable
+            columns={[
+              { key: "category", header: "Kategori", render: (row) => row.category_name },
+              { key: "gender", header: "Gender", render: (row) => row.gender || "—" },
+              { key: "class", header: "Kelas", render: (row) => (isRunning ? formatAgeClass(row.age_class, row.category_name) : row.ticket_name) || "—" },
+              { key: "graduation_year", header: "Tahun Lulus", render: (row) => row.graduation_year || "—" },
+              { key: "total", header: "Jumlah", render: (row) => row.total, mono: true },
+            ]}
+            data={rows.filter((row) => row.graduation_year !== undefined)}
+            keyFn={(row) => `${row.category_id}-${row.gender}-${row.age_class}-${row.ticket_name}-${row.graduation_year}`}
+          />
         </div>
       )}
     </>
