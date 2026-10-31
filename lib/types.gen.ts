@@ -711,6 +711,7 @@ export interface RecapRow {
   age_class: "" | "Fun Run" | "Open (Under 40th)" | "Master (40th to before 50th)" | "Master + (50th and up)";
   /** Ticket class name for non-running events; empty for running events. */
   ticket_name: string;
+  graduation_year?: string;
   total: number;
 }
 

@@ -59,7 +59,7 @@ import type {
 
 type Tab = "detail" | "pendaftaran" | "kolektif" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
 type PreviewMode = "card" | "detail" | "register";
-const RECAP_COLUMNS = ["category", "gender", "class", "total", "addons"] as const;
+const RECAP_COLUMNS = ["category", "gender", "class", "total", "graduation_year", "addons"] as const;
 type RecapColumn = (typeof RECAP_COLUMNS)[number];
 
 const BASE_TABS: { id: Tab; label: string }[] = [
@@ -1144,6 +1144,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       render: (r) => (r.category_id === "total" ? <strong>{r.category_name}</strong> : r.category_name),
     },
     { key: "gender", header: "Gender", render: (r) => (r.category_id === "total" ? "" : r.gender || "—") },
+    { key: "graduation_year", header: "Tahun Lulus", render: (r) => (r.category_id === "total" ? "" : r.graduation_year || "—") },
     {
       key: "class",
       header: "Kelas",
@@ -1183,6 +1184,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
             ["gender", "Gender"],
             ["class", "Kelas"],
             ["total", isRunning ? "Jumlah" : "Jumlah Terjual"],
+            ...(rows.some((row) => row.graduation_year !== undefined) ? [["graduation_year", "Tahun Lulus"] as [RecapColumn, string]] : []),
             ["addons", "Add-ons"],
           ] as [RecapColumn, string][]).map(([column, label]) => (
             <label key={column} style={{ alignItems: "center", display: "inline-flex", gap: 6, fontSize: 14 }}>
@@ -1204,7 +1206,7 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       <DataTable
         columns={cols}
         data={[...rows, totalRow]}
-        keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}`}
+      keyFn={(r) => `${r.category_id}-${r.gender}-${r.age_class}-${r.ticket_name}-${r.graduation_year ?? ""}`}
       />
       {visibleColumns.includes("addons") && (
         <div style={{ marginTop: 24 }}>
