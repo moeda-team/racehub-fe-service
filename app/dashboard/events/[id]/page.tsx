@@ -1176,6 +1176,14 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     ticket_name: "",
     total: categoryRows.reduce((sum, row) => sum + row.total, 0),
   };
+  const yearTotals = new Map<string, number>();
+  rows.filter((row) => row.graduation_year !== undefined).forEach((row) => {
+    const year = row.graduation_year || "—";
+    yearTotals.set(year, (yearTotals.get(year) ?? 0) + row.total);
+  });
+  const yearRows = [...yearTotals]
+    .sort(([a], [b]) => a.localeCompare(b, "id", { numeric: true }))
+    .map(([year, total]) => ({ year, total }));
   return (
     <>
       <fieldset
@@ -1237,13 +1245,6 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       {rows.some((row) => row.graduation_year !== undefined) && (
         <div style={{ marginTop: 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 12px" }}>Rekap Tahun Lulus</h3>
-          {(() => {
-            const byYear = new Map<string, number>();
-            rows.filter((row) => row.graduation_year !== undefined).forEach((row) => {
-              const year = row.graduation_year || "—";
-              byYear.set(year, (byYear.get(year) ?? 0) + row.total);
-            });
-            const yearRows = [...byYear].sort(([a], [b]) => a.localeCompare(b, "id", { numeric: true })).map(([year, total]) => ({ year, total }));
           <DataTable
             columns={[
               { key: "year", header: "Tahun Lulus", render: (row) => row.year },
@@ -1252,7 +1253,6 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
             data={yearRows}
             keyFn={(row) => row.year}
           />
-          })()}
         </div>
       )}
     </>
