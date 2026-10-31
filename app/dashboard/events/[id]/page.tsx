@@ -1491,6 +1491,7 @@ type CollectiveDraft = {
   category_id: string;
   ticket_category_id: string;
   donation: string;
+  addon_option_ids: string[];
   extra_data: Record<string, string>;
 };
 const emptyCollectiveDraft = (): CollectiveDraft => ({
@@ -1503,6 +1504,7 @@ const emptyCollectiveDraft = (): CollectiveDraft => ({
   category_id: "",
   ticket_category_id: "",
   donation: "0",
+  addon_option_ids: [],
   extra_data: {},
 });
 function excelCellText(value: unknown): string {
@@ -1536,6 +1538,7 @@ function CollectiveRegistrationCard({
   onCreated?: () => void;
 }) {
   const [fields, setFields] = useState<RegistrationField[]>([]);
+  const [addonGroups, setAddonGroups] = useState<RegistrationAddonGroup[]>([]);
   const [drafts, setDrafts] = useState<CollectiveDraft[]>([emptyCollectiveDraft()]);
   const [fileRows, setFileRows] = useState<CollectiveDraft[] | null>(null);
   const [rowErrors, setRowErrors] = useState<Record<number, string[]>>({});
@@ -1558,6 +1561,14 @@ function CollectiveRegistrationCard({
     };
   }, [eventId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    api.get<ApiResponse<{ groups: RegistrationAddonGroup[] }>>(`/api/v1/events/${eventId}/addons`)
+      .then((res) => { if (!cancelled) setAddonGroups(res.data.groups ?? []); })
+      .catch(() => { if (!cancelled) setAddonGroups([]); });
+    return () => { cancelled = true; };
+  }, [eventId]);
+
   const templateHeaders = [
     "name",
     "email",
@@ -1567,6 +1578,7 @@ function CollectiveRegistrationCard({
     "category_id",
     "ticket_category_id",
     "donation",
+    ...addonGroups.map((group) => `Add-on: ${group.title}`),
     ...fields.map((field) => `${field.label}${field.required ? " *" : ""}`),
   ];
   const categoryOption = (category: Category) => `${category.name} [${category.id}]`;
@@ -1592,6 +1604,7 @@ function CollectiveRegistrationCard({
       initialCategory ? categoryOption(initialCategory) : "",
       initialTicket ? ticketOption(initialTicket) : "",
       0,
+      ...addonGroups.map(() => ""),
       ...fields.map(() => ""),
     ]);
     sheet.getRow(1).font = { bold: true };
@@ -1633,6 +1646,18 @@ function CollectiveRegistrationCard({
         namedRange,
       );
     });
+    addonGroups.forEach((group, index) => {
+      const column = 5 + categories.length + index;
+      const optionsColumn = choices.getColumn(column).letter;
+      choices.getCell(1, column).value = `Add-on ${group.title}`;
+      (group.options.length ? group.options : [{ id: "", name: "", price: 0 }]).forEach((option, optionIndex) => {
+        choices.getCell(optionIndex + 2, column).value = option.id ? `${option.name} [${option.id}]` : "";
+      });
+      workbook.definedNames.add(
+        `'Pilihan'!$${optionsColumn}$2:$${optionsColumn}$${Math.max(group.options.length, 1) + 1}`,
+        `AddonOptions_${index + 1}`,
+      );
+    });
     choices.state = "hidden";
     if (categories.length) workbook.definedNames.add(`'Pilihan'!$B$2:$B$${categories.length + 1}`, "CategoryOptions");
     if (tickets.length) workbook.definedNames.add(`'Pilihan'!$D$2:$D$${tickets.length + 1}`, "TicketOptions");
@@ -1663,6 +1688,17 @@ function CollectiveRegistrationCard({
           errorTitle: "Tiket tidak valid",
           error: "Pilih tiket yang sesuai dengan kategori.",
         };
+      addonGroups.forEach((group, index) => {
+        const cell = sheet.getCell(row, 9 + index);
+        cell.dataValidation = {
+          type: "list",
+          formulae: [`AddonOptions_${index + 1}`],
+          allowBlank: false,
+          showErrorMessage: true,
+          errorTitle: "Add-on tidak valid",
+          error: `Pilih opsi untuk ${group.title}.`,
+        };
+      });
     }
     const help = workbook.addWorksheet("Petunjuk");
     help.addRows([
@@ -1702,7 +1738,7 @@ function CollectiveRegistrationCard({
       const records: unknown[][] = [];
       sheet.eachRow((row, rowNumber) => {
         if (rowNumber > 1) {
-          records.push(Array.from({ length: Math.max(8 + fields.length, row.cellCount) }, (_, index) => {
+          records.push(Array.from({ length: Math.max(8 + addonGroups.length + fields.length, row.cellCount) }, (_, index) => {
             const value = row.getCell(index + 1).value;
             if (value && typeof value === "object" && "result" in value) return value.result ?? "";
             if (value && typeof value === "object" && "text" in value) return value.text ?? "";
@@ -1714,7 +1750,12 @@ function CollectiveRegistrationCard({
       const parsed = records.map((record) => {
         const extra_data: Record<string, string> = {};
         fields.forEach((field, index) => {
-          extra_data[field.id] = excelCellText(record[index + 8]);
+          extra_data[field.id] = excelCellText(record[index + 8 + addonGroups.length]);
+        });
+        const addon_option_ids = addonGroups.flatMap((group, index) => {
+          const value = excelCellText(record[8 + index]);
+          const option = group.options.find((item) => item.id === value || item.name === value || `${item.name} [${item.id}]` === value);
+          return option ? [option.id] : [];
         });
         const ticket_category_id = resolveOption(
           record[6],
@@ -1742,6 +1783,7 @@ function CollectiveRegistrationCard({
           category_id: selectedTicket?.category_id ?? selectedCategoryId,
           ticket_category_id,
           donation: excelCellText(record[7] ?? "0") || "0",
+          addon_option_ids,
           extra_data,
         };
       });
@@ -1772,6 +1814,8 @@ function CollectiveRegistrationCard({
       if (!categories.some((category) => category.id === row.category_id)) issues.push("Kategori tidak dikenal.");
       if (!tickets.some((ticket) => ticket.id === row.ticket_category_id && ticket.category_id === row.category_id))
         issues.push("Tiket tidak cocok dengan kategori.");
+      if (addonGroups.some((group) => !group.options.some((option) => row.addon_option_ids.includes(option.id))))
+        issues.push("Pilih satu opsi untuk setiap grup add-on.");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(row.birth_date)) issues.push("Tanggal lahir harus YYYY-MM-DD.");
       for (const field of fields)
         if (field.required && !row.extra_data[field.id]?.trim()) issues.push(`${field.label} wajib diisi.`);
@@ -1810,6 +1854,7 @@ function CollectiveRegistrationCard({
           birth_date: row.birth_date,
           gender: row.gender,
           donation: Number(row.donation) || 0,
+          addon_option_ids: row.addon_option_ids,
           extra_data: row.extra_data,
         })),
       });
@@ -2020,6 +2065,23 @@ function CollectiveRegistrationCard({
                 style={{ width: "100%" }}
               />
             </label>
+            {addonGroups.map((group) => (
+              <label key={group.id} style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
+                {group.title} *
+                <select
+                  className="field-input"
+                  value={row.addon_option_ids.find((id) => group.options.some((option) => option.id === id)) ?? ""}
+                  onChange={(event) => setRow(index, { addon_option_ids: [
+                    ...row.addon_option_ids.filter((id) => !group.options.some((option) => option.id === id)),
+                    ...(event.target.value ? [event.target.value] : []),
+                  ] })}
+                  style={{ width: "100%" }}
+                >
+                  <option value="">Pilih {group.title}</option>
+                  {group.options.map((option) => <option key={option.id} value={option.id}>{option.name} · {formatRupiah(option.price)}</option>)}
+                </select>
+              </label>
+            ))}
             {fields.map((field) => (
               <label key={field.id} style={{ fontSize: 12, color: "var(--color-ink-3)" }}>
                 {field.label}
