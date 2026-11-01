@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
@@ -1056,6 +1056,7 @@ function DashboardCard({ eventId }: { eventId: string }) {
 function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolean }) {
   const [rows, setRows] = useState<RecapRow[] | null>(null);
   const [addonRows, setAddonRows] = useState<AddonRecapRow[] | null>(null);
+  const [addonGrouping, setAddonGrouping] = useState<"both" | "title" | "name">("both");
   const [visibleColumns, setVisibleColumns] = useState<RecapColumn[]>([...RECAP_COLUMNS]);
   const [preferencesLoadedFor, setPreferencesLoadedFor] = useState<string | null>(null);
 
@@ -1082,6 +1083,23 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
     });
     return () => window.cancelAnimationFrame(frame);
   }, [eventId]);
+
+  const groupedAddonRows = useMemo(() => {
+    if (!addonRows) return null;
+    const totals = new Map<string, AddonRecapRow>();
+    for (const row of addonRows) {
+      const key =
+        addonGrouping === "both"
+          ? `${row.title}\u0000${row.name}`
+          : addonGrouping === "title"
+            ? row.title
+            : row.name;
+      const current = totals.get(key);
+      if (current) current.total += row.total;
+      else totals.set(key, { ...row, id: key });
+    }
+    return [...totals.values()];
+  }, [addonRows, addonGrouping]);
 
   useEffect(() => {
     if (preferencesLoadedFor !== eventId) return;
@@ -1136,6 +1154,16 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
   if (!rows) return <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap…</p>;
   if (rows.length === 0)
     return <p style={{ color: "var(--color-ink-3)", fontSize: 15 }}>Belum ada kategori tiket untuk direkap.</p>;
+
+  const addonColumns: Column<AddonRecapRow>[] = [
+    ...(addonGrouping !== "name"
+      ? [{ key: "title", header: "Grup Add-on", render: (row: AddonRecapRow) => row.title }]
+      : []),
+    ...(addonGrouping !== "title"
+      ? [{ key: "name", header: "Pilihan", render: (row: AddonRecapRow) => row.name }]
+      : []),
+    { key: "total", header: "Jumlah Terjual", render: (row) => row.total, mono: true },
+  ];
 
   const allCols: Column<RecapRow>[] = [
     {
@@ -1225,18 +1253,25 @@ function RecapTable({ eventId, isRunning }: { eventId: string; isRunning: boolea
       {visibleColumns.includes("addons") && (
         <div style={{ marginTop: 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, margin: "0 0 12px" }}>Rekap Add-ons Terjual</h3>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12, fontSize: 14 }}>
+            Kelompokkan berdasarkan
+            <select
+              value={addonGrouping}
+              onChange={(event) => setAddonGrouping(event.target.value as typeof addonGrouping)}
+            >
+              <option value="both">Grup add-on + pilihan</option>
+              <option value="title">Grup add-on saja</option>
+              <option value="name">Pilihan saja</option>
+            </select>
+          </label>
           {addonRows === null ? (
             <p style={{ color: "var(--color-ink-3)" }}>Memuat rekap add-ons…</p>
-          ) : addonRows.length === 0 ? (
+          ) : groupedAddonRows?.length === 0 ? (
             <p style={{ color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada add-ons terjual.</p>
           ) : (
             <DataTable
-              columns={[
-                { key: "title", header: "Grup Add-on", render: (row) => row.title },
-                { key: "name", header: "Pilihan", render: (row) => row.name },
-                { key: "total", header: "Jumlah Terjual", render: (row) => row.total, mono: true },
-              ]}
-              data={addonRows}
+              columns={addonColumns}
+              data={groupedAddonRows ?? []}
               keyFn={(row) => row.id || `${row.title}-${row.name}`}
             />
           )}
