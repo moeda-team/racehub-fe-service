@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   turbopack: { root: __dirname },
+  experimental: {
+    agentUpgrade: "security",
+  },
   async headers() {
     return [{
       source: "/:path*",
