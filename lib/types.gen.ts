@@ -682,7 +682,10 @@ export interface WalletTransactionDetail extends WalletHistoryEntry {
 
 export interface DonationReport {
   event_id: string;
+  /** Gross credited ticket revenue, including registrations refunded later. */
   ticket_revenue: number;
+  /** Ticket revenue after refunds; matches the finance recap total. */
+  ticket_revenue_net: number;
   donation_total: number;
 }
 
@@ -848,7 +851,10 @@ export interface EventDashboard {
   event_name: string;
   status: string;
   paid_count: number;
+  /** Gross credited ticket revenue, including registrations refunded later. */
   ticket_revenue: number;
+  /** Ticket revenue after refunds; matches the finance recap total. */
+  ticket_revenue_net: number;
   donation_total: number;
   wallet_balance: number;
   rpc_collected: number;

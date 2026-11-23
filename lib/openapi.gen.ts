@@ -6124,8 +6124,16 @@ export interface components {
         DonationReport: {
             /** Format: uuid */
             event_id?: string;
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Gross credited ticket revenue, including registrations refunded later.
+             */
             ticket_revenue?: number;
+            /**
+             * Format: int64
+             * @description Ticket revenue after refunds (gross minus refunded ticket prices); matches the finance recap total.
+             */
+            ticket_revenue_net?: number;
             /** Format: int64 */
             donation_total?: number;
         };
@@ -6527,7 +6535,10 @@ export interface components {
             status?: string;
             /** Format: int64 */
             paid_count?: number;
+            /** @description Gross credited ticket revenue, including registrations refunded later. */
             ticket_revenue?: components["schemas"]["Rupiah"];
+            /** @description Ticket revenue after refunds (gross minus refunded ticket prices); matches the finance recap total. */
+            ticket_revenue_net?: components["schemas"]["Rupiah"];
             donation_total?: components["schemas"]["Rupiah"];
             wallet_balance?: components["schemas"]["Rupiah"];
             /**

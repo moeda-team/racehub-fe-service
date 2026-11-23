@@ -1106,7 +1106,8 @@ function DashboardCard({ eventId }: { eventId: string }) {
       value: refundSummary ? String(d.paid_count + refundSummary.total_count) : "—",
     },
     { label: "Total Refund", value: refundSummary ? String(refundSummary.total_count) : "—" },
-    { label: "Pendapatan Tiket", value: formatRupiah(d.ticket_revenue) },
+    { label: "Pendapatan Tiket (bruto, termasuk refund)", value: formatRupiah(d.ticket_revenue) },
+    { label: "Pendapatan Tiket Bersih (setelah refund)", value: formatRupiah(d.ticket_revenue_net) },
     { label: "Donasi", value: formatRupiah(d.donation_total) },
     { label: "Saldo Wallet", value: formatRupiah(d.wallet_balance) },
     { label: "Perlengkapan Sudah Diambil", value: String(d.rpc_collected) },
@@ -3819,7 +3820,9 @@ function DonationReportCard({ eventId }: { eventId: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div>
-        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>Pendapatan Tiket</div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginBottom: 4 }}>
+          Pendapatan Tiket Bersih (setelah refund)
+        </div>
         <div
           style={{
             fontFamily: "var(--font-mono)",
@@ -3827,7 +3830,11 @@ function DonationReportCard({ eventId }: { eventId: string }) {
             fontWeight: 700,
           }}
         >
-          {formatRupiah(report.ticket_revenue)}
+          {formatRupiah(report.ticket_revenue_net)}
+        </div>
+        <div style={{ fontSize: 13, color: "var(--color-ink-3)", marginTop: 6 }}>
+          Bruto (termasuk refund):{" "}
+          <span style={{ fontFamily: "var(--font-mono)" }}>{formatRupiah(report.ticket_revenue)}</span>
         </div>
       </div>
       <div>
