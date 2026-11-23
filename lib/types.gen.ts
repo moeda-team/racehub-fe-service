@@ -519,7 +519,10 @@ export interface FinanceRecapRow {
   ticket_name?: string;
   /** Present only on ticket × voucher lines that used a voucher. */
   voucher_code?: string;
+  /** Paid (non-refunded) registrations, including complimentary ones. */
   participants: number;
+  /** Subset of participants whose ticket price was waived (complimentary invitation). */
+  complimentary: number;
   /** Ticket + add-ons before voucher discount. */
   gross: number;
   /** Organizer-borne voucher discount. */

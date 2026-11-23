@@ -56,6 +56,11 @@ function voucherCell(row: FinanceRecapRow): ReactNode {
   return <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{row.voucher_code}</span>;
 }
 
+function complimentaryCell(row: FinanceRecapRow): ReactNode {
+  if (row.complimentary === 0) return <span style={{ color: "var(--color-ink-3)" }}>0</span>;
+  return bold(row, row.complimentary);
+}
+
 function buildColumns(view: FinanceRecapView, categoryLabel: string): Column<FinanceRecapRow>[] {
   const cols: Column<FinanceRecapRow>[] = [
     { key: "category", header: categoryLabel, render: (r) => bold(r, r.category_name) },
@@ -68,6 +73,7 @@ function buildColumns(view: FinanceRecapView, categoryLabel: string): Column<Fin
   }
   cols.push(
     { key: "participants", header: "Peserta", render: (r) => bold(r, r.participants), mono: true },
+    { key: "complimentary", header: "Komplimen", render: complimentaryCell, mono: true },
     { key: "gross", header: "Harga Kotor", render: (r) => bold(r, formatRupiah(r.gross)), mono: true },
     {
       key: "discount",
@@ -131,7 +137,8 @@ export default function FinanceRecapCard({ eventId, categoryLabel }: FinanceReca
       )}
       <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 12 }}>
         Hanya peserta lunas (tidak termasuk refund). Harga kotor = tiket + add-ons sebelum diskon; pendapatan bersih =
-        yang masuk wallet organizer. Donasi dan fee tidak termasuk.
+        yang masuk wallet organizer. Donasi dan fee tidak termasuk. Komplimen = bagian dari peserta yang harga
+        tiketnya digratiskan (Rp0); add-on yang mereka beli tetap dihitung.
       </p>
     </div>
   );
