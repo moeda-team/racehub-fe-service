@@ -24,6 +24,7 @@ import EventForm, {
 } from "@/components/EventForm";
 import EventDetailView from "@/components/EventDetailView";
 import EventVoucherManager from "@/components/EventVoucherManager";
+import FinanceRecapCard from "@/components/FinanceRecapCard";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -692,6 +693,30 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
                 Rekap per Kategori
               </h2>
               <RecapTable eventId={eventId} isRunning={event.event_type === "running"} />
+            </div>
+            <div
+              style={{
+                padding: 28,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "var(--color-surface)",
+              }}
+            >
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 18,
+                  fontWeight: 600,
+                  marginBottom: 20,
+                  marginTop: 0,
+                }}
+              >
+                Rekap Pendapatan
+              </h2>
+              <FinanceRecapCard
+                eventId={eventId}
+                categoryLabel={event.event_type === "running" ? "Kategori Jarak" : "Kategori"}
+              />
             </div>
             <div
               style={{

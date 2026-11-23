@@ -510,6 +510,31 @@ export interface VoucherReport {
   redemptions: VoucherReportRedemption[];
 }
 
+/** GET /events/{id}/recap/finance line. All amounts are server-computed rupiah. */
+export interface FinanceRecapRow {
+  /** Category UUID, or "total" for the total row. */
+  category_id: string;
+  category_name: string;
+  ticket_category_id?: string;
+  ticket_name?: string;
+  /** Present only on ticket × voucher lines that used a voucher. */
+  voucher_code?: string;
+  participants: number;
+  /** Ticket + add-ons before voucher discount. */
+  gross: number;
+  /** Organizer-borne voucher discount. */
+  discount: number;
+  /** gross − discount, credited to the organizer wallet. */
+  net: number;
+}
+
+export interface FinanceRecap {
+  by_category: FinanceRecapRow[];
+  by_ticket_category: FinanceRecapRow[];
+  by_ticket_voucher: FinanceRecapRow[];
+  total: FinanceRecapRow;
+}
+
 export interface NotificationResult {
   transaction_id: string;
   status: string;
