@@ -84,6 +84,19 @@ const MESSAGES: Record<string, string> = {
     "Nomor BIB sudah dibuat; konfirmasi pembuatan ulang untuk menimpa",
   "invalid BIB generation strategy": "Pola pembuatan nomor BIB tidak valid",
   "invalid check-in stage": "Tahap check-in tidak valid",
+
+  // Voucher sentinels (internal/domain/errors.go) and voucher handler strings.
+  "voucher code not found": "Kode voucher tidak ditemukan untuk event ini",
+  "voucher is inactive": "Voucher sedang tidak aktif",
+  "voucher is not valid yet": "Voucher belum bisa digunakan",
+  "voucher has expired": "Masa berlaku voucher sudah berakhir",
+  "voucher does not apply to this ticket": "Voucher tidak berlaku untuk tiket ini",
+  "voucher quota has been used up": "Kuota voucher sudah habis",
+  "voucher has already been used by this email": "Voucher sudah pernah digunakan oleh email ini",
+  "voucher has been used and cannot be deleted":
+    "Voucher sudah pernah dipakai sehingga tidak dapat dihapus. Nonaktifkan saja.",
+  "voucher code already exists for this event": "Kode voucher sudah dipakai di event ini",
+  "voucher or event not found": "Voucher atau event tidak ditemukan",
 };
 
 // Longest suffix first so e.g. "resource not found" doesn't shadow a longer

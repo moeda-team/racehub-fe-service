@@ -310,6 +310,13 @@ export default function TicketPage({ params }: { params: Promise<{ number: strin
               mono
             />
           ))}
+          {(inv.discount ?? 0) > 0 && (
+            <Row
+              label={inv.voucher_code ? `Diskon Voucher (${inv.voucher_code})` : "Diskon Voucher"}
+              value={`-${formatRupiah(inv.discount)}`}
+              mono
+            />
+          )}
           {inv.donation > 0 && <Row label="Donasi" value={formatRupiah(inv.donation)} mono />}
           <Row label="Platform" value={formatRupiah(inv.fee_platform)} mono />
           <Row label="Biaya Transaksi" value={formatRupiah(inv.fee_midtrans)} mono />

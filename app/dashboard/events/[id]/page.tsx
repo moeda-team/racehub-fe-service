@@ -23,6 +23,7 @@ import EventForm, {
   RegistrationFieldsForm,
 } from "@/components/EventForm";
 import EventDetailView from "@/components/EventDetailView";
+import EventVoucherManager from "@/components/EventVoucherManager";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
@@ -55,9 +56,43 @@ import type {
   RefundSummary,
   TicketCategory,
   AddonRecapRow,
+  VoucherBreakdownLine,
+  VoucherReport,
+  VoucherReportLine,
+  VoucherSkipReason,
 } from "@/lib/types.gen";
 
-type Tab = "detail" | "pendaftaran" | "kolektif" | "kategori" | "peserta" | "keuangan" | "refund" | "komunikasi";
+const VOUCHER_SKIP_LABELS: Record<VoucherSkipReason, string> = {
+  ticket_category: "kategori tiket tidak termasuk voucher",
+  email_already_used: "email sudah pernah memakai voucher ini",
+  duplicate_email: "email sama dengan peserta lain di tagihan ini",
+  complimentary: "peserta Daftar Peserta Gratis",
+  zero_price: "tidak ada harga yang bisa didiskon",
+};
+
+function groupVoucherErrorMessage(error: ApiError): string {
+  if (error.reason === "voucher_exhausted") {
+    return "Sisa kuota voucher tidak cukup untuk semua peserta yang memenuhi syarat. Kurangi jumlah peserta atau tambah kuota voucher.";
+  }
+  if (error.reason === "voucher_not_applicable") {
+    return "Voucher tidak berlaku untuk peserta mana pun yang dipilih.";
+  }
+  if (error.reason === "voucher_already_used") {
+    return "Semua peserta yang dipilih sudah pernah memakai voucher ini.";
+  }
+  return error.message;
+}
+
+type Tab =
+  | "detail"
+  | "pendaftaran"
+  | "kolektif"
+  | "kategori"
+  | "voucher"
+  | "peserta"
+  | "keuangan"
+  | "refund"
+  | "komunikasi";
 type PreviewMode = "card" | "detail" | "register";
 const RECAP_COLUMNS = ["category", "gender", "class", "total", "addons"] as const;
 type RecapColumn = (typeof RECAP_COLUMNS)[number];
@@ -67,6 +102,7 @@ const BASE_TABS: { id: Tab; label: string }[] = [
   { id: "pendaftaran", label: "Form Pendaftaran" },
   { id: "kolektif", label: "Pendaftaran Kolektif" },
   { id: "kategori", label: "Kategori" },
+  { id: "voucher", label: "Voucher" },
   { id: "peserta", label: "Peserta" },
   { id: "keuangan", label: "Keuangan" },
   { id: "komunikasi", label: "Komunikasi" },
@@ -319,6 +355,14 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
               availableModes={["register"]}
             />
           </div>
+        )}
+
+        {activeTab === "voucher" && (
+          <EventVoucherManager
+            eventId={eventId}
+            tickets={detail.ticket_categories ?? []}
+            locked={event.status === "finished" || event.status === "cancelled"}
+          />
         )}
 
         {activeTab === "kategori" && (
@@ -584,6 +628,27 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
                 Pendapatan & Donasi
               </h2>
               <DonationReportCard eventId={eventId} />
+            </div>
+            <div
+              style={{
+                padding: 28,
+                border: "1px solid var(--color-line)",
+                borderRadius: "var(--radius-md)",
+                backgroundColor: "var(--color-surface)",
+              }}
+            >
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: 18,
+                  fontWeight: 600,
+                  marginBottom: 20,
+                  marginTop: 0,
+                }}
+              >
+                Laporan Voucher
+              </h2>
+              <VoucherReportCard eventId={eventId} />
             </div>
             <div
               style={{
@@ -2228,6 +2293,8 @@ function ParticipantsCard({
   const [paymentMethods, setPaymentMethods] = useState<Array<{ id: string; label: string }>>([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [groupVoucherCode, setGroupVoucherCode] = useState("");
+  const [voucherBreakdown, setVoucherBreakdown] = useState<VoucherBreakdownLine[]>([]);
   const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
   const [manualPaymentTarget, setManualPaymentTarget] = useState<ParticipantRow | null>(null);
   const [manualPaymentDrafts, setManualPaymentDrafts] = useState<Record<string, { method: string; paid_at: string; reference: string }>>({});
@@ -2560,7 +2627,9 @@ function ParticipantsCard({
     if (
       !(await confirm({
         title: "Buat tagihan payment?",
-        message: `Aksi akan diproses untuk ${targets.length} peserta yang memenuhi syarat.`,
+        message: groupVoucherCode.trim()
+          ? `Aksi akan diproses untuk ${targets.length} peserta yang memenuhi syarat dengan voucher ${groupVoucherCode.trim().toUpperCase()}. Voucher hanya dipakai peserta yang memenuhi aturan voucher; satu peserta memakai satu kuota.`
+          : `Aksi akan diproses untuk ${targets.length} peserta yang memenuhi syarat.`,
         confirmLabel: "Lanjutkan",
         variant: "primary",
       }))
@@ -2570,23 +2639,37 @@ function ParticipantsCard({
     setErr(null);
     setPaymentOutcomes([]);
     setBulkOutcomes([]);
+    setVoucherBreakdown([]);
+    const voucherCode = groupVoucherCode.trim();
     try {
       const response = await api.post<ApiResponse<PaymentChargeResponse>>(
         `/api/v1/events/${eventId}/participants/payments/charge`,
-        { registration_ids: targets.map((row) => row.id), payment_method: paymentMethod },
+        {
+          registration_ids: targets.map((row) => row.id),
+          payment_method: paymentMethod,
+          ...(voucherCode ? { voucher_code: voucherCode } : {}),
+        },
       );
+      setVoucherBreakdown(response.data.voucher_breakdown ?? []);
+      setGroupVoucherCode("");
+      const voucherSettled = response.data.voucher_settled_count ?? 0;
+      const freeSettled = (response.data.settled_count ?? 0) - voucherSettled;
+      const settledParts = [
+        freeSettled > 0 ? `${freeSettled} peserta dari Daftar Peserta Gratis` : "",
+        voucherSettled > 0 ? `${voucherSettled} peserta yang ditanggung penuh voucher` : "",
+      ].filter(Boolean);
+      const freeMessage = settledParts.length ? ` ${settledParts.join(" dan ")} langsung lunas tanpa payment.` : "";
       if (response.data.status === "settlement") {
-        const message = `${response.data.settled_count ?? targets.length} peserta cocok dengan Daftar Peserta Gratis dan langsung lunas tanpa payment.`;
-        setBulkOutcomes([{ name: "Peserta gratis", success: true, message }]);
+        const message = settledParts.length
+          ? `${settledParts.join(" dan ")} langsung lunas tanpa payment.`
+          : `${targets.length} peserta langsung lunas tanpa payment.`;
+        setBulkOutcomes([{ name: "Peserta lunas", success: true, message }]);
         setEditNotice({ type: "success", message });
       } else {
         const chargedCount = targets.length - (response.data.settled_count ?? 0);
         setPaymentOutcomes([
           { name: `Tagihan gabungan untuk ${chargedCount} peserta`, registrationNumber: "", payment: response.data },
         ]);
-        const freeMessage = response.data.settled_count
-          ? ` ${response.data.settled_count} peserta dari Daftar Peserta Gratis langsung lunas tanpa payment.`
-          : "";
         setBulkOutcomes([
           {
             name: "Pembayaran gabungan",
@@ -2600,7 +2683,7 @@ function ParticipantsCard({
       setLoading(true);
       setReloadTick((value) => value + 1);
     } catch (error) {
-      const message = error instanceof ApiError ? error.message : "Gagal membuat tagihan payment.";
+      const message = error instanceof ApiError ? groupVoucherErrorMessage(error) : "Gagal membuat tagihan payment.";
       setBulkOutcomes([{ name: "Pembayaran gabungan", success: false, message }]);
       setEditNotice({ type: "danger", message });
       setSelectedIds([]);
@@ -3448,6 +3531,17 @@ function ParticipantsCard({
                   </option>
                 ))}
               </select>
+              <input
+                className="field-input"
+                aria-label="Kode voucher (opsional)"
+                placeholder="Kode voucher (opsional)"
+                value={groupVoucherCode}
+                onChange={(event) => setGroupVoucherCode(event.target.value)}
+                maxLength={32}
+                autoCapitalize="characters"
+                spellCheck={false}
+                style={{ maxWidth: 190, fontFamily: "var(--font-mono)", textTransform: "uppercase" }}
+              />
               <Button
                 variant="secondary"
                 size="sm"
@@ -3538,13 +3632,55 @@ function ParticipantsCard({
                 {item.payment.deeplink_url ? ` · ${item.payment.deeplink_url}` : ""}
               </div>
               <div>
-                Harga: Rp {item.payment.quote.price.toLocaleString("id-ID")} · Donasi: Rp{" "}
+                Harga: Rp {item.payment.quote.price.toLocaleString("id-ID")}
+                {item.payment.quote.discount
+                  ? ` (setelah diskon voucher ${item.payment.quote.voucher_code ?? ""} −Rp ${item.payment.quote.discount.toLocaleString("id-ID")})`
+                  : ""}{" "}
+                · Donasi: Rp{" "}
                 {item.payment.quote.donation.toLocaleString("id-ID")} · Fee Platform: Rp{" "}
                 {item.payment.quote.fee_platform.toLocaleString("id-ID")} · Fee Payment: Rp{" "}
                 {item.payment.quote.fee_midtrans.toLocaleString("id-ID")}
               </div>
               <strong>Subtotal: Rp {item.payment.quote.sub_total.toLocaleString("id-ID")}</strong>
             </div>
+          ))}
+        </div>
+      )}
+      {showBulkActions && !isExpiredTable && voucherBreakdown.length > 0 && (
+        <div
+          style={{
+            padding: 14,
+            marginBottom: 14,
+            border: "1px solid var(--color-line)",
+            borderRadius: "var(--radius-sm)",
+            background: "var(--color-surface)",
+          }}
+        >
+          <strong>Pemakaian voucher per peserta</strong>
+          {voucherBreakdown.map((line) => (
+            <p
+              key={line.registration_id}
+              style={{
+                margin: "8px 0 0",
+                fontSize: 13,
+                color: line.applied ? "var(--color-ok)" : "var(--color-ink-3)",
+              }}
+            >
+              {line.name}
+              <span style={{ fontFamily: "var(--font-mono)" }}> · {line.registration_number}</span>
+              {": "}
+              {line.applied ? (
+                <>
+                  diskon{" "}
+                  <span style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
+                    Rp {line.discount.toLocaleString("id-ID")}
+                  </span>
+                  {line.settled ? " · lunas tanpa payment" : ""}
+                </>
+              ) : (
+                `tidak mendapat diskon (${line.reason ? VOUCHER_SKIP_LABELS[line.reason] : "tidak memenuhi syarat"})`
+              )}
+            </p>
           ))}
         </div>
       )}
@@ -4293,6 +4429,173 @@ function RefundMetric({ label, amount }: { label: string; amount: number }) {
           fontVariantNumeric: "tabular-nums",
         }}
       >
+        {formatRupiah(amount)}
+      </div>
+    </div>
+  );
+}
+
+const VOUCHER_REPORT_PREVIEW_ROWS = 10;
+
+const voucherTableCell: React.CSSProperties = {
+  padding: "8px 10px",
+  borderBottom: "1px solid var(--color-line)",
+  textAlign: "left",
+  whiteSpace: "nowrap",
+};
+const voucherMoneyCell: React.CSSProperties = {
+  ...voucherTableCell,
+  textAlign: "right",
+  fontFamily: "var(--font-mono)",
+  fontVariantNumeric: "tabular-nums",
+};
+
+function voucherRuleLabel(v: VoucherReportLine): string {
+  if (v.discount_type === "percent") {
+    return v.max_discount > 0 ? `${v.discount_value}% · maks ${formatRupiah(v.max_discount)}` : `${v.discount_value}%`;
+  }
+  return formatRupiah(v.discount_value);
+}
+
+// VoucherReportCard shows voucher usage and organizer-borne discount; every
+// amount comes from GET /events/{id}/vouchers/report.
+function VoucherReportCard({ eventId }: { eventId: string }) {
+  const [report, setReport] = useState<VoucherReport | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void api
+      .get<ApiResponse<VoucherReport>>(`/api/v1/events/${eventId}/vouchers/report`)
+      .then((res) => {
+        if (!cancelled) setReport(res.data);
+      })
+      .catch((error) => {
+        if (!cancelled) setErr(error instanceof ApiError ? error.message : "Gagal memuat laporan voucher.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  if (err) return <Alert variant="danger">{err}</Alert>;
+  if (!report) return <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 14 }}>Memuat laporan voucher…</p>;
+  if (report.summary.voucher_count === 0) {
+    return (
+      <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 14 }}>
+        Belum ada voucher untuk event ini. Buat voucher di tab Voucher.
+      </p>
+    );
+  }
+
+  const { summary } = report;
+  const redemptions = showAll ? report.redemptions : report.redemptions.slice(0, VOUCHER_REPORT_PREVIEW_ROWS);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+        <VoucherMetric
+          label={`Diskon terealisasi · ${summary.redeemed_count} peserta lunas`}
+          amount={summary.redeemed_discount}
+          color="var(--color-ink)"
+        />
+        <VoucherMetric
+          label={`Menunggu pembayaran · ${summary.reserved_count} peserta`}
+          amount={summary.reserved_discount}
+          color="var(--color-warn)"
+        />
+      </div>
+      <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 12 }}>
+        Diskon voucher ditanggung organizer dan sudah dipotong dari pendapatan tiket. Diskon yang menunggu pembayaran
+        kembali ke kuota bila pembayaran kedaluwarsa.
+      </p>
+
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr style={{ color: "var(--color-ink-3)" }}>
+              <th style={voucherTableCell}>Kode</th>
+              <th style={voucherTableCell}>Diskon</th>
+              <th style={voucherTableCell}>Kuota terpakai</th>
+              <th style={voucherTableCell}>Lunas</th>
+              <th style={voucherTableCell}>Menunggu</th>
+              <th style={{ ...voucherTableCell, textAlign: "right" }}>Diskon terealisasi</th>
+              <th style={voucherTableCell}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {report.vouchers.map((v) => (
+              <tr key={v.id}>
+                <td style={{ ...voucherTableCell, fontFamily: "var(--font-mono)", fontWeight: 600 }}>{v.code}</td>
+                <td style={voucherTableCell}>{voucherRuleLabel(v)}</td>
+                <td style={{ ...voucherTableCell, fontFamily: "var(--font-mono)" }}>
+                  {v.used_count} / {v.quota > 0 ? v.quota : "∞"}
+                </td>
+                <td style={{ ...voucherTableCell, fontFamily: "var(--font-mono)" }}>{v.redeemed_count}</td>
+                <td style={{ ...voucherTableCell, fontFamily: "var(--font-mono)" }}>{v.reserved_count}</td>
+                <td style={voucherMoneyCell}>{formatRupiah(v.redeemed_discount)}</td>
+                <td style={voucherTableCell}>
+                  <Badge variant={v.is_active ? "ok" : "neutral"}>{v.is_active ? "Aktif" : "Nonaktif"}</Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3 style={{ margin: "0 0 10px", fontFamily: "var(--font-display)", fontSize: 16 }}>Pemakaian per peserta</h3>
+        {report.redemptions.length === 0 ? (
+          <p style={{ margin: 0, color: "var(--color-ink-3)", fontSize: 14 }}>Belum ada peserta yang memakai voucher.</p>
+        ) : (
+          <>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ color: "var(--color-ink-3)" }}>
+                    <th style={voucherTableCell}>Peserta</th>
+                    <th style={voucherTableCell}>No. Registrasi</th>
+                    <th style={voucherTableCell}>Kategori tiket</th>
+                    <th style={voucherTableCell}>Voucher</th>
+                    <th style={{ ...voucherTableCell, textAlign: "right" }}>Diskon</th>
+                    <th style={voucherTableCell}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {redemptions.map((r) => (
+                    <tr key={`${r.registration_id}-${r.voucher_code}`}>
+                      <td style={voucherTableCell}>{r.participant_name}</td>
+                      <td style={{ ...voucherTableCell, fontFamily: "var(--font-mono)" }}>{r.registration_number}</td>
+                      <td style={voucherTableCell}>{r.ticket_category_name}</td>
+                      <td style={{ ...voucherTableCell, fontFamily: "var(--font-mono)" }}>{r.voucher_code}</td>
+                      <td style={voucherMoneyCell}>{formatRupiah(r.discount)}</td>
+                      <td style={voucherTableCell}>
+                        <Badge variant={r.status === "redeemed" ? "ok" : "warn"}>
+                          {r.status === "redeemed" ? "Lunas" : "Menunggu pembayaran"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {report.redemptions.length > VOUCHER_REPORT_PREVIEW_ROWS && (
+              <Button variant="ghost" size="sm" onClick={() => setShowAll((value) => !value)} style={{ marginTop: 8 }}>
+                {showAll ? "Tampilkan lebih sedikit" : `Tampilkan semua (${report.redemptions.length})`}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VoucherMetric({ label, amount, color }: { label: string; amount: number; color: string }) {
+  return (
+    <div style={{ padding: 14, border: "1px solid var(--color-line)", borderRadius: "var(--radius-sm)" }}>
+      <div style={{ fontSize: 12, color: "var(--color-ink-3)", marginBottom: 4 }}>{label}</div>
+      <div style={{ color, fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
         {formatRupiah(amount)}
       </div>
     </div>

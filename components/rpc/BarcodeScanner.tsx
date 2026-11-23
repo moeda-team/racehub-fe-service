@@ -4,63 +4,89 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
 import { Camera, ChevronRight, X } from "lucide-react";
 
-const formats = ["qr_code", "code_128", "code_39", "ean_13", "ean_8"];
-
 export default function BarcodeScanner({ onToken }: { onToken: (token: string) => void }) {
   const [open, setOpen] = useState(false);
   const [manual, setManual] = useState("");
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const frameRef = useRef<number | null>(null);
-  const supported = typeof window !== "undefined" && "BarcodeDetector" in window;
+  const stopRef = useRef<(() => void) | null>(null);
 
   const stop = useCallback(() => {
-    if (frameRef.current != null) cancelAnimationFrame(frameRef.current);
-    frameRef.current = null;
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+    const stopScan = stopRef.current;
+    stopRef.current = null;
+    stopScan?.();
   }, []);
 
   useEffect(() => () => stop(), [stop]);
 
-  const startCamera = useCallback(async () => {
+  const startCamera = async () => {
+    stop();
     setCameraError(null);
     setOpen(true);
-    if (!supported) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      const Detector = (window as unknown as {
-        BarcodeDetector: new (options: { formats: string[] }) => {
-          detect: (source: CanvasImageSource) => Promise<Array<{ rawValue: string }>>;
-        };
-      }).BarcodeDetector;
-      const detector = new Detector({ formats });
-      const detectFrame = async () => {
-        if (!videoRef.current) return;
-        try {
-          const codes = await detector.detect(videoRef.current);
-          if (codes[0]?.rawValue) {
-            stop();
-            setOpen(false);
-            onToken(codes[0].rawValue);
-            return;
-          }
-        } catch {
-          // A frame may fail while the camera is focusing; continue scanning.
-        }
-        frameRef.current = requestAnimationFrame(detectFrame);
-      };
-      frameRef.current = requestAnimationFrame(detectFrame);
-    } catch {
-      setCameraError("Tidak bisa mengakses kamera. Masukkan token tiket secara manual.");
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Kamera memerlukan browser yang mendukung akses kamera dan halaman HTTPS. Masukkan token tiket secara manual.");
+      return;
     }
-  }, [onToken, stop, supported]);
+
+    let cancelled = false;
+    let stream: MediaStream | undefined;
+    let stopDecoder: (() => void) | undefined;
+    stopRef.current = () => {
+      cancelled = true;
+      stopDecoder?.();
+      stream?.getTracks().forEach((track) => track.stop());
+    };
+
+    try {
+      const [{ BrowserMultiFormatReader }, { BarcodeFormat }] = await Promise.all([
+        import("@zxing/browser"),
+        import("@zxing/library"),
+      ]);
+      if (cancelled) return;
+
+      const video = videoRef.current;
+      if (!video) throw new Error("Camera preview is unavailable");
+
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      if (cancelled) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      const reader = new BrowserMultiFormatReader();
+      reader.possibleFormats = [
+        BarcodeFormat.QR_CODE,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+      ];
+
+      const controls = await reader.decodeFromStream(stream, video, (result, _, scanControls) => {
+        const token = result?.getText();
+        if (cancelled || !token) return;
+
+        stopDecoder = () => scanControls.stop();
+        stop();
+        setOpen(false);
+        onToken(token);
+      });
+
+      if (cancelled) {
+        if (!stopDecoder) controls.stop();
+      } else {
+        stopDecoder = () => controls.stop();
+      }
+    } catch {
+      if (cancelled) return;
+      stop();
+      setCameraError("Tidak bisa memulai pemindaian. Periksa izin kamera atau masukkan token tiket secara manual.");
+    }
+  };
 
   return (
     <div style={{ marginTop: 12 }}>
@@ -77,9 +103,8 @@ export default function BarcodeScanner({ onToken }: { onToken: (token: string) =
         </button>
       ) : (
         <div style={panelStyle}>
-          {supported && <video ref={videoRef} muted playsInline style={videoStyle} />}
+          {!cameraError && <video ref={videoRef} muted playsInline style={videoStyle} />}
           {cameraError && <p style={errorStyle}>{cameraError}</p>}
-          {!supported && <p style={helpStyle}>Pemindaian kamera tidak didukung perangkat ini. Masukkan token yang tercetak pada tiket:</p>}
           <form onSubmit={(event) => {
             event.preventDefault();
             if (!manual.trim()) return;
@@ -101,6 +126,5 @@ export default function BarcodeScanner({ onToken }: { onToken: (token: string) =
 const panelStyle: React.CSSProperties = { padding: 12, borderRadius: "var(--radius-md)", background: "var(--color-panel)" };
 const videoStyle: React.CSSProperties = { width: "100%", aspectRatio: "1 / 1", objectFit: "cover", borderRadius: "var(--radius-sm)", background: "#000" };
 const errorStyle: React.CSSProperties = { margin: "8px 0", color: "var(--color-danger)", fontSize: 13 };
-const helpStyle: React.CSSProperties = { margin: "0 0 8px", color: "var(--color-ink-3)", fontSize: 13 };
 const inputStyle: React.CSSProperties = { width: "100%", minHeight: 48, padding: "10px 14px", border: "1px solid var(--color-ink-2)", borderRadius: "var(--radius-md)", background: "var(--color-surface)", color: "var(--color-ink)", fontSize: 16 };
 const closeStyle: React.CSSProperties = { marginTop: 10, border: "none", background: "none", color: "var(--color-ink-3)", fontSize: 13, cursor: "pointer" };

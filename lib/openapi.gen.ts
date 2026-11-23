@@ -1688,6 +1688,242 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/events/{id}/vouchers/report": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Voucher finance report for an organizer-owned event
+     * @description Per-voucher usage and organizer-borne discount totals, plus active voucher usage per participant (newest first, at most 500 rows). Only redeemed usage (payment settled) is a realised discount; reserved usage belongs to payments still pending and is reported separately. All amounts are rupiah computed by the backend.
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Voucher report. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["VoucherReport"];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/vouchers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List event discount vouchers
+     * @description Organizer-only. Newest first, with usage counters (used_count = reserved + redeemed, redeemed_count = paid).
+     */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Vouchers of the event. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["EventVoucher"][];
+            };
+          };
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+      };
+    };
+    put?: never;
+    /**
+     * Create an event discount voucher
+     * @description Percent (1-100, optional max_discount cap in rupiah) or fixed rupiah discount on
+     *     ticket price + add-ons. The organizer bears the discount; platform and gateway
+     *     fees are computed on the discounted price. Code is normalized to upper case and
+     *     unique per event. Rejected for finished/cancelled events.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["EventVoucherRequest"];
+        };
+      };
+      responses: {
+        /** @description Created voucher. */
+        201: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["EventVoucher"];
+            };
+          };
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Code already exists for the event (code voucher_code_taken) or the event is locked. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/events/{id}/vouchers/{voucherId}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Update an event discount voucher
+     * @description Replaces all editable fields. quota must be 0 (unlimited) or at least used_count.
+     */
+    put: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          voucherId: string;
+        };
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["EventVoucherRequest"];
+        };
+      };
+      responses: {
+        /** @description Updated voucher. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["EventVoucher"];
+            };
+          };
+        };
+        400: components["responses"]["BadRequest"];
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Code already exists for the event (code voucher_code_taken) or the event is locked. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    post?: never;
+    /**
+     * Delete an event discount voucher
+     * @description Only vouchers with no reserved or redeemed usage can be deleted; otherwise deactivate them (is_active=false).
+     */
+    delete: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+          voucherId: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Deleted. */
+        204: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        401: components["responses"]["Unauthorized"];
+        403: components["responses"]["Forbidden"];
+        404: components["responses"]["NotFound"];
+        /** @description Voucher has usage (code voucher_in_use) or the event is locked. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+      };
+    };
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/admin/login": {
     parameters: {
       query?: never;
@@ -2399,9 +2635,23 @@ export interface paths {
         404: components["responses"]["NotFound"];
         /**
          * @description Registration already paid, status does not allow payment
-         *     (expired/cancelled/refunded), or a pending payment already exists.
+         *     (expired/cancelled/refunded), a pending payment already exists, or the
+         *     voucher is unavailable (code voucher_exhausted / voucher_already_used).
          */
         409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /**
+         * @description Voucher cannot be used. code is one of voucher_not_found, voucher_inactive,
+         *     voucher_not_started, voucher_expired, voucher_not_applicable (ticket category
+         *     not covered, or complimentary registration).
+         */
+        422: {
           headers: {
             [name: string]: unknown;
           };
@@ -2433,6 +2683,11 @@ export interface paths {
      *     provider transaction id plus payment instructions (VA number / QR).
      *     Blocked when a pending payment already exists for the registration
      *     (to prevent double-credit on the organizer wallet).
+     *     With voucher_code the voucher usage is reserved atomically before the provider
+     *     call (released if the charge fails or the payment expires, redeemed on
+     *     settlement). When the discounted total (price + donation + fee_platform) is 0,
+     *     no provider transaction is created: the response has status settlement,
+     *     payment_method "voucher", sub_total 0, and the e-ticket is issued immediately.
      */
     post: {
       parameters: {
@@ -2447,7 +2702,7 @@ export interface paths {
         };
       };
       responses: {
-        /** @description Payment created (status pending). */
+        /** @description Payment created (status pending), or settled immediately for a Rp0 voucher total. */
         201: {
           headers: {
             [name: string]: unknown;
@@ -2468,8 +2723,21 @@ export interface paths {
           };
         };
         404: components["responses"]["NotFound"];
-        /** @description Registration already paid, has a pending payment, or its status does not allow a new charge. */
+        /** @description Registration already paid, has a pending payment, its status does not allow a new charge, or the voucher is unavailable (voucher_exhausted / voucher_already_used). */
         409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["ErrorResponse"];
+          };
+        };
+        /**
+         * @description Voucher cannot be used. code is one of voucher_not_found, voucher_inactive,
+         *     voucher_not_started, voucher_expired, voucher_not_applicable (ticket category
+         *     not covered, or complimentary registration).
+         */
+        422: {
           headers: {
             [name: string]: unknown;
           };
@@ -3806,6 +4074,47 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/events/{id}/recap/addons": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Paid registration counts per complete add-on answer combination */
+    get: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path: {
+          id: string;
+        };
+        cookie?: never;
+      };
+      requestBody?: never;
+      responses: {
+        /** @description Counts complete combinations of selected add-on answers per paid registration. The name field contains the sorted snapshot labels joined with " + ". */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              data?: components["schemas"]["AddonRecapRow"][];
+            };
+          };
+        };
+        403: components["responses"]["Forbidden"];
+      };
+    };
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/events/{id}/participants": {
     parameters: {
       query?: never;
@@ -3881,7 +4190,7 @@ export interface paths {
       };
       requestBody?: never;
       responses: {
-        /** @description Editable participant profile and configured registration fields. */
+        /** @description Editable participant profile, configured registration fields, and selected add-ons. */
         200: {
           headers: {
             [name: string]: unknown;
@@ -3911,7 +4220,7 @@ export interface paths {
     head?: never;
     /**
      * Correct one paid or pending participant's profile data
-     * @description Updates identity, contact, demographic, and configured registration-answer fields only. Payment, ticket, category, BIB, refund, donation, and check-in data are not editable. The update and encrypted audit diff are committed atomically.
+     * @description Updates identity, contact, demographic, configured registration answers, and selected add-ons. For a paid participant, add-on price differences are returned for separate manual settlement; payment records are not changed. The update and encrypted audit diff are committed atomically.
      */
     patch: {
       parameters: {
@@ -3936,6 +4245,8 @@ export interface paths {
             extra_data: {
               [key: string]: string;
             };
+            /** @description New option ID for each configured add-on group. If omitted, the existing selection is retained. */
+            addon_option_ids?: string[];
           };
         };
       };
@@ -4099,21 +4410,27 @@ export interface paths {
         content: {
           "application/json": {
             payment_method: string;
+            /** @description Optional event voucher code (case-insensitive), same rules as POST /payments/charge. Ignored when the participant matches the free list (ticket price already waived). */
+            voucher_code?: string;
           };
         };
       };
       responses: {
-        /** @description Provider payment instructions created. */
+        /** @description Provider payment instructions created, or settled immediately (free-list participant or Rp0 voucher total). */
         201: {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PaymentChargeResponse"];
+            };
+          };
         };
         401: components["responses"]["Unauthorized"];
         403: components["responses"]["Forbidden"];
         404: components["responses"]["NotFound"];
-        /** @description Registration already paid */
+        /** @description Registration already paid, expired, already has a pending payment, or the voucher is unavailable (voucher_inactive / voucher_expired / voucher_not_started / voucher_not_applicable / voucher_exhausted / voucher_already_used). */
         409: {
           headers: {
             [name: string]: unknown;
@@ -4140,6 +4457,8 @@ export interface paths {
     /**
      * Create one payment for multiple organizer-owned participants
      * @description Creates one provider transaction for the billable subset of 1–100 selected pending or expired registrations. Expired registrations are reactivated atomically only when ticket/category quota remains and ticket sales are open. Unclaimed free-list invitations are claimed at charge time; zero-donation participants settle directly and are counted in settled_count, while invitations with donations are charged for the donation with ticket price and platform fee waived. No email is sent automatically.
+     *
+     *     With voucher_code, one voucher usage is taken per discounted participant, reserved for the whole batch in one all-or-nothing step before the provider call; if the remaining quota is smaller than the number of discounted participants the whole charge is rejected (voucher_exhausted). Ticket-category restriction and once-per-email are evaluated per participant: participants the voucher does not apply to (other ticket category, email already used, same email earlier in the batch, free-list invitation) are billed at full price and reported in voucher_breakdown with a reason. The charge is rejected (voucher_not_applicable, or voucher_already_used when every skip was email-based) when the voucher discounts nobody. Participants whose discounted total is Rp0 are settled without the provider and counted in settled_count and voucher_settled_count. An unknown, inactive or out-of-window code fails before any reactivation or free-list claim.
      */
     post: {
       parameters: {
@@ -4155,16 +4474,22 @@ export interface paths {
           "application/json": {
             registration_ids: string[];
             payment_method: string;
+            /** @description Optional event voucher code (case-insensitive) applied per participant. */
+            voucher_code?: string;
           };
         };
       };
       responses: {
-        /** @description One provider payment instruction for all selected registrations. */
+        /** @description One provider payment instruction for all selected registrations still billable, or status settlement when every participant was settled directly. */
         201: {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              data?: components["schemas"]["PaymentChargeResponse"];
+            };
+          };
         };
         400: components["responses"]["BadRequest"];
         401: components["responses"]["Unauthorized"];
@@ -5086,6 +5411,11 @@ export interface components {
     ErrorResponse: {
       /** @example service unavailable */
       error: string;
+      /**
+       * @description Stable machine-readable reason, present on voucher errors (e.g. voucher_expired).
+       * @example voucher_expired
+       */
+      code?: string;
     };
     OrganizerProfile: {
       /** Format: uuid */
@@ -5257,6 +5587,19 @@ export interface components {
     RegistrationAddonOption: {
       /** Format: uuid */
       id: string;
+      name: string;
+      /**
+       * Format: int64
+       * @description Rupiah.
+       */
+      price: number;
+    };
+    /** @description Add-on option snapshot stored on a registration. */
+    SelectedRegistrationAddon: {
+      /** Format: uuid */
+      id: string;
+      /** @description Add-on group title. */
+      title: string;
       name: string;
       /**
        * Format: int64
@@ -5450,6 +5793,8 @@ export interface components {
       registration_id: string;
       /** @description Live iPaymu channel id, e.g. va:bca or ewallet:dana. */
       payment_method: string;
+      /** @description Optional event voucher code (case-insensitive). */
+      voucher_code?: string;
     };
     /** @description Fee breakdown (display only). All rupiah int64. The standalone quote is an estimate; the same structure inside a charge response contains provider-confirmed final amounts. iPaymu buyer-paid gateway fees are included in sub_total. */
     PaymentQuoteResponse: {
@@ -5496,14 +5841,24 @@ export interface components {
        * @description Final amount charged to the buyer, including gateway fee.
        */
       sub_total?: number;
+      /** @description Channel id, or "voucher" for a Rp0 total settled without the gateway. */
       payment_method?: string;
       payment_method_label?: string;
+      /**
+       * Format: int64
+       * @description Voucher discount on ticket + add-ons, already subtracted from price (organizer-borne). 0 without voucher.
+       */
+      discount?: number;
+      /** @description Applied voucher code; omitted without voucher. */
+      voucher_code?: string;
     };
     PaymentChargeRequest: {
       /** Format: uuid */
       registration_id: string;
       /** @description Live iPaymu channel id. */
       payment_method: string;
+      /** @description Optional event voucher code (case-insensitive). */
+      voucher_code?: string;
     };
     /** @description Payment instructions with the provider-confirmed final fee and total in quote. An organizer charge can instead settle a free-list participant directly; settled_count reports such participants, without creating a payment. */
     PaymentChargeResponse: {
@@ -5533,6 +5888,30 @@ export interface components {
       /** @description iPaymu hosted payment or instruction URL. */
       payment_url?: string;
       quote?: components["schemas"]["PaymentQuoteResponse"];
+      /** @description Collective organizer charge only. Participants fully covered by the voucher and settled without a provider payment (also included in settled_count). */
+      voucher_settled_count?: number;
+      /** @description Collective organizer charge with voucher_code only. Voucher outcome per billed participant, in charge order. */
+      voucher_breakdown?: components["schemas"]["VoucherBreakdownLine"][];
+    };
+    VoucherBreakdownLine: {
+      /** Format: uuid */
+      registration_id: string;
+      registration_number: string;
+      name: string;
+      /** @description True when this participant got the voucher discount. */
+      applied: boolean;
+      /**
+       * Format: int64
+       * @description Discount in rupiah on ticket + add-ons; 0 when not applied.
+       */
+      discount: number;
+      /** @description True when the discount covered everything and the participant was settled without the provider. */
+      settled?: boolean;
+      /**
+       * @description Why the voucher was not applied; omitted when applied.
+       * @enum {string}
+       */
+      reason?: "ticket_category" | "email_already_used" | "duplicate_email" | "complimentary" | "zero_price";
     };
     PaymentMethodOption: {
       id?: string;
@@ -5567,6 +5946,13 @@ export interface components {
       addons?: (components["schemas"]["RegistrationAddonOption"] & {
         title?: string;
       })[];
+      /**
+       * Format: int64
+       * @description Voucher discount on ticket + add-ons, already subtracted from price (organizer-borne). 0 without voucher.
+       */
+      discount?: number;
+      /** @description Applied voucher code; omitted without voucher. */
+      voucher_code?: string;
       /** Format: int64 */
       donation?: number;
       /** Format: int64 */
@@ -6120,6 +6506,17 @@ export interface components {
       /** Format: int64 */
       total?: number;
     };
+    /** @description Paid registration count for a complete combination of snapshotted add-on answers. */
+    AddonRecapRow: {
+      /** @description Reserved for compatibility; empty for combination rows. */
+      id?: string;
+      /** @description Empty for combination rows. */
+      title?: string;
+      /** @description Complete add-on answers */
+      name?: string;
+      /** Format: int64 */
+      total?: number;
+    };
     /** @description Participant table row (FR-1202), without PII. */
     ParticipantRow: {
       /** Format: uuid */
@@ -6164,16 +6561,158 @@ export interface components {
       extra_data?: {
         [key: string]: string;
       };
+      addons?: components["schemas"]["SelectedRegistrationAddon"][];
+      /** Format: int64 */
+      addon_total?: number;
       fields?: components["schemas"]["ParticipantEditableField"][];
     };
     ParticipantUpdateResult: components["schemas"]["ParticipantEditableData"] & {
       changed?: boolean;
+      /**
+       * Format: int64
+       * @description Add-on price change computed by the server. Positive means separately collect; negative means separately return.
+       */
+      addon_price_delta?: number;
     };
     /**
      * Format: int64
      * @description Monetary amount in whole Indonesian Rupiah. Never use float.
      */
     Rupiah: number;
+    EventVoucherRequest: {
+      /** @description Normalized to upper case; unique per event. */
+      code: string;
+      description?: string;
+      /** @enum {string} */
+      discount_type: "percent" | "fixed";
+      /**
+       * Format: int64
+       * @description percent: 1-100; fixed: rupiah > 0.
+       */
+      discount_value: number;
+      /**
+       * Format: int64
+       * @description percent only: rupiah cap, 0 = no cap. Must be 0 for fixed.
+       */
+      max_discount?: number;
+      /**
+       * Format: int32
+       * @description Total usages, 0 = unlimited.
+       */
+      quota?: number;
+      /**
+       * @description One reserved/paid usage per participant email.
+       * @default true
+       */
+      once_per_email: boolean;
+      /** @description Ticket categories of this event the voucher applies to; empty = all. */
+      ticket_category_ids?: string[];
+      /** Format: date-time */
+      starts_at?: string | null;
+      /**
+       * Format: date-time
+       * @description Exclusive; must be after starts_at.
+       */
+      ends_at?: string | null;
+      /** @default true */
+      is_active: boolean;
+    };
+    VoucherReport: {
+      summary: {
+        voucher_count: number;
+        /** @description Usages on settled payments. */
+        redeemed_count: number;
+        /** @description Usages held by pending payments. */
+        reserved_count: number;
+        /**
+         * Format: int64
+         * @description Realised organizer-borne discount (rupiah).
+         */
+        redeemed_discount: number;
+        /**
+         * Format: int64
+         * @description Discount on payments still pending (rupiah).
+         */
+        reserved_discount: number;
+      };
+      vouchers: {
+        /** Format: uuid */
+        id: string;
+        code: string;
+        description?: string;
+        /** @enum {string} */
+        discount_type: "percent" | "fixed";
+        /** Format: int64 */
+        discount_value: number;
+        /** Format: int64 */
+        max_discount?: number;
+        /** @description 0 = unlimited. */
+        quota: number;
+        /** @description Reserved + redeemed usages. */
+        used_count: number;
+        is_active: boolean;
+        redeemed_count: number;
+        reserved_count: number;
+        /** Format: int64 */
+        redeemed_discount: number;
+        /** Format: int64 */
+        reserved_discount: number;
+      }[];
+      redemptions: {
+        voucher_code: string;
+        /** Format: uuid */
+        registration_id: string;
+        registration_number: string;
+        participant_name: string;
+        ticket_category_name: string;
+        /** Format: int64 */
+        discount: number;
+        /**
+         * @description reserved = payment pending; redeemed = paid.
+         * @enum {string}
+         */
+        status: "reserved" | "redeemed";
+        /** Format: date-time */
+        updated_at: string;
+      }[];
+    };
+    EventVoucher: {
+      /** Format: uuid */
+      id?: string;
+      /** Format: uuid */
+      event_id?: string;
+      code?: string;
+      description?: string;
+      /** @enum {string} */
+      discount_type?: "percent" | "fixed";
+      /** Format: int64 */
+      discount_value?: number;
+      /** Format: int64 */
+      max_discount?: number;
+      /** Format: int32 */
+      quota?: number;
+      /**
+       * Format: int32
+       * @description Reserved (pending payment) + redeemed usages.
+       */
+      used_count?: number;
+      /**
+       * Format: int32
+       * @description Usages on settled payments.
+       */
+      redeemed_count?: number;
+      once_per_email?: boolean;
+      ticket_category_ids?: string[];
+      /** Format: date-time */
+      starts_at?: string | null;
+      /** Format: date-time */
+      ends_at?: string | null;
+      is_active?: boolean;
+      /** Format: date-time */
+      created_at?: string;
+      /** Format: date-time */
+      updated_at?: string;
+    };
   };
   responses: {
     /** @description Invalid request. */

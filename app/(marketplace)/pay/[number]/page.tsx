@@ -17,6 +17,7 @@ import type {
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Badge from "@/components/ui/Badge";
+import Field from "@/components/ui/Field";
 import PaymentBreakdown from "@/components/ui/PaymentBreakdown";
 
 type StatusVariant = "warn" | "ok" | "danger" | "neutral";
@@ -54,6 +55,12 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   const [resumedPayment, setResumedPayment] = useState(false);
   const [charging, setCharging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Voucher: the backend validates the code and returns the discount inside
+  // the quote; the page never computes the discounted amount itself.
+  const [voucherInput, setVoucherInput] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<string | null>(null);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
 
   const loadRegistration = useCallback(async () => {
     const res = await api.get<ApiResponse<Registration>>(`/api/v1/registrations/${number}`);
@@ -104,6 +111,14 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
     return () => clearInterval(id);
   }, [charge, reg?.status, loadRegistration]);
 
+  function requestQuote(registrationId: string, paymentMethod: string, voucherCode: string | null) {
+    return api.post<ApiResponse<PaymentQuoteResponse>>("/api/v1/payments/quote", {
+      registration_id: registrationId,
+      payment_method: paymentMethod,
+      ...(voucherCode ? { voucher_code: voucherCode } : {}),
+    });
+  }
+
   async function handleMethodChange(value: string) {
     const m = value as PaymentMethod | "";
     setMethod(m);
@@ -112,10 +127,60 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
     if (!m || !reg) return;
     setQuoting(true);
     try {
-      const res = await api.post<ApiResponse<PaymentQuoteResponse>>("/api/v1/payments/quote", {
-        registration_id: reg.id,
-        payment_method: m,
-      });
+      const res = await requestQuote(reg.id, m, appliedVoucher);
+      setQuote(res.data);
+    } catch (err) {
+      if (appliedVoucher && isVoucherError(err)) {
+        // The voucher stopped being usable (e.g. quota ran out): drop it and
+        // show the regular price so the participant can still pay.
+        setAppliedVoucher(null);
+        setVoucherError(err.message);
+        try {
+          const res = await requestQuote(reg.id, m, null);
+          setQuote(res.data);
+        } catch (retryErr) {
+          setError(retryErr instanceof ApiError ? retryErr.message : "Gagal mengambil rincian biaya.");
+        }
+      } else {
+        setError(err instanceof ApiError ? err.message : "Gagal mengambil rincian biaya.");
+      }
+    } finally {
+      setQuoting(false);
+    }
+  }
+
+  async function handleApplyVoucher() {
+    if (!reg) return;
+    const code = voucherInput.trim().toUpperCase();
+    setVoucherError(null);
+    if (!code) {
+      setVoucherError("Masukkan kode voucher.");
+      return;
+    }
+    if (!method) {
+      setVoucherError("Pilih metode pembayaran terlebih dulu, lalu pakai voucher.");
+      return;
+    }
+    setApplyingVoucher(true);
+    try {
+      const res = await requestQuote(reg.id, method, code);
+      setQuote(res.data);
+      setAppliedVoucher(res.data.voucher_code ?? code);
+      setVoucherInput("");
+    } catch (err) {
+      setVoucherError(err instanceof ApiError ? err.message : "Voucher tidak dapat digunakan.");
+    } finally {
+      setApplyingVoucher(false);
+    }
+  }
+
+  async function handleRemoveVoucher() {
+    setAppliedVoucher(null);
+    setVoucherError(null);
+    if (!reg || !method) return;
+    setQuoting(true);
+    try {
+      const res = await requestQuote(reg.id, method, null);
       setQuote(res.data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Gagal mengambil rincian biaya.");
@@ -132,11 +197,29 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
       const res = await api.post<ApiResponse<PaymentChargeResponse>>("/api/v1/payments/charge", {
         registration_id: reg.id,
         payment_method: method,
+        ...(appliedVoucher ? { voucher_code: appliedVoucher } : {}),
       });
+      if (res.data.status === "settlement") {
+        // Fully covered by the voucher: the backend already marked the
+        // registration paid and issued the e-ticket.
+        setReg(await loadRegistration());
+        return;
+      }
       setCharge(res.data);
       setResumedPayment(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal memulai pembayaran.");
+      if (appliedVoucher && isVoucherError(err)) {
+        setAppliedVoucher(null);
+        setVoucherError(`${err.message}. Voucher dilepas, silakan periksa ulang rincian biaya.`);
+        try {
+          const res = await requestQuote(reg.id, method, null);
+          setQuote(res.data);
+        } catch {
+          setQuote(null);
+        }
+      } else {
+        setError(err instanceof ApiError ? err.message : "Gagal memulai pembayaran.");
+      }
     } finally {
       setCharging(false);
     }
@@ -212,6 +295,7 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
   }
 
   // Build the breakdown lines (display only, from /quote).
+  const coveredByVoucher = !!quote && !!appliedVoucher && quote.sub_total === 0;
   const lines = quote
     ? [
         {
@@ -223,6 +307,14 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           label: `${addon.title}: ${addon.name}`,
           value: formatRupiah(addon.price),
         })),
+        ...((quote.discount ?? 0) > 0
+          ? [
+              {
+                label: quote.voucher_code ? `Diskon Voucher (${quote.voucher_code})` : "Diskon Voucher",
+                value: `-${formatRupiah(quote.discount)}`,
+              },
+            ]
+          : []),
         ...(quote.donation > 0 ? [{ label: "Donasi", value: formatRupiah(quote.donation) }] : []),
         {
           label: "Platform",
@@ -318,14 +410,36 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
             ⛁ Pilih metode dulu untuk melihat estimasi biaya transaksi. Nominal final mengikuti konfirmasi provider
             setelah pembayaran dibuat.
           </p>
+          {!reg.is_complimentary && (
+            <VoucherBox
+              input={voucherInput}
+              onInputChange={setVoucherInput}
+              applied={appliedVoucher}
+              error={voucherError}
+              busy={applyingVoucher || quoting || charging}
+              onApply={handleApplyVoucher}
+              onRemove={handleRemoveVoucher}
+            />
+          )}
+          {coveredByVoucher && (
+            <Alert variant="info" className="mb-3">
+              Total pembayaran Rp 0 karena voucher. E-tiket langsung terbit setelah Anda konfirmasi.
+            </Alert>
+          )}
           <Button
             variant="primary"
             size="md"
             style={{ width: "100%" }}
-            disabled={!quote || quoting || charging}
+            disabled={!quote || quoting || charging || applyingVoucher}
             onClick={handleCharge}
           >
-            {quoting ? "Menghitung…" : charging ? "Memproses…" : "Bayar Sekarang"}
+            {quoting
+              ? "Menghitung…"
+              : charging
+                ? "Memproses…"
+                : coveredByVoucher
+                  ? "Konfirmasi & Terbitkan E-tiket"
+                  : "Bayar Sekarang"}
           </Button>
         </>
       ) : (
@@ -377,6 +491,13 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
           {(charge.quote.addons ?? reg.addons ?? []).map((addon) => (
             <Row key={addon.id} label={`${addon.title}: ${addon.name}`} value={formatRupiah(addon.price)} mono />
           ))}
+          {(charge.quote.discount ?? 0) > 0 && (
+            <Row
+              label={charge.quote.voucher_code ? `Diskon Voucher (${charge.quote.voucher_code})` : "Diskon Voucher"}
+              value={`-${formatRupiah(charge.quote.discount)}`}
+              mono
+            />
+          )}
           {charge.quote.donation > 0 && <Row label="Donasi" value={formatRupiah(charge.quote.donation)} mono />}
           <Row
             label="Platform"
@@ -413,6 +534,60 @@ export default function PayPage({ params }: { params: Promise<{ number: string }
         </div>
       )}
     </main>
+  );
+}
+
+function isVoucherError(err: unknown): err is ApiError {
+  return err instanceof ApiError && !!err.reason?.startsWith("voucher_");
+}
+
+interface VoucherBoxProps {
+  input: string;
+  onInputChange: (value: string) => void;
+  applied: string | null;
+  error: string | null;
+  busy: boolean;
+  onApply: () => void;
+  onRemove: () => void;
+}
+
+function VoucherBox({ input, onInputChange, applied, error, busy, onApply, onRemove }: VoucherBoxProps) {
+  if (applied) {
+    return (
+      <div style={{ ...card, marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12, color: "var(--color-ink-3)" }}>Voucher dipakai</div>
+          <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>{applied}</div>
+        </div>
+        <Button variant="ghost" size="sm" type="button" disabled={busy} onClick={onRemove}>
+          Hapus
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <form
+      style={{ marginBottom: 16, display: "flex", gap: 8, alignItems: "flex-start" }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        onApply();
+      }}
+    >
+      <Field
+        label="Kode Voucher (opsional)"
+        className="flex-1"
+        value={input}
+        maxLength={32}
+        autoComplete="off"
+        autoCapitalize="characters"
+        placeholder="Contoh: HEMAT10"
+        error={error ?? undefined}
+        onChange={(e) => onInputChange(e.target.value.toUpperCase())}
+      />
+      <Button variant="secondary" size="md" type="submit" disabled={busy} style={{ marginTop: 24 }}>
+        Pakai
+      </Button>
+    </form>
   );
 }
 

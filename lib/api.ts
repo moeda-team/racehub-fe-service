@@ -21,6 +21,9 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
+    // Stable machine-readable reason from the backend `code` field (e.g.
+    // voucher_expired). `code` keeps the raw error string for older callers.
+    public reason?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -72,6 +75,7 @@ async function request<T>(
     let errorBody: {
       error?: string;
       message?: string;
+      code?: string;
     } = {};
     try {
       errorBody = await res.json();
@@ -84,6 +88,7 @@ async function request<T>(
       translateApiError(
         errorBody.error ?? errorBody.message ?? `HTTP ${res.status}`,
       ),
+      errorBody.code,
     );
   }
 

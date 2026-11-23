@@ -387,6 +387,8 @@ export type RegistrationStatus =
 export interface PaymentQuoteRequest {
   registration_id: string;
   payment_method: string;
+  /** Optional event voucher code (case-insensitive). */
+  voucher_code?: string;
 }
 
 export interface PaymentQuoteResponse {
@@ -402,6 +404,9 @@ export interface PaymentQuoteResponse {
   sub_total: number;
   payment_method: string;
   payment_method_label: string;
+  /** Voucher discount, already subtracted from price by the backend. */
+  discount?: number;
+  voucher_code?: string;
   original_price?: number;
   original_fee_platform?: number;
 }
@@ -417,6 +422,7 @@ export interface PaymentMethodOption {
 export interface PaymentChargeRequest {
   registration_id: string;
   payment_method: PaymentMethod;
+  voucher_code?: string;
 }
 
 export interface PaymentChargeResponse {
@@ -432,12 +438,127 @@ export interface PaymentChargeResponse {
   deeplink_url?: string;
   payment_url?: string;
   quote: PaymentQuoteResponse;
+  /** Collective organizer charge: participants fully covered by the voucher, settled without payment (also in settled_count). */
+  voucher_settled_count?: number;
+  /** Collective organizer charge with voucher_code: voucher outcome per billed participant. */
+  voucher_breakdown?: VoucherBreakdownLine[];
+}
+
+/** Why a participant of a collective charge did not get the voucher. */
+export type VoucherSkipReason =
+  | "ticket_category"
+  | "email_already_used"
+  | "duplicate_email"
+  | "complimentary"
+  | "zero_price";
+
+export interface VoucherBreakdownLine {
+  registration_id: string;
+  registration_number: string;
+  name: string;
+  applied: boolean;
+  /** Rupiah, computed by the backend; 0 when not applied. */
+  discount: number;
+  settled?: boolean;
+  reason?: VoucherSkipReason;
+}
+
+/** GET /events/{id}/vouchers/report — all rupiah amounts computed by the backend. */
+export interface VoucherReportSummary {
+  voucher_count: number;
+  /** Usages on settled payments. */
+  redeemed_count: number;
+  /** Usages held by pending payments. */
+  reserved_count: number;
+  /** Realised organizer-borne discount. */
+  redeemed_discount: number;
+  /** Discount on payments still pending. */
+  reserved_discount: number;
+}
+
+export interface VoucherReportLine {
+  id: string;
+  code: string;
+  description: string;
+  discount_type: VoucherDiscountType;
+  discount_value: number;
+  max_discount: number;
+  /** 0 = unlimited. */
+  quota: number;
+  used_count: number;
+  is_active: boolean;
+  redeemed_count: number;
+  reserved_count: number;
+  redeemed_discount: number;
+  reserved_discount: number;
+}
+
+export interface VoucherReportRedemption {
+  voucher_code: string;
+  registration_id: string;
+  registration_number: string;
+  participant_name: string;
+  ticket_category_name: string;
+  discount: number;
+  status: "reserved" | "redeemed";
+  updated_at: string;
+}
+
+export interface VoucherReport {
+  summary: VoucherReportSummary;
+  vouchers: VoucherReportLine[];
+  redemptions: VoucherReportRedemption[];
 }
 
 export interface NotificationResult {
   transaction_id: string;
   status: string;
   already_processed: boolean;
+}
+
+// === Event vouchers ===
+
+export type VoucherDiscountType = "percent" | "fixed";
+
+/** Request body for POST/PUT /events/{id}/vouchers. */
+export interface EventVoucherRequest {
+  code: string;
+  description?: string;
+  discount_type: VoucherDiscountType;
+  /** percent: 1-100; fixed: rupiah. */
+  discount_value: number;
+  /** percent only: rupiah cap, 0 = no cap. */
+  max_discount?: number;
+  /** 0 = unlimited. */
+  quota?: number;
+  once_per_email?: boolean;
+  /** Empty = every ticket category of the event. */
+  ticket_category_ids?: string[];
+  starts_at?: string | null;
+  ends_at?: string | null;
+  is_active?: boolean;
+}
+
+export interface EventVoucher {
+  id: string;
+  event_id: string;
+  code: string;
+  description: string;
+  discount_type: VoucherDiscountType;
+  discount_value: number;
+  max_discount: number;
+  quota: number;
+  /** Reserved (pending payment) + redeemed usages. */
+  used_count: number;
+  /** Usages on settled payments. */
+  redeemed_count: number;
+  once_per_email: boolean;
+  ticket_category_ids: string[];
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // === E-ticket / Invoice (F7, FR-705) ===
@@ -448,6 +569,8 @@ export interface InvoiceBreakdown {
   price: number;
   ticket_price?: number;
   addons?: SelectedRegistrationAddon[];
+  discount?: number;
+  voucher_code?: string;
   donation: number;
   fee_platform: number;
   fee_midtrans: number;
