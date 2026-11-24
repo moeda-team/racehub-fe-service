@@ -15,6 +15,7 @@ interface EventCardProps {
   href?: string;
   className?: string;
   comingSoon?: boolean;
+  finished?: boolean;
 }
 
 export default function EventCard({
@@ -28,6 +29,7 @@ export default function EventCard({
   href,
   className = "",
   comingSoon = false,
+  finished = false,
 }: EventCardProps) {
   // Header priority: banner image → organizer color → default flame gradient
   // (.evcard-top CSS). A dark scrim keeps text readable over images.
@@ -43,7 +45,7 @@ export default function EventCard({
 
   const content = (
     <TicketCard
-      className={`evcard ${comingSoon ? "evcard-coming-soon" : ""} ${className}`}
+      className={`evcard ${comingSoon ? "evcard-coming-soon" : ""} ${finished ? "evcard-finished" : ""} ${className}`}
       perforated
       notchPosition="69%"
     >
@@ -57,6 +59,11 @@ export default function EventCard({
             <Badge variant="warn">Segera Hadir</Badge>
           </div>
         )}
+        {finished && (
+          <div className="evcard-coming-soon-ribbon">
+            <Badge variant="neutral">Selesai</Badge>
+          </div>
+        )}
         <div className="evcard-meta"><MapPin size={14} aria-hidden /> {location}</div>
         <div className="evcard-pills">
           {distances.map((d) => (
@@ -64,7 +71,7 @@ export default function EventCard({
           ))}
         </div>
         <div className="evcard-foot">
-          {!comingSoon && (
+          {!comingSoon && !finished && (
             <div>
               <div className="evcard-price-k">Mulai dari</div>
               <div className="evcard-price-v">{price}</div>
@@ -73,6 +80,11 @@ export default function EventCard({
           {comingSoon && (
             <div className="evcard-coming-soon-status">
               Pendaftaran segera dibuka
+            </div>
+          )}
+          {finished && (
+            <div className="evcard-coming-soon-status" style={{ color: "var(--color-ink-3)" }}>
+              Event telah selesai
             </div>
           )}
         </div>
@@ -85,7 +97,7 @@ export default function EventCard({
       <Link
         href={href}
         className="block"
-        aria-label={`${title}${comingSoon ? ", Segera Hadir" : ""}`}
+        aria-label={`${title}${comingSoon ? ", Segera Hadir" : ""}${finished ? ", Selesai" : ""}`}
       >
         {content}
       </Link>

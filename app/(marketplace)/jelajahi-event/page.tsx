@@ -200,6 +200,7 @@ export default function MarketplacePage() {
                   bannerUrl={ev.banner_url}
                   color={ev.color || undefined}
                   comingSoon={ev.status === "coming_soon"}
+                  finished={ev.status === "finished"}
                 />
               ))}
             </div>

@@ -451,7 +451,7 @@ export interface paths {
         /**
          * List events
          * @description If authenticated as organizer, returns the organizer's own events (all statuses).
-         *     If not authenticated, returns published events only (public marketplace, FR-303/1001)
+         *     If not authenticated, returns published, coming-soon, and finished events (public marketplace, FR-303/1001)
          *     with optional filters (FR-1002).
          */
         get: {
@@ -547,7 +547,7 @@ export interface paths {
          * Get event detail
          * @description The owning organizer receives the full EventDetail (all statuses, incl.
          *     review fields). Everyone else receives the PublicEventDetail and only for
-         *     published events; non-published events return 404 (FR-303/1003).
+         *     published, coming-soon, or finished events; non-public events return 404 (FR-303/1003).
          */
         get: {
             parameters: {
@@ -5576,7 +5576,7 @@ export interface components {
             /** Format: date-time */
             event_date?: string | null;
             /** @enum {string} */
-            status?: "coming_soon" | "published";
+            status?: "coming_soon" | "published" | "finished";
             is_running_event?: boolean;
             /**
              * @deprecated
@@ -6131,7 +6131,7 @@ export interface components {
             ticket_revenue?: number;
             /**
              * Format: int64
-             * @description Ticket revenue after refunds (gross minus refunded ticket prices); matches the finance recap total.
+             * @description Ticket revenue of registrations still paid (refunded ones excluded); always equals the finance recap net total.
              */
             ticket_revenue_net?: number;
             /** Format: int64 */
@@ -6537,7 +6537,7 @@ export interface components {
             paid_count?: number;
             /** @description Gross credited ticket revenue, including registrations refunded later. */
             ticket_revenue?: components["schemas"]["Rupiah"];
-            /** @description Ticket revenue after refunds (gross minus refunded ticket prices); matches the finance recap total. */
+            /** @description Ticket revenue of registrations still paid (refunded ones excluded); always equals the finance recap net total. */
             ticket_revenue_net?: components["schemas"]["Rupiah"];
             donation_total?: components["schemas"]["Rupiah"];
             wallet_balance?: components["schemas"]["Rupiah"];

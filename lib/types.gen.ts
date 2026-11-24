@@ -98,7 +98,7 @@ export interface PublicEvent {
   description: string;
   location: string;
   event_date: string | null;
-  status: "coming_soon" | "published";
+  status: "coming_soon" | "published" | "finished";
   event_type: string;
   master_age_threshold: number;
   refund_cutoff_date: string | null;

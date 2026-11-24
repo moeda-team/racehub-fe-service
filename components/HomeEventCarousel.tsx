@@ -72,6 +72,7 @@ export default function HomeEventCarousel({ events }: { events: PublicEvent[] })
           bannerUrl={event.banner_url}
           color={event.color || undefined}
           comingSoon={event.status === "coming_soon"}
+          finished={event.status === "finished"}
         />
       </div>
       <div className="home-event-carousel-controls">

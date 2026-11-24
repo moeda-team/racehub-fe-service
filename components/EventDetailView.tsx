@@ -32,6 +32,7 @@ export default function EventDetailView({
 }) {
   const { event, categories, ticket_categories } = detail;
   const isComingSoon = event.status === "coming_soon";
+  const isFinished = event.status === "finished";
   // Snapshot waktu saat render pertama - server tetap memvalidasi ulang periode penjualan.
   const [now] = useState(() => Date.now());
 
@@ -57,8 +58,13 @@ export default function EventDetailView({
   ];
 
   const cta = (
-    <Button variant="primary" size="lg" style={{ width: "100%" }} disabled={!interactive || isComingSoon}>
-      {isComingSoon ? "Pendaftaran Belum Dibuka" : "Daftar Sekarang"}
+    <Button
+      variant="primary"
+      size="lg"
+      style={{ width: "100%" }}
+      disabled={!interactive || isComingSoon || isFinished}
+    >
+      {isComingSoon ? "Pendaftaran Belum Dibuka" : isFinished ? "Event Telah Selesai" : "Daftar Sekarang"}
     </Button>
   );
 
@@ -105,6 +111,7 @@ export default function EventDetailView({
 
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {isComingSoon && <Badge variant="warn">Segera Hadir</Badge>}
+        {isFinished && <Badge variant="neutral">Selesai</Badge>}
         {event.event_type === "running" && <Badge variant="sprint">Event Lari</Badge>}
         {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && <Badge variant="flame">Donasi Tersedia</Badge>}
       </div>
@@ -115,13 +122,19 @@ export default function EventDetailView({
         </Alert>
       )}
 
+      {isFinished && (
+        <Alert variant="info" className="mb-6">
+          Event ini telah selesai. Pendaftaran sudah ditutup.
+        </Alert>
+      )}
+
       {event.description && (
         <div style={{ marginBottom: 24 }}>
           <RichText html={event.description} />
         </div>
       )}
 
-      {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && interactive && !isComingSoon && (
+      {PUBLIC_DONATIONS_ENABLED && event.donation_enabled && interactive && !isComingSoon && !isFinished && (
         <ButtonLink
           href={`/donate/${event.id}`}
           variant="secondary"
@@ -232,7 +245,7 @@ export default function EventDetailView({
                   {tickets.map((t) => {
                     const expired = !!t.sale_end && new Date(t.sale_end).getTime() < now;
                     const isSoldOut = t.quota_remaining !== undefined && t.quota_remaining <= 0;
-                    const isActionable = interactive && !isComingSoon && !expired && !isSoldOut;
+                    const isActionable = interactive && !isComingSoon && !isFinished && !expired && !isSoldOut;
                     const subtitle = t.name.toLowerCase().startsWith("tiket") ? t.name : `Tiket ${t.name}`;
 
                     return (
@@ -451,11 +464,13 @@ export default function EventDetailView({
                               >
                                 {isComingSoon
                                   ? "Pilih tiket"
-                                  : expired
-                                    ? "Berakhir"
-                                    : isSoldOut
-                                      ? "Habis"
-                                      : "Pilih tiket"}
+                                  : isFinished
+                                    ? "Selesai"
+                                    : expired
+                                      ? "Berakhir"
+                                      : isSoldOut
+                                        ? "Habis"
+                                        : "Pilih tiket"}
                               </button>
                             )}
                           </div>
@@ -470,7 +485,7 @@ export default function EventDetailView({
         )}
       </section>
 
-      {interactive && !isComingSoon ? (
+      {interactive && !isComingSoon && !isFinished ? (
         <ButtonLink href={`/register/${event.id}`} variant="primary" size="lg" style={{ width: "100%" }}>
           Daftar Sekarang
         </ButtonLink>
