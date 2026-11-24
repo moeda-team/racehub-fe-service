@@ -5028,6 +5028,21 @@ function StatusSection({
             Publikasikan
           </Button>
         )}
+        {isPublished && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={() =>
+              transition(
+                "finished",
+                "Tandai event ini sebagai selesai? Event yang telah selesai akan dikunci dan tidak dapat diubah lagi.",
+              )
+            }
+          >
+            Selesaikan Event
+          </Button>
+        )}
         {(isDraft || isComingSoon || isPublished) && (
           <Button
             variant="danger"
