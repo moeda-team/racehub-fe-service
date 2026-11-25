@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api";
 import { formatNumberInput, formatRupiah, parseNumberInput } from "@/lib/format";
 import type {
   ApiResponse,
+  Category,
   EventVoucher,
   EventVoucherRequest,
   TicketCategory,
@@ -19,6 +20,8 @@ import { confirm } from "@/components/ui/ConfirmDialog";
 interface EventVoucherManagerProps {
   eventId: string;
   tickets: TicketCategory[];
+  /** Race/distance categories; tickets are grouped under these. */
+  categories: Category[];
   /** Finished/cancelled events are read-only on the backend. */
   locked: boolean;
 }
@@ -51,7 +54,7 @@ const EMPTY_FORM: VoucherFormState = {
   isActive: true,
 };
 
-export default function EventVoucherManager({ eventId, tickets, locked }: EventVoucherManagerProps) {
+export default function EventVoucherManager({ eventId, tickets, categories, locked }: EventVoucherManagerProps) {
   const [vouchers, setVouchers] = useState<EventVoucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -176,7 +179,12 @@ export default function EventVoucherManager({ eventId, tickets, locked }: EventV
     }
   }
 
-  const ticketName = (ticketId: string) => tickets.find((t) => t.id === ticketId)?.name ?? "Tiket dihapus";
+  const ticketName = (ticketId: string) => {
+    const ticket = tickets.find((t) => t.id === ticketId);
+    if (!ticket) return "Tiket dihapus";
+    const category = categories.find((c) => c.id === ticket.category_id);
+    return category ? `${category.name} - ${ticket.name}` : ticket.name;
+  };
 
   return (
     <div style={panel}>
@@ -218,6 +226,7 @@ export default function EventVoucherManager({ eventId, tickets, locked }: EventV
           form={form}
           onChange={setForm}
           tickets={tickets}
+          categories={categories}
           isEdit={editingId !== ""}
           error={formError}
           saving={saving}
@@ -286,10 +295,31 @@ export default function EventVoucherManager({ eventId, tickets, locked }: EventV
   );
 }
 
+interface TicketGroup {
+  id: string;
+  name: string;
+  tickets: TicketCategory[];
+}
+
+/** Groups tickets under their race category, keeping category order; orphans go last. */
+function groupTicketsByCategory(tickets: TicketCategory[], categories: Category[]): TicketGroup[] {
+  const groups = categories
+    .map((category) => ({
+      id: category.id,
+      name: category.name,
+      tickets: tickets.filter((ticket) => ticket.category_id === category.id),
+    }))
+    .filter((group) => group.tickets.length > 0);
+  const known = new Set(categories.map((category) => category.id));
+  const orphans = tickets.filter((ticket) => !known.has(ticket.category_id));
+  return orphans.length > 0 ? [...groups, { id: "_other", name: "Lainnya", tickets: orphans }] : groups;
+}
+
 interface VoucherFormProps {
   form: VoucherFormState;
   onChange: (form: VoucherFormState) => void;
   tickets: TicketCategory[];
+  categories: Category[];
   isEdit: boolean;
   error: string | null;
   saving: boolean;
@@ -297,10 +327,12 @@ interface VoucherFormProps {
   onCancel: () => void;
 }
 
-function VoucherForm({ form, onChange, tickets, isEdit, error, saving, onSubmit, onCancel }: VoucherFormProps) {
+function VoucherForm({ form, onChange, tickets, categories, isEdit, error, saving, onSubmit, onCancel }: VoucherFormProps) {
   const set = <K extends keyof VoucherFormState>(key: K, value: VoucherFormState[K]) =>
     onChange({ ...form, [key]: value });
   const isPercent = form.discountType === "percent";
+
+  const ticketGroups = groupTicketsByCategory(tickets, categories);
 
   function toggleTicket(ticketId: string, checked: boolean) {
     const next = checked
@@ -385,22 +417,40 @@ function VoucherForm({ form, onChange, tickets, isEdit, error, saving, onSubmit,
         <p style={{ fontSize: 12, color: "var(--color-ink-3)", margin: "0 0 8px" }}>
           Tidak memilih apa pun berarti voucher berlaku untuk semua tiket.
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 18px" }}>
-          {tickets.map((ticket) => (
-            <label key={ticket.id} style={checkLabel}>
-              <input
-                type="checkbox"
-                checked={form.ticketCategoryIds.includes(ticket.id)}
-                onChange={(e) => toggleTicket(ticket.id, e.target.checked)}
-              />
-              {ticket.name}
-            </label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {ticketGroups.map((group) => (
+            <div key={group.id}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-ink-2)", marginBottom: 4 }}>
+                {group.name}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 18px" }}>
+                {group.tickets.map((ticket) => (
+                  <label key={ticket.id} style={checkLabel}>
+                    <input
+                      type="checkbox"
+                      checked={form.ticketCategoryIds.includes(ticket.id)}
+                      onChange={(e) => toggleTicket(ticket.id, e.target.checked)}
+                    />
+                    {ticket.name}
+                  </label>
+                ))}
+              </div>
+            </div>
           ))}
           {tickets.length === 0 && <span style={{ fontSize: 13, color: "var(--color-ink-3)" }}>Belum ada tiket.</span>}
         </div>
       </fieldset>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 14 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          marginTop: 16,
+          paddingTop: 16,
+          borderTop: "1px solid var(--color-line)",
+        }}
+      >
         <label style={checkLabel}>
           <input type="checkbox" checked={form.oncePerEmail} onChange={(e) => set("oncePerEmail", e.target.checked)} />
           Satu email hanya boleh memakai voucher ini sekali

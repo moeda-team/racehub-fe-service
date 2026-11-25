@@ -362,6 +362,7 @@ export default function EditEventPage({ params }: { params: Promise<{ id: string
           <EventVoucherManager
             eventId={eventId}
             tickets={detail.ticket_categories ?? []}
+            categories={detail.categories ?? []}
             locked={event.status === "finished" || event.status === "cancelled"}
           />
         )}
